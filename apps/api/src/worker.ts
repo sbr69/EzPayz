@@ -3,10 +3,11 @@ import { Worker } from "bullmq";
 import { getRedisConnection } from "./queues/connection";
 import { relayAndSettle } from "./services/relayer";
 import { renewAndSettle } from "./services/renewal";
+import { relayAndSettleRefund } from "./services/refund";
 import { dispatchWebhookEvent } from "./services/webhook";
 import { processEmail } from "./services/email";
 import { getRelayerQueue } from "./queues";
-import type { RelayPaymentJob, RenewalJob } from "./queues";
+import type { RelayPaymentJob, RenewalJob, RefundJob } from "./queues";
 import { prisma } from "./db/client";
 
 /**
@@ -27,6 +28,12 @@ const relayerWorker = new Worker(
       const data = job.data as RenewalJob;
       const result = await renewAndSettle(data);
       job.log(`renewed txHash=${result.txHash} settled=${result.settled}`);
+      return result;
+    }
+    if (job.name === "refund-relay") {
+      const data = job.data as RefundJob;
+      const result = await relayAndSettleRefund(data);
+      job.log(`refund txHash=${result.txHash} settled=${result.settled}`);
       return result;
     }
     throw new Error(`Unknown relayer job name: ${job.name}`);

@@ -46,3 +46,18 @@ export interface RenewalJob {
   amount: string;
   customerId: string;
 }
+
+// The job payload for a refund relay (relayer submits the merchant's EIP-3009 authorization
+// for the refund transfer merchant → original payer).
+export interface RefundJob {
+  refundId: string;
+  merchantId: string;
+  from: string;
+  to: string;
+  value: string;
+  validAfter: string;
+  validBefore: string;
+  nonce: string;
+  signature: string;
+  paymentId: string;
+}

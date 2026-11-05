@@ -69,7 +69,7 @@ export async function checkoutRoutes(app: FastifyInstance): Promise<void> {
         expectedAmount: paymentIntent.amount,
         auth,
       });
-      await markAuthorized(paymentIntent.id, auth.nonce);
+      await markAuthorized(paymentIntent.id, auth.nonce, auth.from);
       const job: RelayPaymentJob = {
         paymentIntentId: paymentIntent.id,
         merchantId: session.merchantId,

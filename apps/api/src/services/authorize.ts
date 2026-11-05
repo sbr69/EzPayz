@@ -102,10 +102,10 @@ export async function validateAndBindAuthorization(opts: {
   return { ok: true };
 }
 
-/** Marks the intent authorized + records the authorization ref. */
-export async function markAuthorized(paymentIntentId: string, nonce: string): Promise<void> {
+/** Marks the intent authorized + records the authorization ref + payer wallet. */
+export async function markAuthorized(paymentIntentId: string, nonce: string, payerWallet?: string): Promise<void> {
   await prisma.paymentIntent.update({
     where: { id: paymentIntentId },
-    data: { status: "authorized", authorizationRef: nonce },
+    data: { status: "authorized", authorizationRef: nonce, ...(payerWallet ? { payerWallet } : {}) },
   });
 }
