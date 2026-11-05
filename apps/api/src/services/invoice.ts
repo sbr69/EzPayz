@@ -9,8 +9,11 @@ export async function createInvoice(opts: {
   merchantDisplayName: string;
   merchantPayoutWallet: string;
   customerEmail: string;
+  customerId?: string;
   title: string;
   description?: string;
+  orderReference?: string;
+  expiresAt?: Date;
   lineItems: { description: string; quantity: number; unitPrice: string }[];
 }) {
   let total = 0n;
@@ -20,9 +23,12 @@ export async function createInvoice(opts: {
   const invoice = await prisma.invoice.create({
     data: {
       merchantId: opts.merchantId,
+      customerId: opts.customerId,
       customerEmail: opts.customerEmail,
       title: opts.title,
       description: opts.description ?? "",
+      orderReference: opts.orderReference,
+      expiresAt: opts.expiresAt,
       total: totalStr,
       status: "open",
       lineItems: { create: opts.lineItems },

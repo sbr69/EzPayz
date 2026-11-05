@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { api } from "@/services";
 import { realApi } from "@/services/api/adapter";
+import { apiFetch } from "@/services/api/http";
 import { useDemo } from "@/store/demoStore";
 import { useWallet } from "@/contexts/WalletContext";
 import { DEFAULT_NETWORK, TOKEN, WALLET_DISCLOSURE } from "@/config/app";
@@ -360,6 +361,8 @@ export function CheckoutSettings() {
   const [form, setForm] = useState({
     displayName: data.merchant.displayName,
     description: data.merchant.description,
+    logoText: data.merchant.logoText ?? "",
+    accentColor: data.merchant.accentColor ?? "#0ea5e9",
     returnUrl: "https://northwind-labs.example/thanks",
     checkoutTitle: "Complete your payment",
   });
@@ -435,9 +438,23 @@ export function CheckoutSettings() {
           loading={saving}
           onClick={async () => {
             setSaving(true);
-            await patch({ displayName: form.displayName, description: form.description });
-            setSaving(false);
-            pushToast({ title: "Checkout configuration saved", tone: "success" });
+            try {
+              await apiFetch("/v1/merchants/me", {
+                method: "PATCH",
+                body: JSON.stringify({
+                  displayName: form.displayName,
+                  description: form.description,
+                  logoText: form.logoText,
+                  accentColor: form.accentColor,
+                }),
+              });
+              patch({ displayName: form.displayName, description: form.description, logoText: form.logoText, accentColor: form.accentColor });
+              pushToast({ title: "Checkout configuration saved", tone: "success" });
+            } catch (e) {
+              pushToast({ title: "Save failed", body: (e as Error).message, tone: "error" });
+            } finally {
+              setSaving(false);
+            }
           }}
         >
           Save configuration

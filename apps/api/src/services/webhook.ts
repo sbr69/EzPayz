@@ -2,6 +2,7 @@ import { createHmac } from "node:crypto";
 import { Prisma } from "../db/generated";
 import { prisma } from "../db/client";
 import { getWebhookQueue } from "../queues";
+import { decrypt } from "../utils/crypto";
 
 /**
  * Webhook dispatcher: transactional outbox + HMAC-SHA256 signed delivery + retries.
@@ -52,7 +53,9 @@ export async function dispatchWebhookEvent(opts: {
 
   for (const ep of endpoints) {
     if (!ep.eventTypes.includes(opts.type)) continue;
-    const signature = signWebhookPayload(ep.signingSecretHash, payloadStr);
+    // Decrypt the signing secret (was encrypted at rest with AES-256-GCM).
+    const signingSecret = decrypt(ep.signingSecretHash);
+    const signature = signWebhookPayload(signingSecret, payloadStr);
     const event = await prisma.webhookEvent.create({
       data: {
         merchantId: opts.merchantId,

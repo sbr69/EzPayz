@@ -16,6 +16,8 @@ const createSchema = z.object({
   amount: decimalAmount.optional(),
   minAmount: decimalAmount.optional(),
   maxAmount: decimalAmount.optional(),
+  reference: z.string().optional(),
+  returnUrl: z.string().url().optional(),
 });
 
 export async function paymentLinkRoutes(app: FastifyInstance): Promise<void> {

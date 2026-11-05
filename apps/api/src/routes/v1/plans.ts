@@ -11,6 +11,9 @@ const createSchema = z.object({
   name: z.string().min(1),
   description: z.string().default(""),
   amount: decimalAmount,
+  billingMode: z.enum(["fixed", "usage"]).default("fixed"),
+  unitLabel: z.string().optional(),
+  unitPrice: decimalAmount.optional(),
   interval: z.enum(["hourly", "daily", "monthly"]).default("monthly"),
   maxChargePerCycle: decimalAmount,
   cumulativeLimit: decimalAmount,
@@ -29,6 +32,9 @@ export async function planRoutes(app: FastifyInstance): Promise<void> {
       name: parsed.data.name,
       description: parsed.data.description,
       amount: parseHumanAmount(parsed.data.amount),
+      billingMode: parsed.data.billingMode,
+      unitLabel: parsed.data.unitLabel,
+      unitPrice: parsed.data.unitPrice ? parseHumanAmount(parsed.data.unitPrice) : undefined,
       interval: parsed.data.interval,
       maxChargePerCycle: parseHumanAmount(parsed.data.maxChargePerCycle),
       cumulativeLimit: parseHumanAmount(parsed.data.cumulativeLimit),
@@ -39,6 +45,13 @@ export async function planRoutes(app: FastifyInstance): Promise<void> {
     const key = (req.headers["idempotency-key"] as string).trim();
     await recordIdempotency(req.merchantId!, key, "plan", plan.id);
     return reply.code(201).send({ id: plan.id, name: plan.name });
+  });
+
+  app.get("/:id", { preHandler: [app.authenticate] }, async (req, reply) => {
+    const id = (req.params as { id: string }).id;
+    const plan = await prisma.subscriptionPlan.findFirst({ where: { id, merchantId: req.merchantId! } });
+    if (!plan) return reply.code(404).send({ error: { code: "not_found", message: "Plan not found" } });
+    return { plan };
   });
 
   app.get("/", { preHandler: [app.authenticate] }, async (req) => {

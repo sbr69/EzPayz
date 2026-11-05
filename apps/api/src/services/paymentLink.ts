@@ -10,6 +10,8 @@ export async function createPaymentLink(opts: {
   amount?: string;
   minAmount?: string;
   maxAmount?: string;
+  reference?: string;
+  returnUrl?: string;
 }) {
   const slug = "pl_" + randomBytes(6).toString("hex");
   return prisma.paymentLink.create({
@@ -22,6 +24,8 @@ export async function createPaymentLink(opts: {
       amount: opts.amount,
       minAmount: opts.minAmount,
       maxAmount: opts.maxAmount,
+      reference: opts.reference,
+      returnUrl: opts.returnUrl,
       active: true,
     },
   });

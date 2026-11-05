@@ -11,8 +11,11 @@ const decimalPrice = z.string().regex(/^\d+(\.\d{1,6})?$/, "unitPrice must be a 
 
 const createSchema = z.object({
   customerEmail: z.string().email(),
+  customerId: z.string().optional(),
   title: z.string().min(1),
   description: z.string().default(""),
+  orderReference: z.string().optional(),
+  expiresAt: z.string().datetime().optional(),
   lineItems: z.array(z.object({ description: z.string(), quantity: z.number().int().min(1), unitPrice: decimalPrice })).min(1),
 });
 
@@ -31,8 +34,11 @@ export async function invoiceRoutes(app: FastifyInstance): Promise<void> {
       merchantDisplayName: merchant.displayName,
       merchantPayoutWallet: merchant.payoutWallet,
       customerEmail: parsed.data.customerEmail,
+      customerId: parsed.data.customerId,
       title: parsed.data.title,
       description: parsed.data.description,
+      orderReference: parsed.data.orderReference,
+      expiresAt: parsed.data.expiresAt ? new Date(parsed.data.expiresAt) : undefined,
       lineItems: parsed.data.lineItems.map((li) => ({ ...li, unitPrice: parseHumanAmount(li.unitPrice) })),
     });
     const key = (req.headers["idempotency-key"] as string).trim();
@@ -66,5 +72,33 @@ export async function invoiceRoutes(app: FastifyInstance): Promise<void> {
     reply.type("application/pdf");
     reply.header("Content-Disposition", `attachment; filename="receipt-${id}.pdf"`);
     return reply.send(pdf);
+  });
+
+  // POST /v1/invoices/:id/checkout — create a payment intent from an invoice's line items.
+  // The merchant can share the resulting checkout URL with the customer to pay the invoice.
+  app.post("/:id/checkout", { preHandler: [app.authenticate, app.requireSecretKey] }, async (req, reply) => {
+    const id = (req.params as { id: string }).id;
+    const invoice = await prisma.invoice.findFirst({ where: { id, merchantId: req.merchantId! } });
+    if (!invoice) return reply.code(404).send({ error: { code: "not_found", message: "Invoice not found" } });
+    if (invoice.status === "paid") {
+      return reply.code(409).send({ error: { code: "already_paid", message: "Invoice has already been paid" } });
+    }
+    const merchant = await prisma.merchant.findUnique({ where: { id: req.merchantId! } });
+    if (!merchant?.payoutWallet) {
+      return reply.code(400).send({ error: { code: "no_payout_wallet", message: "Merchant has no payout wallet set" } });
+    }
+    const { createPaymentIntent } = await import("../../services/paymentIntent");
+    const { intentId, checkoutSlug, clientSecret } = await createPaymentIntent({
+      merchantId: req.merchantId!,
+      merchantDisplayName: merchant.displayName,
+      merchantPayoutWallet: merchant.payoutWallet,
+      amount: invoice.total,
+      description: `Invoice: ${invoice.title}`,
+      customerEmail: invoice.customerEmail,
+      customerId: invoice.customerId ?? undefined,
+    });
+    // Link the invoice to the payment intent.
+    await prisma.invoice.update({ where: { id: invoice.id }, data: { paymentId: intentId } });
+    return reply.code(201).send({ paymentIntentId: intentId, checkoutSlug, clientSecret, checkoutUrl: `/real-checkout/${checkoutSlug}` });
   });
 }

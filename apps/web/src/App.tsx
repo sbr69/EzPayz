@@ -33,8 +33,6 @@ import {
   SecuritySettings,
   WalletSettings,
 } from "@/features/settings/SettingsPages";
-import Checkout from "@/features/checkout/Checkout";
-import SubscriptionCheckout from "@/features/checkout/SubscriptionCheckout";
 import { ReceiptPage } from "@/features/checkout/Receipt";
 import { CustomerSubscriptionPage } from "@/features/customer/CustomerSubscription";
 import Roadmap from "@/features/roadmap/Roadmap";
@@ -94,11 +92,13 @@ export function App() {
           </Route>
 
           {/* Customer-facing experiences (standalone layout) */}
-          <Route path="/checkout/:sessionId" element={<Checkout />} />
+          {/* Legacy mock routes redirect to real ones */}
+          <Route path="/checkout/:sessionId" element={<Navigate to="/sign-in" replace />} />
+          <Route path="/subscribe/:planId" element={<Navigate to="/sign-in" replace />} />
+          {/* Real customer-facing routes */}
           <Route path="/l/:slug" element={<PaymentLinkResolver />} />
           <Route path="/real-checkout/:slug" element={<RealCheckout />} />
           <Route path="/real-subscription-checkout/:slug" element={<RealSubscriptionCheckout />} />
-          <Route path="/subscribe/:planId" element={<SubscriptionCheckout />} />
           <Route path="/receipt/:id" element={<ReceiptPage />} />
           <Route path="/customer/subscriptions/:id" element={<CustomerSubscriptionPage />} />
           <Route path="/order/:id" element={<CustomerOrderView />} />

@@ -21,6 +21,7 @@ export async function createPaymentIntent(opts: {
   amount: string; // base units (string)
   description: string;
   customerEmail?: string;
+  customerId?: string;
   expiresAt?: Date;
   successUrl?: string;
   cancelUrl?: string;
@@ -33,6 +34,7 @@ export async function createPaymentIntent(opts: {
   const intent = await prisma.paymentIntent.create({
     data: {
       merchantId: opts.merchantId,
+      customerId: opts.customerId,
       customerEmail: opts.customerEmail,
       description: opts.description,
       amount: opts.amount,

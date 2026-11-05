@@ -6,6 +6,7 @@ import { parsePagination, cursorPrismaArgs, paginate } from "../../utils/paginat
 const createSchema = z.object({
   email: z.string().email(),
   name: z.string().min(1).optional(),
+  wallet: z.string().regex(/^0x[a-fA-F0-9]{40}$/).optional(),
 });
 
 export async function customerRoutes(app: FastifyInstance): Promise<void> {
@@ -20,6 +21,7 @@ export async function customerRoutes(app: FastifyInstance): Promise<void> {
         merchantId: req.merchantId!,
         email: parsed.data.email,
         name: parsed.data.name ?? "",
+        wallet: parsed.data.wallet,
       },
     });
     return reply.code(201).send({ id: customer.id, email: customer.email, name: customer.name });
