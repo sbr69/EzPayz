@@ -52,7 +52,7 @@ function SettingsNav() {
         <Link
           key={i.to}
           to={i.to}
-          className="flex shrink-0 items-center gap-2.5 rounded-md px-3 py-2 text-[13px] font-medium text-ink-2 transition-colors hover:bg-canvas-alt hover:text-ink"
+          className="flex shrink-0 items-center gap-2.5 rounded-md px-3 py-2 text-[15px] font-medium text-ink-2 transition-colors hover:bg-canvas-alt hover:text-ink"
         >
           <i.icon className="h-4 w-4 shrink-0 text-ink-4" strokeWidth={1.9} />
           {i.label}
@@ -108,7 +108,7 @@ export function BusinessSettings() {
               {logo ? (
                 <img src={logo} alt="Business logo" className="h-full w-full object-cover" />
               ) : (
-                <span className="text-[15px] font-bold text-ink-2">{merchant.logoText}</span>
+                <span className="text-[17px] font-bold text-ink-2">{merchant.logoText}</span>
               )}
             </div>
             <div className="flex flex-wrap gap-2">
@@ -218,7 +218,7 @@ export function BusinessSettings() {
         <CardHeader title="Workspace" />
         <div className="px-5 py-2">
           <KeyValue label="Merchant ID">
-            <code className="font-mono text-[11.5px]">{merchant.id}</code>
+            <code className="font-mono text-[13px]">{merchant.id}</code>
             <CopyButton value={merchant.id} label="Copy" size="xs" />
           </KeyValue>
           <KeyValue label="Environment">
@@ -261,7 +261,7 @@ export function WalletSettings() {
         <div className="space-y-4 px-5 py-4">
           <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-line bg-canvas/60 p-4">
             <div>
-              <p className="text-[11px] uppercase tracking-wide text-ink-4">Payout address</p>
+              <p className="text-[13px] uppercase tracking-wide text-ink-4">Payout address</p>
               <AddressDisplay address={data.merchant.payoutWallet} full className="mt-1" />
             </div>
             <StatusBadge
@@ -274,14 +274,14 @@ export function WalletSettings() {
             <KeyValue label="Chain ID">{DEFAULT_NETWORK.chainId}</KeyValue>
             <KeyValue label="Settlement asset">{TOKEN.symbol}</KeyValue>
             <KeyValue label="Token contract">
-              <code className="break-all font-mono text-[11px]">{TOKEN.contract}</code>
+              <code className="break-all font-mono text-[13px]">{TOKEN.contract}</code>
             </KeyValue>
             <KeyValue label="Verified at">{fmtDateTime(data.merchant.walletVerifiedAt)}</KeyValue>
             <KeyValue label="Gas currency">{DEFAULT_NETWORK.currency.symbol}</KeyValue>
           </div>
         </div>
         <div className="border-t border-line px-5 py-3">
-          <p className="text-[11.5px] leading-relaxed text-ink-4">{WALLET_DISCLOSURE}</p>
+          <p className="text-[13px] leading-relaxed text-ink-4">{WALLET_DISCLOSURE}</p>
         </div>
       </Card>
 
@@ -290,16 +290,16 @@ export function WalletSettings() {
         <div className="space-y-3 px-5 py-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <p className="text-[13px] font-semibold text-ink">
+              <p className="text-[15px] font-semibold text-ink">
                 {wallet.address ? wallet.providerName : "No wallet connected"}
               </p>
               {wallet.address ? (
-                <code className="font-mono text-[11.5px] text-ink-3">{wallet.address}</code>
+                <code className="font-mono text-[13px] text-ink-3">{wallet.address}</code>
               ) : (
-                <p className="text-[12px] text-ink-3">Connect a wallet to authorize refunds.</p>
+                <p className="text-[14px] text-ink-3">Connect a wallet to authorize refunds.</p>
               )}
               {wallet.simulated && wallet.address ? (
-                <p className="mt-1 text-[11.5px] text-warn">Simulation fallback — no browser wallet detected.</p>
+                <p className="mt-1 text-[13px] text-warn">Simulation fallback — no browser wallet detected.</p>
               ) : null}
             </div>
             {wallet.address ? (
@@ -362,7 +362,7 @@ export function WalletSettings() {
       >
         <div className="space-y-4">
           <div className="space-y-2">
-            <p className="text-[12.5px] font-medium text-ink-2">Option 1 — connect a wallet</p>
+            <p className="text-[14px] font-medium text-ink-2">Option 1 — connect a wallet</p>
             <Button variant="secondary" onClick={wallet.connect} loading={wallet.busy} disabled={Boolean(wallet.address)}>
               {wallet.address ? `Connected: ${wallet.address.slice(0, 10)}…` : "Connect wallet"}
             </Button>
@@ -445,16 +445,16 @@ export function CheckoutSettings() {
         <div className="px-5 py-4">
           <div className="rounded-md border border-line bg-canvas p-4">
             <div className="flex items-center gap-2.5">
-              <span className="flex h-8 w-8 items-center justify-center rounded-md bg-ink text-[11px] font-bold text-white">
+              <span className="flex h-8 w-8 items-center justify-center rounded-md bg-ink text-[13px] font-bold text-white">
                 {data.merchant.logoText}
               </span>
               <div>
-                <p className="text-[12.5px] font-semibold text-ink">{form.displayName}</p>
-                <p className="text-[11px] text-ink-4">{DEFAULT_NETWORK.name}</p>
+                <p className="text-[14px] font-semibold text-ink">{form.displayName}</p>
+                <p className="text-[13px] text-ink-4">{DEFAULT_NETWORK.name}</p>
               </div>
             </div>
-            <p className="mt-4 text-[14px] font-semibold text-ink">{form.checkoutTitle}</p>
-            <p className="mt-1 text-[12.5px] text-ink-3">{form.description}</p>
+            <p className="mt-4 text-[16px] font-semibold text-ink">{form.checkoutTitle}</p>
+            <p className="mt-1 text-[14px] text-ink-3">{form.description}</p>
           </div>
         </div>
       </Card>
@@ -514,8 +514,8 @@ export function NotificationSettings() {
           {rows.map(([key, title, desc]) => (
             <div key={key} className="flex items-start justify-between gap-4 rounded-md border border-line p-3.5">
               <div>
-                <p className="text-[13px] font-medium text-ink">{title}</p>
-                <p className="mt-0.5 text-[12px] leading-relaxed text-ink-3">{desc}</p>
+                <p className="text-[15px] font-medium text-ink">{title}</p>
+                <p className="mt-0.5 text-[14px] leading-relaxed text-ink-3">{desc}</p>
               </div>
               <Switch
                 checked={Boolean(prefs[key])}
@@ -585,18 +585,18 @@ export function SecuritySettings() {
   return (
     <SettingsShell title="Security" description="API credentials, signing keys and security events for this workspace.">
       <Card>
-        <CardHeader title="Active API keys" actions={<Link to="/developers/api-keys" className="text-[12px] font-medium text-accent hover:underline">Manage keys</Link>} />
+        <CardHeader title="Active API keys" actions={<Link to="/developers/api-keys" className="text-[14px] font-medium text-accent hover:underline">Manage keys</Link>} />
         <div className="divide-y divide-line">
           {data.apiKeys.map((k) => (
             <div key={k.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
               <div className="min-w-0">
-                <p className="text-[12.5px] font-medium text-ink">{k.name}</p>
-                <code className="font-mono text-[11px] text-ink-4">{k.publishable}</code>
+                <p className="text-[14px] font-medium text-ink">{k.name}</p>
+                <code className="font-mono text-[13px] text-ink-4">{k.publishable}</code>
               </div>
               <div className="flex items-center gap-3">
-                <code className="font-mono text-[11.5px] text-ink-4">••••{k.secretLast4}</code>
+                <code className="font-mono text-[13px] text-ink-4">••••{k.secretLast4}</code>
                 <StatusBadge label={k.status === "active" ? "Active" : "Revoked"} tone={k.status === "active" ? "positive" : "neutral"} />
-                <span className="text-[11.5px] text-ink-4">last used {timeAgo(k.lastUsedAt)}</span>
+                <span className="text-[13px] text-ink-4">last used {timeAgo(k.lastUsedAt)}</span>
               </div>
             </div>
           ))}
@@ -609,8 +609,8 @@ export function SecuritySettings() {
           <div className="rounded-md border border-line bg-canvas/60 p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="font-mono text-[13px] font-semibold text-ink">gwk_2F91A</p>
-                <p className="text-[11.5px] text-ink-3">Activated {fmtDateTime(new Date(Date.now() - 30 * 86400_000).toISOString())}</p>
+                <p className="font-mono text-[15px] font-semibold text-ink">gwk_2F91A</p>
+                <p className="text-[13px] text-ink-3">Activated {fmtDateTime(new Date(Date.now() - 30 * 86400_000).toISOString())}</p>
               </div>
               <StatusBadge label="Active" tone="positive" />
             </div>
@@ -624,8 +624,8 @@ export function SecuritySettings() {
           <div className="rounded-md border border-line p-4 opacity-70">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="font-mono text-[13px] font-semibold text-ink">gwk_1C07D</p>
-                <p className="text-[11.5px] text-ink-3">Previous key, retained so older requests still verify</p>
+                <p className="font-mono text-[15px] font-semibold text-ink">gwk_1C07D</p>
+                <p className="text-[13px] text-ink-3">Previous key, retained so older requests still verify</p>
               </div>
               <StatusBadge label="Retired" tone="neutral" />
             </div>
@@ -637,13 +637,13 @@ export function SecuritySettings() {
       </Card>
 
       <Card>
-        <CardHeader title="Webhook signing secrets" actions={<Link to="/developers/webhooks" className="text-[12px] font-medium text-accent hover:underline">Manage endpoints</Link>} />
+        <CardHeader title="Webhook signing secrets" actions={<Link to="/developers/webhooks" className="text-[14px] font-medium text-accent hover:underline">Manage endpoints</Link>} />
         <div className="divide-y divide-line">
           {data.webhookEndpoints.map((e) => (
             <div key={e.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
-              <code className="min-w-0 truncate font-mono text-[11.5px] text-ink-2">{e.url}</code>
+              <code className="min-w-0 truncate font-mono text-[13px] text-ink-2">{e.url}</code>
               <div className="flex items-center gap-2">
-                <code className="font-mono text-[11.5px] text-ink-4">whsec_••••{e.signingSecretLast4}</code>
+                <code className="font-mono text-[13px] text-ink-4">whsec_••••{e.signingSecretLast4}</code>
                 <Button size="sm" variant="ghost" onClick={() => setRevokeOpen(true)}>
                   Rotate
                 </Button>
@@ -659,7 +659,7 @@ export function SecuritySettings() {
           <KeyValue label="Session">Demo session stored in this browser</KeyValue>
           <KeyValue label="Authentication">Simulated — no identity provider</KeyValue>
           <KeyValue label="Merchant ID">
-            <code className="font-mono text-[11.5px]">{data.merchant.id}</code>
+            <code className="font-mono text-[13px]">{data.merchant.id}</code>
           </KeyValue>
           <KeyValue label="Environment">
             <Pill tone="warn">{data.merchant.environment}</Pill>
@@ -675,10 +675,10 @@ export function SecuritySettings() {
           {data.securityEvents.map((e) => (
             <li key={e.id} className="flex flex-wrap items-center justify-between gap-2 px-5 py-2.5">
               <div className="min-w-0">
-                <p className="text-[12.5px] font-medium text-ink">{e.event}</p>
-                <p className="truncate text-[11.5px] text-ink-3">{e.detail}</p>
+                <p className="text-[14px] font-medium text-ink">{e.event}</p>
+                <p className="truncate text-[13px] text-ink-3">{e.detail}</p>
               </div>
-              <span className="text-[11.5px] text-ink-4 tnum">
+              <span className="text-[13px] text-ink-4 tnum">
                 {fmtDateTime(e.at)} · {e.ip}
               </span>
             </li>
@@ -740,7 +740,7 @@ export function GasSponsorshipSettings() {
             <MiniStat label="Remaining" value={`${Math.max(0, data.gasGuard.merchantBudgetWbt - spent).toFixed(4)} WBT`} tone="warn" />
           </div>
           <div>
-            <div className="flex items-center justify-between text-[12px]">
+            <div className="flex items-center justify-between text-[14px]">
               <span className="text-ink-3">Budget used</span>
               <span className="font-medium text-ink tnum">{Math.round((spent / data.gasGuard.merchantBudgetWbt) * 100)}%</span>
             </div>
@@ -782,8 +782,8 @@ export function GasSponsorshipSettings() {
           ).map(([key, title, desc]) => (
             <div key={key} className="flex items-start justify-between gap-4 rounded-md border border-line p-3.5">
               <div>
-                <p className="text-[13px] font-medium text-ink">{title}</p>
-                <p className="mt-0.5 text-[12px] leading-relaxed text-ink-3">{desc}</p>
+                <p className="text-[15px] font-medium text-ink">{title}</p>
+                <p className="mt-0.5 text-[14px] leading-relaxed text-ink-3">{desc}</p>
               </div>
               <Switch checked={ops[key]} onChange={(v) => setOps({ ...ops, [key]: v })} label={title} />
             </div>
@@ -799,7 +799,7 @@ export function GasSponsorshipSettings() {
           <KeyValue label="Allowed network">{data.gasGuard.allowedNetwork}</KeyValue>
           <KeyValue label="Allowed token">{data.gasGuard.allowedToken}</KeyValue>
           <KeyValue label="Allowed contract">
-            <code className="break-all font-mono text-[11px]">{data.gasGuard.allowedContract}</code>
+            <code className="break-all font-mono text-[13px]">{data.gasGuard.allowedContract}</code>
           </KeyValue>
           <KeyValue label="Authorization expiry check">
             <StatusBadge label={data.gasGuard.authorisationExpiryCheck ? "Enforced" : "Disabled"} tone="positive" />
@@ -812,7 +812,7 @@ export function GasSponsorshipSettings() {
           </KeyValue>
         </div>
         <div className="border-t border-line px-5 py-3">
-          <p className="text-[11.5px] leading-relaxed text-ink-4">
+          <p className="text-[13px] leading-relaxed text-ink-4">
             Global relayer controls are restricted to the gateway operator. Merchants configure their own
             budget and limits only.{" "}
             <Link to="/gasguard" className="font-medium text-accent hover:underline">

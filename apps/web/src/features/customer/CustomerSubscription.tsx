@@ -37,14 +37,14 @@ export function CustomerSubscriptionPage() {
     <div className="min-h-screen bg-canvas">
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex h-16 max-w-4xl items-center gap-3 px-5">
-          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-ink text-[12px] font-bold text-white">
+          <span className="flex h-9 w-9 items-center justify-center rounded-md bg-ink text-[14px] font-bold text-white">
             {data.merchant.logoText}
           </span>
           <div className="min-w-0">
-            <p className="truncate text-[14px] font-semibold leading-tight text-ink">{data.merchant.displayName}</p>
-            <p className="text-[11.5px] text-ink-4">Your subscription</p>
+            <p className="truncate text-[16px] font-semibold leading-tight text-ink">{data.merchant.displayName}</p>
+            <p className="text-[13px] text-ink-4">Your subscription</p>
           </div>
-          <span className="ml-auto rounded border border-warn-line bg-warn-soft px-2 py-1 text-[11px] font-semibold text-warn">
+          <span className="ml-auto rounded border border-warn-line bg-warn-soft px-2 py-1 text-[13px] font-semibold text-warn">
             Demo · simulated
           </span>
         </div>
@@ -58,7 +58,7 @@ export function CustomerSubscriptionPage() {
             <>
               <StatusBadge label={SUBSCRIPTION_STATUS_META[subscription.status].label} tone={SUBSCRIPTION_TONES[subscription.status]} />
               <StatusBadge label={`Billed ${plan.interval}`} tone="neutral" dot={false} />
-              <span className="font-mono text-[11.5px] text-ink-4">{subscription.id}</span>
+              <span className="font-mono text-[13px] text-ink-4">{subscription.id}</span>
             </>
           }
           actions={
@@ -125,7 +125,7 @@ export function CustomerSubscriptionPage() {
               </KeyValue>
             </div>
             <div className="border-t border-line px-5 py-3">
-              <p className="text-[11.5px] leading-relaxed text-ink-4">
+              <p className="text-[13px] leading-relaxed text-ink-4">
                 The merchant can never charge more than the per-cycle cap, and never more in total than the
                 cumulative limit you approved.
               </p>
@@ -137,14 +137,14 @@ export function CustomerSubscriptionPage() {
           <CardHeader title="Wallet and gas" />
           <div className="space-y-3 px-5 py-4">
             <div>
-              <p className="text-[11px] uppercase tracking-wide text-ink-4">Your wallet</p>
+              <p className="text-[13px] uppercase tracking-wide text-ink-4">Your wallet</p>
               <AddressDisplay address={customer?.wallet} full className="mt-1" />
             </div>
             <Callout tone="warn" title="Gas you pay">
               {SUBSCRIPTION_GAS_DISCLOSURE} Cancellation and allowance revocation are also customer-paid
               transactions on {DEFAULT_NETWORK.name}.
             </Callout>
-            <p className="text-[11.5px] leading-relaxed text-ink-4">
+            <p className="text-[13px] leading-relaxed text-ink-4">
               Renewals are submitted by the gateway relayer, so you do not pay gas for recurring charges.
             </p>
           </div>
@@ -159,11 +159,11 @@ export function CustomerSubscriptionPage() {
               {subscription.billingHistory.map((b) => (
                 <li key={b.paymentId} className="flex items-center justify-between gap-3 px-5 py-3">
                   <div>
-                    <code className="font-mono text-[12px] text-ink">{b.paymentId}</code>
-                    <p className="text-[11.5px] text-ink-3 tnum">{fmtDateTime(b.at)}</p>
+                    <code className="font-mono text-[14px] text-ink">{b.paymentId}</code>
+                    <p className="text-[13px] text-ink-3 tnum">{fmtDateTime(b.at)}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <AmountDisplay base={b.amount} className="text-[12.5px]" />
+                    <AmountDisplay base={b.amount} className="text-[14px]" />
                     <StatusBadge label={b.status} tone="positive" />
                   </div>
                 </li>
@@ -207,21 +207,21 @@ export function CustomerSubscriptionPage() {
           <CardHeader title="Two separate actions" />
           <div className="grid gap-3 p-4 sm:grid-cols-2">
             <div className="rounded-md border border-line p-3.5">
-              <p className="flex items-center gap-1.5 text-[12.5px] font-semibold text-ink">
+              <p className="flex items-center gap-1.5 text-[14px] font-semibold text-ink">
                 <Ban className="h-3.5 w-3.5 text-danger" />
                 Cancel subscription
               </p>
-              <p className="mt-1.5 text-[11.5px] leading-relaxed text-ink-3">
+              <p className="mt-1.5 text-[13px] leading-relaxed text-ink-3">
                 Stops future charges. You submit the cancellation transaction and normally pay WBT gas. Your
                 remaining allowance is <strong>not</strong> automatically revoked.
               </p>
             </div>
             <div className="rounded-md border border-line p-3.5">
-              <p className="flex items-center gap-1.5 text-[12.5px] font-semibold text-ink">
+              <p className="flex items-center gap-1.5 text-[14px] font-semibold text-ink">
                 <ShieldOff className="h-3.5 w-3.5 text-warn" />
                 Revoke remaining allowance
               </p>
-              <p className="mt-1.5 text-[11.5px] leading-relaxed text-ink-3">
+              <p className="mt-1.5 text-[13px] leading-relaxed text-ink-3">
                 Submits <code className="font-mono">approve(subscriptionContract, 0)</code> so no further
                 tokens can be pulled. You pay WBT gas for this transaction.
               </p>
@@ -234,11 +234,11 @@ export function CustomerSubscriptionPage() {
           your subscription — only the merchant can.
         </Callout>
 
-        <p className="flex items-center justify-center gap-1.5 text-center text-[11.5px] text-ink-4">
+        <p className="flex items-center justify-center gap-1.5 text-center text-[13px] text-ink-4">
           <Clock className="h-3.5 w-3.5" />
           Authorised in {TOKEN.symbol} on {DEFAULT_NETWORK.name} · demo transactions only
         </p>
-        <p className="text-center text-[11.5px] text-ink-4">
+        <p className="text-center text-[13px] text-ink-4">
           <Link to="/subscriptions" className="hover:text-ink">
             Merchant view of this subscription
           </Link>

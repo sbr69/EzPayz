@@ -176,12 +176,12 @@ export default function Onboarding() {
     <div className="min-h-screen bg-canvas">
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex h-16 max-w-3xl items-center gap-3 px-5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-[13px] font-bold text-white">
+          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-[15px] font-bold text-white">
             W
           </span>
           <div>
-            <p className="text-[14px] font-semibold leading-tight text-ink">Merchant onboarding</p>
-            <p className="text-[11.5px] text-ink-4">
+            <p className="text-[16px] font-semibold leading-tight text-ink">Merchant onboarding</p>
+            <p className="text-[13px] text-ink-4">
               Step {stepIndex + 1} of {STEPS.length} · {STEPS[stepIndex]}
             </p>
           </div>
@@ -193,7 +193,7 @@ export default function Onboarding() {
           {STEPS.map((s, i) => (
             <li key={s} className="flex items-center gap-2">
               <span
-                className={`flex h-6 w-6 items-center justify-center rounded-full border text-[11px] font-semibold tnum ${
+                className={`flex h-6 w-6 items-center justify-center rounded-full border text-[13px] font-semibold tnum ${
                   i < stepIndex
                     ? "border-accent bg-accent text-white"
                     : i === stepIndex
@@ -203,7 +203,7 @@ export default function Onboarding() {
               >
                 {i < stepIndex ? <Check className="h-3 w-3" /> : i + 1}
               </span>
-              <span className={`text-[12px] ${i === stepIndex ? "font-semibold text-ink" : "text-ink-4"}`}>{s}</span>
+              <span className={`text-[14px] ${i === stepIndex ? "font-semibold text-ink" : "text-ink-4"}`}>{s}</span>
               {i < STEPS.length - 1 ? <span className="mx-1 h-px w-4 bg-line-strong sm:w-8" /> : null}
             </li>
           ))}
@@ -211,8 +211,8 @@ export default function Onboarding() {
 
         {stepIndex === 0 ? (
           <Card className="p-5">
-            <h2 className="text-[16px] font-semibold text-ink">Business profile</h2>
-            <p className="mt-1 text-[12.5px] text-ink-3">
+            <h2 className="text-[18px] font-semibold text-ink">Business profile</h2>
+            <p className="mt-1 text-[14px] text-ink-3">
               This information appears on hosted checkout, invoices and paid receipts.
             </p>
             <div className="mt-5 space-y-4">
@@ -273,7 +273,7 @@ export default function Onboarding() {
                     {logo ? (
                       <img src={logo} alt="Business logo preview" className="h-full w-full object-cover" />
                     ) : (
-                      <span className="text-[15px] font-bold text-ink-2">{initials}</span>
+                      <span className="text-[17px] font-bold text-ink-2">{initials}</span>
                     )}
                   </div>
                   <div className="flex flex-wrap gap-2">
@@ -306,15 +306,15 @@ export default function Onboarding() {
                   </div>
                 </div>
               </Field>
-              {errors.logo ? <p className="text-[12px] font-medium text-danger">{errors.logo}</p> : null}
+              {errors.logo ? <p className="text-[14px] font-medium text-danger">{errors.logo}</p> : null}
             </div>
           </Card>
         ) : null}
 
         {stepIndex === 1 ? (
           <Card className="p-5">
-            <h2 className="text-[16px] font-semibold text-ink">Payout wallet</h2>
-            <p className="mt-1 text-[12.5px] text-ink-3">
+            <h2 className="text-[18px] font-semibold text-ink">Payout wallet</h2>
+            <p className="mt-1 text-[14px] text-ink-3">
               USDT settled through the gateway is paid out to this address on {DEFAULT_NETWORK.name}.
             </p>
             <div className="mt-5 space-y-4">
@@ -325,10 +325,10 @@ export default function Onboarding() {
                       <Wallet className="h-4.5 w-4.5" />
                     </span>
                     <div>
-                      <p className="text-[13px] font-semibold text-ink">
+                      <p className="text-[15px] font-semibold text-ink">
                         {wallet.address ? wallet.providerName : "No wallet connected"}
                       </p>
-                      <p className="text-[12px] text-ink-3">
+                      <p className="text-[14px] text-ink-3">
                         {wallet.address ? (
                           <code className="font-mono">{wallet.address}</code>
                         ) : (
@@ -336,11 +336,11 @@ export default function Onboarding() {
                         )}
                       </p>
                       {wallet.simulated && wallet.address ? (
-                        <p className="mt-1 text-[11.5px] text-warn">
+                        <p className="mt-1 text-[13px] text-warn">
                           Simulation fallback active — no browser wallet was detected.
                         </p>
                       ) : null}
-                      {wallet.error ? <p className="mt-1 text-[11.5px] text-danger">{wallet.error}</p> : null}
+                      {wallet.error ? <p className="mt-1 text-[13px] text-danger">{wallet.error}</p> : null}
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -359,16 +359,16 @@ export default function Onboarding() {
 
               <div className="grid gap-3 sm:grid-cols-3">
                 <div className="rounded-md border border-line p-3">
-                  <p className="text-[11px] uppercase tracking-wide text-ink-4">Network</p>
-                  <p className="mt-1 text-[12.5px] font-medium text-ink">{DEFAULT_NETWORK.name}</p>
+                  <p className="text-[13px] uppercase tracking-wide text-ink-4">Network</p>
+                  <p className="mt-1 text-[14px] font-medium text-ink">{DEFAULT_NETWORK.name}</p>
                 </div>
                 <div className="rounded-md border border-line p-3">
-                  <p className="text-[11px] uppercase tracking-wide text-ink-4">Chain ID</p>
-                  <p className="mt-1 text-[12.5px] font-medium text-ink tnum">{DEFAULT_NETWORK.chainId}</p>
+                  <p className="text-[13px] uppercase tracking-wide text-ink-4">Chain ID</p>
+                  <p className="mt-1 text-[14px] font-medium text-ink tnum">{DEFAULT_NETWORK.chainId}</p>
                 </div>
                 <div className="rounded-md border border-line p-3">
-                  <p className="text-[11px] uppercase tracking-wide text-ink-4">Wallet status</p>
-                  <p className="mt-1 text-[12.5px] font-medium text-ink">
+                  <p className="text-[13px] uppercase tracking-wide text-ink-4">Wallet status</p>
+                  <p className="mt-1 text-[14px] font-medium text-ink">
                     {merchant.walletVerified ? "Verified (simulated)" : wallet.address ? "Connected" : "Not connected"}
                   </p>
                 </div>
@@ -394,8 +394,8 @@ export default function Onboarding() {
                   </Callout>
                 ) : (
                   <div className="space-y-3 rounded-md border border-line p-4">
-                    <p className="text-[13px] font-semibold text-ink">Verify wallet ownership</p>
-                    <p className="text-[12.5px] leading-relaxed text-ink-3">
+                    <p className="text-[15px] font-semibold text-ink">Verify wallet ownership</p>
+                    <p className="text-[14px] leading-relaxed text-ink-3">
                       The gateway asks the connected wallet to sign a one-time challenge. This proves you control
                       the payout wallet — required before accepting payments.
                     </p>
@@ -444,8 +444,8 @@ export default function Onboarding() {
 
         {stepIndex === 2 ? (
           <Card className="p-5">
-            <h2 className="text-[16px] font-semibold text-ink">Payment configuration</h2>
-            <p className="mt-1 text-[12.5px] text-ink-3">
+            <h2 className="text-[18px] font-semibold text-ink">Payment configuration</h2>
+            <p className="mt-1 text-[14px] text-ink-3">
               These values are configurable gateway metadata. They do not change the network or the token
               contract you settle on.
             </p>
@@ -460,7 +460,7 @@ export default function Onboarding() {
                   {TOKEN.symbol} — {TOKEN.name}
                 </KeyValue>
                 <KeyValue label="Token contract (testnet)">
-                  <code className="break-all font-mono text-[11px]">{TOKEN.contract}</code>
+                  <code className="break-all font-mono text-[13px]">{TOKEN.contract}</code>
                 </KeyValue>
                 <KeyValue label="Token decimals">
                   {TOKEN.decimals === null ? "Unknown" : `${TOKEN.decimals} (unverified)`}
@@ -487,8 +487,8 @@ export default function Onboarding() {
 
         {stepIndex === 3 ? (
           <Card className="p-5">
-            <h2 className="text-[16px] font-semibold text-ink">Developer setup</h2>
-            <p className="mt-1 text-[12.5px] text-ink-3">
+            <h2 className="text-[18px] font-semibold text-ink">Developer setup</h2>
+            <p className="mt-1 text-[14px] text-ink-3">
               Generate demo API credentials for the test environment. Secret values are shown once.
             </p>
             <div className="mt-5 space-y-4">
@@ -506,11 +506,11 @@ export default function Onboarding() {
                 <div className="space-y-4">
                   <CopyField label="Publishable API key" value={creds.publishable} />
                   <div className="space-y-1.5">
-                    <p className="text-[11.5px] font-medium uppercase tracking-wide text-ink-4">
+                    <p className="text-[13px] font-medium uppercase tracking-wide text-ink-4">
                       Secret API key — shown once
                     </p>
                     <div className="flex items-center gap-2 rounded-md border border-warn-line bg-warn-soft/60 px-2.5 py-2">
-                      <code className="min-w-0 flex-1 truncate font-mono text-[12px] text-ink">{creds.secret}</code>
+                      <code className="min-w-0 flex-1 truncate font-mono text-[14px] text-ink">{creds.secret}</code>
                       <Button
                         size="sm"
                         variant="secondary"
@@ -536,8 +536,8 @@ export default function Onboarding() {
 
         {stepIndex === 4 ? (
           <Card className="p-5">
-            <h2 className="text-[16px] font-semibold text-ink">Notification preferences</h2>
-            <p className="mt-1 text-[12.5px] text-ink-3">
+            <h2 className="text-[18px] font-semibold text-ink">Notification preferences</h2>
+            <p className="mt-1 text-[14px] text-ink-3">
               Choose which payment events trigger emails. Paid receipts are sent after settlement — unpaid
               invoices are never emailed automatically.
             </p>
@@ -550,8 +550,8 @@ export default function Onboarding() {
               ].map(([key, title, desc]) => (
                 <div key={key} className="flex items-start justify-between gap-4 rounded-md border border-line p-3.5">
                   <div>
-                    <p className="text-[13px] font-medium text-ink">{title}</p>
-                    <p className="mt-0.5 text-[12px] leading-relaxed text-ink-3">{desc}</p>
+                    <p className="text-[15px] font-medium text-ink">{title}</p>
+                    <p className="mt-0.5 text-[14px] leading-relaxed text-ink-3">{desc}</p>
                   </div>
                   <Switch
                     checked={notifications[key as keyof typeof notifications]}
@@ -569,15 +569,15 @@ export default function Onboarding() {
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-positive-soft text-positive">
               <Check className="h-6 w-6" />
             </div>
-            <h2 className="mt-4 text-[18px] font-semibold text-ink">Onboarding complete</h2>
-            <p className="mx-auto mt-2 max-w-md text-[13px] leading-relaxed text-ink-3">
+            <h2 className="mt-4 text-[20px] font-semibold text-ink">Onboarding complete</h2>
+            <p className="mx-auto mt-2 max-w-md text-[15px] leading-relaxed text-ink-3">
               {merchant.displayName} is ready to accept USDT on {DEFAULT_NETWORK.name}. Your workspace is
               preloaded with demo payments, invoices, subscriptions and exceptions so you can explore every
               part of the product.
             </p>
             <div className="mx-auto mt-5 max-w-sm rounded-md border border-line bg-canvas/60 px-3.5 py-1 text-left">
               <KeyValue label="Payout wallet">
-                <code className="font-mono text-[11.5px]">{merchant.payoutWallet.slice(0, 14)}…</code>
+                <code className="font-mono text-[13px]">{merchant.payoutWallet.slice(0, 14)}…</code>
               </KeyValue>
               <KeyValue label="Network">{DEFAULT_NETWORK.name}</KeyValue>
               <KeyValue label="Settlement asset">{TOKEN.symbol}</KeyValue>

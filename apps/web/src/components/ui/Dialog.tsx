@@ -55,8 +55,8 @@ export function Modal({
       >
         <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
           <div className="min-w-0">
-            <h2 className="text-[15px] font-semibold tracking-[-0.01em] text-ink">{title}</h2>
-            {description ? <p className="mt-0.5 text-[12.5px] leading-relaxed text-ink-3">{description}</p> : null}
+            <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-ink">{title}</h2>
+            {description ? <p className="mt-0.5 text-[14px] leading-relaxed text-ink-3">{description}</p> : null}
           </div>
           <button
             onClick={onClose}
@@ -113,8 +113,8 @@ export function Drawer({
       >
         <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4">
           <div>
-            <h2 className="text-[15px] font-semibold text-ink">{title}</h2>
-            {description ? <p className="mt-0.5 text-[12.5px] text-ink-3">{description}</p> : null}
+            <h2 className="text-[17px] font-semibold text-ink">{title}</h2>
+            {description ? <p className="mt-0.5 text-[14px] text-ink-3">{description}</p> : null}
           </div>
           <button onClick={onClose} aria-label="Close panel" className="rounded p-1 text-ink-3 hover:bg-canvas-alt">
             <X className="h-4 w-4" />
@@ -174,7 +174,7 @@ export function ConfirmDialog({
             <AlertTriangle className="h-4 w-4" />
           </div>
         ) : null}
-        <div className="space-y-3 text-[13px] leading-relaxed text-ink-2">
+        <div className="space-y-3 text-[15px] leading-relaxed text-ink-2">
           {typeof body === "string" ? <p>{body}</p> : body}
           {extra}
         </div>

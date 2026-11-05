@@ -55,7 +55,7 @@ export default function SubscriptionCheckout() {
               <AlertTriangle className="h-5 w-5" />
             </div>
             <h1 className="text-[17px] font-semibold text-ink">Plan not found</h1>
-            <p className="mx-auto max-w-sm text-[13px] leading-relaxed text-ink-3">
+            <p className="mx-auto max-w-sm text-[15px] leading-relaxed text-ink-3">
               This subscription plan is not available. Ask the merchant for a new link.
             </p>
             <a href="#/dashboard">
@@ -126,7 +126,7 @@ export default function SubscriptionCheckout() {
               <CheckCircle2 className="h-6 w-6" />
             </div>
             <h1 className="mt-3 text-[20px] font-semibold tracking-[-0.02em] text-ink">Subscription active</h1>
-            <p className="mt-1 text-[13px] text-ink-3">
+            <p className="mt-1 text-[15px] text-ink-3">
               {data.merchant.displayName} can now charge {fmtAmount(plan.amount)} {TOKEN.symbol} every{" "}
               {plan.interval === "monthly" ? "month" : plan.interval === "daily" ? "day" : "hour"} within your
               authorization.
@@ -143,24 +143,24 @@ export default function SubscriptionCheckout() {
                 ["Authorization expiry", fmtDateTime(subscription.expiresAt)],
               ].map(([label, value]) => (
                 <div key={label} className="rounded-md border border-line bg-canvas/60 px-3.5 py-2.5">
-                  <p className="text-[11px] uppercase tracking-wide text-ink-4">{label}</p>
-                  <p className="mt-0.5 text-[13px] font-semibold text-ink tnum">{value}</p>
+                  <p className="text-[13px] uppercase tracking-wide text-ink-4">{label}</p>
+                  <p className="mt-0.5 text-[15px] font-semibold text-ink tnum">{value}</p>
                 </div>
               ))}
             </div>
             <div className="space-y-1">
               <KeyValue label="Subscription ID">
-                <code className="font-mono text-[11.5px]">{subscription.id}</code>
+                <code className="font-mono text-[13px]">{subscription.id}</code>
                 <CopyButton value={subscription.id} label="Copy" size="xs" />
               </KeyValue>
               <KeyValue label="Approval transaction">
-                <code className="font-mono text-[11px]">{subscription.approvalTxRef}</code>
+                <code className="font-mono text-[13px]">{subscription.approvalTxRef}</code>
               </KeyValue>
               <KeyValue label="Activation transaction">
-                <code className="font-mono text-[11px]">{subscription.activationTxRef}</code>
+                <code className="font-mono text-[13px]">{subscription.activationTxRef}</code>
               </KeyValue>
               <KeyValue label="Your wallet">
-                <code className="break-all font-mono text-[11.5px]">{wallet.address}</code>
+                <code className="break-all font-mono text-[13px]">{wallet.address}</code>
               </KeyValue>
             </div>
             <Callout tone="warn" title="Demo transactions">
@@ -191,12 +191,12 @@ export default function SubscriptionCheckout() {
         <Card>
           <div className="flex items-start justify-between gap-3 border-b border-line px-6 py-4">
             <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-md bg-ink text-[13px] font-bold text-white">
+              <span className="flex h-10 w-10 items-center justify-center rounded-md bg-ink text-[15px] font-bold text-white">
                 {data.merchant.logoText}
               </span>
               <div>
-                <p className="text-[14px] font-semibold leading-tight text-ink">{data.merchant.displayName}</p>
-                <p className="text-[11.5px] text-ink-4">Subscription checkout</p>
+                <p className="text-[16px] font-semibold leading-tight text-ink">{data.merchant.displayName}</p>
+                <p className="text-[13px] text-ink-4">Subscription checkout</p>
               </div>
             </div>
             <StatusBadge label={DEFAULT_NETWORK.name} tone="warn" dot={false} />
@@ -204,9 +204,9 @@ export default function SubscriptionCheckout() {
 
           <div className="space-y-5 px-6 py-5">
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-wide text-ink-4">Plan</p>
+              <p className="text-[13px] font-medium uppercase tracking-wide text-ink-4">Plan</p>
               <h1 className="mt-1 text-[19px] font-semibold tracking-[-0.02em] text-ink">{plan.name}</h1>
-              <p className="mt-1.5 text-[13px] leading-relaxed text-ink-3">{plan.description}</p>
+              <p className="mt-1.5 text-[15px] leading-relaxed text-ink-3">{plan.description}</p>
             </div>
 
             <div className="rounded-md border border-line bg-canvas/70 p-4">
@@ -214,9 +214,9 @@ export default function SubscriptionCheckout() {
                 <span className="text-[26px] font-semibold leading-none tracking-[-0.02em] text-ink tnum">
                   {plan.billingMode === "usage" ? fmtAmount(plan.unitPrice ?? "0") : fmtAmount(plan.amount)}
                 </span>
-                <span className="text-[14px] font-medium text-ink-3">{TOKEN.symbol}</span>
+                <span className="text-[16px] font-medium text-ink-3">{TOKEN.symbol}</span>
               </div>
-              <p className="mt-1 text-[11.5px] text-ink-4">
+              <p className="mt-1 text-[13px] text-ink-4">
                 {plan.billingMode === "usage"
                   ? `per ${plan.unitLabel} · billed ${plan.interval}`
                   : `billed ${plan.interval}`}
@@ -224,7 +224,7 @@ export default function SubscriptionCheckout() {
             </div>
 
             <div className="space-y-3">
-              <p className="text-[11.5px] font-semibold uppercase tracking-wide text-ink-4">Progress</p>
+              <p className="text-[13px] font-semibold uppercase tracking-wide text-ink-4">Progress</p>
               <ol className="space-y-2">
                 {STEPS.map((s, i) => (
                   <li key={s.key} className="flex items-start gap-2.5">
@@ -240,7 +240,7 @@ export default function SubscriptionCheckout() {
                       {i < step ? <Check className="h-2.5 w-2.5" /> : i + 1}
                     </span>
                     <span
-                      className={`text-[12.5px] leading-5 ${
+                      className={`text-[14px] leading-5 ${
                         i === step ? "font-semibold text-ink" : i < step ? "text-ink-2" : "text-ink-4"
                       }`}
                     >
@@ -274,15 +274,15 @@ export default function SubscriptionCheckout() {
             <Divider />
 
             <div className="space-y-3">
-              <p className="text-[11.5px] font-semibold uppercase tracking-wide text-ink-4">Your wallet</p>
+              <p className="text-[13px] font-semibold uppercase tracking-wide text-ink-4">Your wallet</p>
               <div className="rounded-md border border-line p-3.5">
                 {wallet.address ? (
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-[13px] font-medium text-ink">{wallet.providerName}</p>
-                      <code className="font-mono text-[11.5px] text-ink-3">{wallet.address}</code>
+                      <p className="text-[15px] font-medium text-ink">{wallet.providerName}</p>
+                      <code className="font-mono text-[13px] text-ink-3">{wallet.address}</code>
                       {wallet.simulated ? (
-                        <p className="mt-0.5 text-[11px] text-warn">Simulated wallet — no browser wallet detected.</p>
+                        <p className="mt-0.5 text-[13px] text-warn">Simulated wallet — no browser wallet detected.</p>
                       ) : null}
                     </div>
                     <Button variant="ghost" size="sm" onClick={wallet.disconnect}>
@@ -291,7 +291,7 @@ export default function SubscriptionCheckout() {
                   </div>
                 ) : wallet.status === "wrong_network" ? (
                   <div className="space-y-2">
-                    <p className="text-[13px] font-medium text-warn">Wrong network</p>
+                    <p className="text-[15px] font-medium text-warn">Wrong network</p>
                     <Button variant="secondary" size="sm" onClick={wallet.switchNetwork} loading={wallet.busy}>
                       Switch network
                     </Button>
@@ -301,8 +301,8 @@ export default function SubscriptionCheckout() {
                     <div className="flex items-start gap-2.5">
                       <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-ink-3" />
                       <div>
-                        <p className="text-[13px] font-medium text-ink">Connect your wallet</p>
-                        <p className="text-[11.5px] leading-relaxed text-ink-3">
+                        <p className="text-[15px] font-medium text-ink">Connect your wallet</p>
+                        <p className="text-[13px] leading-relaxed text-ink-3">
                           {wallet.hasProvider
                             ? "MetaMask or another compatible EVM wallet."
                             : "No browser wallet detected — a simulated demo wallet will be used."}
@@ -355,7 +355,7 @@ export default function SubscriptionCheckout() {
             <Callout tone="warn" title="You pay gas for this step">
               {SUBSCRIPTION_GAS_DISCLOSURE}
             </Callout>
-            <p className="text-center text-[11px] text-ink-4">
+            <p className="text-center text-[13px] text-ink-4">
               Simulated demo checkout — no approval transaction is submitted and no allowance is granted.
             </p>
           </div>
@@ -364,7 +364,7 @@ export default function SubscriptionCheckout() {
         <div className="space-y-4">
           <Card>
             <div className="px-5 py-4">
-              <p className="text-[11.5px] font-semibold uppercase tracking-wide text-ink-4">What you are authorizing</p>
+              <p className="text-[13px] font-semibold uppercase tracking-wide text-ink-4">What you are authorizing</p>
               <div className="mt-2 space-y-1">
                 <KeyValue label="Merchant">{data.merchant.displayName}</KeyValue>
                 <KeyValue label="Plan">{plan.name}</KeyValue>
@@ -394,11 +394,11 @@ export default function SubscriptionCheckout() {
 
           <Card>
             <div className="space-y-3 px-5 py-4">
-              <p className="flex items-center gap-1.5 text-[12px] font-semibold text-ink">
+              <p className="flex items-center gap-1.5 text-[14px] font-semibold text-ink">
                 <ShieldCheck className="h-3.5 w-3.5 text-accent" />
                 Cancelling and revoking
               </p>
-              <div className="space-y-2 text-[11.5px] leading-relaxed text-ink-3">
+              <div className="space-y-2 text-[13px] leading-relaxed text-ink-3">
                 <p>
                   <strong className="text-ink-2">Cancel</strong> stops future charges. Cancellation is a
                   transaction you submit to the subscription contract, and you normally pay WBT gas for it.
@@ -415,11 +415,11 @@ export default function SubscriptionCheckout() {
 
           <Card className="bg-canvas/60">
             <div className="space-y-2 px-5 py-4">
-              <p className="flex items-center gap-1.5 text-[12px] font-semibold text-ink">
+              <p className="flex items-center gap-1.5 text-[14px] font-semibold text-ink">
                 <Info className="h-3.5 w-3.5 text-accent" />
                 How renewals work
               </p>
-              <ol className="space-y-1.5 text-[11.5px] leading-relaxed text-ink-3">
+              <ol className="space-y-1.5 text-[13px] leading-relaxed text-ink-3">
                 <li>1. The gateway scheduler triggers on your next renewal date.</li>
                 <li>2. GasGuard validates the submission against the merchant policy.</li>
                 <li>3. The relayer submits the renewal call — gas is sponsored, not paid by you.</li>
@@ -432,9 +432,9 @@ export default function SubscriptionCheckout() {
 
           <Card>
             <div className="px-5 py-4">
-              <p className="text-[11.5px] font-semibold uppercase tracking-wide text-ink-4">Merchant payout wallet</p>
+              <p className="text-[13px] font-semibold uppercase tracking-wide text-ink-4">Merchant payout wallet</p>
               <AddressDisplay address={data.merchant.payoutWallet} full className="mt-1" />
-              <p className="mt-2 flex items-center gap-1 text-[11px] text-ink-4">
+              <p className="mt-2 flex items-center gap-1 text-[13px] text-ink-4">
                 <Clock className="h-3 w-3" />
                 Charges are executed by the subscription contract, not by this address directly.
               </p>
@@ -444,7 +444,7 @@ export default function SubscriptionCheckout() {
           {subscription ? (
             <Card>
               <div className="px-5 py-4">
-                <p className="mb-2 text-[11.5px] font-semibold uppercase tracking-wide text-ink-4">Setup progress</p>
+                <p className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-ink-4">Setup progress</p>
                 <Timeline
                   entries={[
                     { label: "Subscription created", at: subscription.createdAt, state: "done", simulated: true },

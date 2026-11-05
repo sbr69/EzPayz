@@ -9,10 +9,10 @@ export default function Roadmap() {
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-5">
           <Link to="/" className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-[13px] font-bold text-white">
+            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-[15px] font-bold text-white">
               W
             </span>
-            <span className="text-[15px] font-semibold tracking-[-0.01em] text-ink">EzPayz</span>
+            <span className="text-[17px] font-semibold tracking-[-0.01em] text-ink">EzPayz</span>
           </Link>
           <div className="ml-auto flex gap-2">
             <Link to="/developers/quickstart">
@@ -46,11 +46,11 @@ export default function Roadmap() {
           {ROADMAP.map((item) => (
             <Card key={item.title} className="p-4">
               <div className="flex items-start justify-between gap-3">
-                <h2 className="text-[13.5px] font-semibold text-ink">{item.title}</h2>
+                <h2 className="text-[15px] font-semibold text-ink">{item.title}</h2>
                 <Pill tone="neutral">{item.status}</Pill>
               </div>
-              <p className="mt-2 text-[12.5px] leading-relaxed text-ink-3">{item.detail}</p>
-              <div className="mt-3 flex items-center gap-1.5 text-[11.5px] text-ink-4">
+              <p className="mt-2 text-[14px] leading-relaxed text-ink-3">{item.detail}</p>
+              <div className="mt-3 flex items-center gap-1.5 text-[13px] text-ink-4">
                 <Clock className="h-3.5 w-3.5" />
                 Not implemented in this build
               </div>
@@ -72,11 +72,11 @@ export default function Roadmap() {
               ["Analytics and settings", "Reconciled reporting and workspace configuration."],
             ].map(([title, detail]) => (
               <div key={title} className="rounded-md border border-line bg-canvas/60 p-3.5">
-                <p className="flex items-center gap-1.5 text-[12.5px] font-semibold text-ink">
+                <p className="flex items-center gap-1.5 text-[14px] font-semibold text-ink">
                   <Sparkles className="h-3.5 w-3.5 text-accent" />
                   {title}
                 </p>
-                <p className="mt-1 text-[12px] leading-relaxed text-ink-3">{detail}</p>
+                <p className="mt-1 text-[14px] leading-relaxed text-ink-3">{detail}</p>
               </div>
             ))}
           </div>

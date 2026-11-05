@@ -84,7 +84,7 @@ export default function Dashboard() {
               tone={data.merchant.walletVerified ? "positive" : "warn"}
             />
             {data.merchant.walletVerified ? (
-              <span className="inline-flex items-center gap-1 text-[11.5px] text-ink-4">
+              <span className="inline-flex items-center gap-1 text-[13px] text-ink-4">
                 <ShieldCheck className="h-3.5 w-3.5 text-positive" />
                 Verified (simulated)
               </span>
@@ -161,7 +161,7 @@ export default function Dashboard() {
           <CardHeader
             title="Payment volume"
             description={`Settled ${TOKEN.symbol} volume and payment count over time`}
-            actions={<Link to="/analytics" className="text-[12px] font-medium text-accent hover:underline">View analytics</Link>}
+            actions={<Link to="/analytics" className="text-[14px] font-medium text-accent hover:underline">View analytics</Link>}
           />
           <div className="p-4">
             <VolumeChart data={metrics.series} />
@@ -192,7 +192,7 @@ export default function Dashboard() {
           <CardHeader title="Subscription renewals" description="Attempted renewals and outcome" />
           <div className="space-y-3 p-4">
             {upcoming.length === 0 ? (
-              <p className="px-1 py-6 text-center text-[12.5px] text-ink-4">No upcoming renewals</p>
+              <p className="px-1 py-6 text-center text-[14px] text-ink-4">No upcoming renewals</p>
             ) : (
               upcoming.map((s) => (
                 <Link
@@ -201,16 +201,16 @@ export default function Dashboard() {
                   className="flex items-center justify-between gap-3 rounded-md border border-line px-3 py-2.5 transition-colors hover:border-line-strong hover:bg-canvas"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-[12.5px] font-medium text-ink">
+                    <p className="truncate text-[14px] font-medium text-ink">
                       {data.customers.find((c) => c.id === s.customerId)?.name ?? s.customerId}
                     </p>
-                    <p className="text-[11.5px] text-ink-3">
+                    <p className="text-[13px] text-ink-3">
                       {data.plans.find((p) => p.id === s.planId)?.name} · {s.interval}
                     </p>
                   </div>
                   <div className="text-right">
-                    <AmountDisplay base={s.amount} className="text-[12.5px]" />
-                    <p className="text-[11px] text-ink-4">{untilFuture(s.nextBillingAt)}</p>
+                    <AmountDisplay base={s.amount} className="text-[14px]" />
+                    <p className="text-[13px] text-ink-4">{untilFuture(s.nextBillingAt)}</p>
                   </div>
                 </Link>
               ))
@@ -232,9 +232,9 @@ export default function Dashboard() {
           }
         />
         <div className="overflow-x-auto scroll-thin">
-          <table className="w-full min-w-[860px] text-left text-[13px]">
+          <table className="w-full min-w-[860px] text-left text-[15px]">
             <thead>
-              <tr className="border-b border-line bg-canvas/60 text-[11.5px] uppercase tracking-wide text-ink-4">
+              <tr className="border-b border-line bg-canvas/60 text-[13px] uppercase tracking-wide text-ink-4">
                 <th className="px-4 py-2.5 font-semibold">Payment</th>
                 <th className="px-4 py-2.5 font-semibold">Customer</th>
                 <th className="px-4 py-2.5 text-right font-semibold">Amount</th>
@@ -252,7 +252,7 @@ export default function Dashboard() {
                   onClick={() => navigate(`/payments/${p.id}`)}
                   className="cursor-pointer transition-colors hover:bg-canvas/70"
                 >
-                  <td className="px-4 py-2.5 font-mono text-[12px] text-ink">{p.id}</td>
+                  <td className="px-4 py-2.5 font-mono text-[14px] text-ink">{p.id}</td>
                   <td className="px-4 py-2.5">
                     {p.customerId ? (
                       data.customers.find((c) => c.id === p.customerId)?.name ?? "—"
@@ -261,7 +261,7 @@ export default function Dashboard() {
                     )}
                   </td>
                   <td className="px-4 py-2.5 text-right">
-                    <AmountDisplay base={p.receivedAmount ?? p.amount} className="text-[12.5px]" />
+                    <AmountDisplay base={p.receivedAmount ?? p.amount} className="text-[14px]" />
                   </td>
                   <td className="px-4 py-2.5 text-ink-3">{kindLabels[p.kind]}</td>
                   <td className="px-4 py-2.5">
@@ -270,7 +270,7 @@ export default function Dashboard() {
                       tone={PAYMENT_STATUS_META[p.status].tone}
                     />
                   </td>
-                  <td className="px-4 py-2.5 text-[12px] text-ink-3 tnum">{timeAgo(p.createdAt)}</td>
+                  <td className="px-4 py-2.5 text-[14px] text-ink-3 tnum">{timeAgo(p.createdAt)}</td>
                   <td className="px-4 py-2.5">
                     <TxRefDisplay value={p.txRef} size="xs" />
                   </td>
@@ -286,18 +286,18 @@ export default function Dashboard() {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <Card>
-          <CardHeader title="Recent refunds" actions={<Link to="/refunds" className="text-[12px] font-medium text-accent hover:underline">All refunds</Link>} />
+          <CardHeader title="Recent refunds" actions={<Link to="/refunds" className="text-[14px] font-medium text-accent hover:underline">All refunds</Link>} />
           <ul className="divide-y divide-line">
             {recentRefunds.map((r) => (
               <li key={r.id}>
                 <Link to={`/refunds/${r.id}`} className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-canvas">
                   <div className="min-w-0">
-                    <p className="text-[12.5px] font-medium text-ink">{r.id}</p>
-                    <p className="truncate text-[11.5px] text-ink-3">{r.reason}</p>
+                    <p className="text-[14px] font-medium text-ink">{r.id}</p>
+                    <p className="truncate text-[13px] text-ink-3">{r.reason}</p>
                   </div>
                   <div className="text-right">
-                    <AmountDisplay base={r.amount} className="text-[12.5px]" />
-                    <p className="text-[11px] text-ink-4">{timeAgo(r.createdAt)}</p>
+                    <AmountDisplay base={r.amount} className="text-[14px]" />
+                    <p className="text-[13px] text-ink-4">{timeAgo(r.createdAt)}</p>
                   </div>
                 </Link>
               </li>
@@ -306,10 +306,10 @@ export default function Dashboard() {
         </Card>
 
         <Card>
-          <CardHeader title="Payment exceptions" actions={<Link to="/exceptions" className="text-[12px] font-medium text-accent hover:underline">Open centre</Link>} />
+          <CardHeader title="Payment exceptions" actions={<Link to="/exceptions" className="text-[14px] font-medium text-accent hover:underline">Open centre</Link>} />
           <ul className="divide-y divide-line">
             {openExceptions.length === 0 ? (
-              <li className="px-4 py-6 text-center text-[12.5px] text-ink-4">No open exceptions</li>
+              <li className="px-4 py-6 text-center text-[14px] text-ink-4">No open exceptions</li>
             ) : (
               openExceptions.map((e) => (
                 <li key={e.id}>
@@ -320,10 +320,10 @@ export default function Dashboard() {
                       }`}
                     />
                     <div className="min-w-0">
-                      <p className="text-[12.5px] font-medium text-ink">{e.type.replace(/_/g, " ")}</p>
-                      <p className="truncate text-[11.5px] text-ink-3">{e.whatHappened}</p>
+                      <p className="text-[14px] font-medium text-ink">{e.type.replace(/_/g, " ")}</p>
+                      <p className="truncate text-[13px] text-ink-3">{e.whatHappened}</p>
                     </div>
-                    <span className="ml-auto shrink-0 text-[11px] text-ink-4">{timeAgo(e.detectedAt)}</span>
+                    <span className="ml-auto shrink-0 text-[13px] text-ink-4">{timeAgo(e.detectedAt)}</span>
                   </Link>
                 </li>
               ))
@@ -332,7 +332,7 @@ export default function Dashboard() {
         </Card>
 
         <Card>
-          <CardHeader title="Relayer sponsorship" description="GasGuard usage for your workspace" actions={<Link to="/gasguard" className="text-[12px] font-medium text-accent hover:underline">GasGuard</Link>} />
+          <CardHeader title="Relayer sponsorship" description="GasGuard usage for your workspace" actions={<Link to="/gasguard" className="text-[14px] font-medium text-accent hover:underline">GasGuard</Link>} />
           <div className="grid grid-cols-2 gap-2.5 p-4">
             <MiniStat label="Sponsored tx" value={fmtNumber(sponsorship.sponsored)} />
             <MiniStat label="WBT consumed" value={sponsorship.cost} />
@@ -340,7 +340,7 @@ export default function Dashboard() {
             <MiniStat label="Rejected" value={fmtNumber(sponsorship.rejected)} tone={sponsorship.rejected ? "danger" : undefined} />
           </div>
           <div className="border-t border-line px-4 py-3">
-            <div className="flex items-center justify-between text-[11.5px] text-ink-3">
+            <div className="flex items-center justify-between text-[13px] text-ink-3">
               <span>Daily limit</span>
               <span className="tnum">
                 {data.gasGuard.dailySpentWbt} / {data.gasGuard.dailyLimitWbt} WBT
@@ -369,7 +369,7 @@ export default function Dashboard() {
             <button
               key={a.label}
               onClick={a.action}
-              className="flex items-center gap-2.5 rounded-md border border-line bg-surface px-3.5 py-3 text-left text-[13px] font-medium text-ink transition-colors hover:border-line-strong hover:bg-canvas"
+              className="flex items-center gap-2.5 rounded-md border border-line bg-surface px-3.5 py-3 text-left text-[15px] font-medium text-ink transition-colors hover:border-line-strong hover:bg-canvas"
             >
               <a.icon className="h-4 w-4 shrink-0 text-accent" strokeWidth={1.9} />
               {a.label}
@@ -379,7 +379,7 @@ export default function Dashboard() {
       </Card>
 
       <Card className="bg-canvas/40">
-        <div className="flex flex-wrap items-center gap-3 px-4 py-3 text-[12px] text-ink-3">
+        <div className="flex flex-wrap items-center gap-3 px-4 py-3 text-[14px] text-ink-3">
           <Gauge className="h-3.5 w-3.5 text-accent" />
           <span>
             Gross volume for this period is {fmtAmount(metrics.grossVolume)} {TOKEN.symbol} across{" "}

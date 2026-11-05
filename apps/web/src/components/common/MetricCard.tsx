@@ -24,12 +24,12 @@ export function MetricCard({
   const body = (
     <Card className="h-full p-4 transition-shadow hover:shadow-[0_3px_12px_rgba(27,31,30,0.07)]">
       <div className="flex items-start justify-between gap-3">
-        <p className="text-[11.5px] font-semibold uppercase tracking-wide text-ink-4">{label}</p>
+        <p className="text-[13px] font-semibold uppercase tracking-wide text-ink-4">{label}</p>
         {icon ? <span className="text-ink-4">{icon}</span> : null}
       </div>
       <p
         className={cn(
-          "mt-2 text-[22px] font-semibold leading-none tracking-[-0.02em] tnum",
+          "mt-2 text-[24px] font-semibold leading-none tracking-[-0.02em] tnum",
           tone === "positive" && "text-positive",
           tone === "warn" && "text-warn",
           tone === "danger" && "text-danger",
@@ -43,7 +43,7 @@ export function MetricCard({
         {delta && delta.direction !== "flat" ? (
           <span
             className={cn(
-              "inline-flex items-center gap-0.5 text-[11.5px] font-semibold tnum",
+              "inline-flex items-center gap-0.5 text-[13px] font-semibold tnum",
               delta.direction === "up" ? "text-positive" : "text-danger",
             )}
           >
@@ -55,7 +55,7 @@ export function MetricCard({
             {delta.value}
           </span>
         ) : null}
-        {sub ? <span className="text-[11.5px] text-ink-3">{sub}</span> : null}
+        {sub ? <span className="text-[13px] text-ink-3">{sub}</span> : null}
       </div>
     </Card>
   );
@@ -73,10 +73,10 @@ export function MiniStat({
 }) {
   return (
     <div className="rounded-md border border-line bg-canvas/60 px-3 py-2">
-      <p className="text-[11px] font-medium uppercase tracking-wide text-ink-4">{label}</p>
+      <p className="text-[13px] font-medium uppercase tracking-wide text-ink-4">{label}</p>
       <p
         className={cn(
-          "mt-0.5 text-[15px] font-semibold tnum",
+          "mt-0.5 text-[17px] font-semibold tnum",
           tone === "positive" && "text-positive",
           tone === "warn" && "text-warn",
           tone === "danger" && "text-danger",

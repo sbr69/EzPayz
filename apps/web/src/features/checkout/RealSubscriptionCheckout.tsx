@@ -130,28 +130,28 @@ export function RealSubscriptionCheckout() {
     return (
       <div style={{ maxWidth: 480, margin: "2rem auto", padding: "1.5rem", border: "1px solid #ddd", borderRadius: 12, fontFamily: "sans-serif" }}>
         <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <div style={{ width: 48, height: 48, margin: "0 auto 12px", borderRadius: "50%", background: "#22c55e", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 24 }}>✓</div>
-          <h2 style={{ margin: 0, fontSize: 20 }}>Subscription activated</h2>
-          <p style={{ color: "#666", fontSize: 14, margin: "4px 0 0" }}>{checkout.merchant.displayName} · {checkout.plan.name}</p>
+          <div style={{ width: 48, height: 48, margin: "0 auto 12px", borderRadius: "50%", background: "#22c55e", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 28 }}>✓</div>
+          <h2 style={{ margin: 0, fontSize: 24 }}>Subscription activated</h2>
+          <p style={{ color: "#666", fontSize: 16, margin: "4px 0 0" }}>{checkout.merchant.displayName} · {checkout.plan.name}</p>
         </div>
         <div style={{ padding: 16, background: "#f5f5f5", borderRadius: 8, marginBottom: 16 }}>
-          <p style={{ fontSize: 12, color: "#666", margin: 0 }}>Amount per cycle</p>
-          <p style={{ fontSize: 24, fontWeight: 600, margin: "4px 0 0" }}>{checkout.plan.displayAmount} {checkout.token.symbol}</p>
-          <p style={{ fontSize: 12, color: "#666", margin: "4px 0 0" }}>{INTERVAL_LABEL[checkout.plan.interval]}</p>
+          <p style={{ fontSize: 14, color: "#666", margin: 0 }}>Amount per cycle</p>
+          <p style={{ fontSize: 28, fontWeight: 600, margin: "4px 0 0" }}>{checkout.plan.displayAmount} {checkout.token.symbol}</p>
+          <p style={{ fontSize: 14, color: "#666", margin: "4px 0 0" }}>{INTERVAL_LABEL[checkout.plan.interval]}</p>
         </div>
         {approvalTx && (
           <div style={{ marginBottom: 8 }}>
-            <p style={{ fontSize: 12, color: "#666", margin: 0 }}>Allowance approval tx</p>
-            <a href={`${EXPLORER}/tx/${approvalTx}`} target="_blank" rel="noreferrer" style={{ fontSize: 13, color: "#0ea5e9", wordBreak: "break-all" }}>{approvalTx.slice(0, 20)}…</a>
+            <p style={{ fontSize: 14, color: "#666", margin: 0 }}>Allowance approval tx</p>
+            <a href={`${EXPLORER}/tx/${approvalTx}`} target="_blank" rel="noreferrer" style={{ fontSize: 15, color: "#0ea5e9", wordBreak: "break-all" }}>{approvalTx.slice(0, 20)}…</a>
           </div>
         )}
         {activationTx && (
           <div style={{ marginBottom: 16 }}>
-            <p style={{ fontSize: 12, color: "#666", margin: 0 }}>Subscription activation tx</p>
-            <a href={`${EXPLORER}/tx/${activationTx}`} target="_blank" rel="noreferrer" style={{ fontSize: 13, color: "#0ea5e9", wordBreak: "break-all" }}>{activationTx.slice(0, 20)}…</a>
+            <p style={{ fontSize: 14, color: "#666", margin: 0 }}>Subscription activation tx</p>
+            <a href={`${EXPLORER}/tx/${activationTx}`} target="_blank" rel="noreferrer" style={{ fontSize: 15, color: "#0ea5e9", wordBreak: "break-all" }}>{activationTx.slice(0, 20)}…</a>
           </div>
         )}
-        <p style={{ fontSize: 11, color: "#999", marginTop: 12, textAlign: "center" }}>
+        <p style={{ fontSize: 13, color: "#999", marginTop: 12, textAlign: "center" }}>
           Renewals are gasless — the gateway relayer pays WBT gas for each cycle.
         </p>
       </div>
@@ -162,32 +162,32 @@ export function RealSubscriptionCheckout() {
     <div style={{ maxWidth: 480, margin: "2rem auto", padding: "1.5rem", border: "1px solid #ddd", borderRadius: 12, fontFamily: "sans-serif" }}>
       <div style={{ marginBottom: 16 }}>
         <h2 style={{ margin: 0 }}>{checkout.merchant.displayName}</h2>
-        <p style={{ color: "#666", fontSize: 14 }}>{checkout.plan.name}</p>
-        {checkout.plan.description && <p style={{ color: "#999", fontSize: 13, margin: "4px 0 0" }}>{checkout.plan.description}</p>}
+        <p style={{ color: "#666", fontSize: 16 }}>{checkout.plan.name}</p>
+        {checkout.plan.description && <p style={{ color: "#999", fontSize: 15, margin: "4px 0 0" }}>{checkout.plan.description}</p>}
       </div>
       <div style={{ padding: 16, background: "#f5f5f5", borderRadius: 8, marginBottom: 16 }}>
-        <p style={{ fontSize: 12, color: "#666", margin: 0 }}>Amount per cycle</p>
-        <p style={{ fontSize: 28, fontWeight: 600, margin: "4px 0 0" }}>{checkout.plan.displayAmount} {checkout.token.symbol}</p>
-        <p style={{ fontSize: 12, color: "#666", margin: "4px 0 0" }}>{INTERVAL_LABEL[checkout.plan.interval]}</p>
+        <p style={{ fontSize: 14, color: "#666", margin: 0 }}>Amount per cycle</p>
+        <p style={{ fontSize: 32, fontWeight: 600, margin: "4px 0 0" }}>{checkout.plan.displayAmount} {checkout.token.symbol}</p>
+        <p style={{ fontSize: 14, color: "#666", margin: "4px 0 0" }}>{INTERVAL_LABEL[checkout.plan.interval]}</p>
       </div>
-      <div style={{ marginBottom: 16, fontSize: 13, color: "#666" }}>
+      <div style={{ marginBottom: 16, fontSize: 15, color: "#666" }}>
         <p style={{ margin: 0 }}>Max charge per cycle: <strong>{checkout.plan.displayMaxChargePerCycle} {checkout.token.symbol}</strong></p>
         <p style={{ margin: "4px 0 0" }}>Cumulative limit: <strong>{checkout.plan.displayCumulativeLimit} {checkout.token.symbol}</strong></p>
         {checkout.plan.planExpiryMonths && <p style={{ margin: "4px 0 0" }}>Plan expires in {checkout.plan.planExpiryMonths} months</p>}
       </div>
       <div style={{ marginBottom: 16 }}>
-        <p style={{ fontSize: 12, color: "#666" }}>Merchant payout: {checkout.merchant.payoutWallet.slice(0, 10)}…{checkout.merchant.payoutWallet.slice(-4)}</p>
+        <p style={{ fontSize: 14, color: "#666" }}>Merchant payout: {checkout.merchant.payoutWallet.slice(0, 10)}…{checkout.merchant.payoutWallet.slice(-4)}</p>
       </div>
       <div style={{ marginBottom: 16 }}>
         <ConnectButton />
       </div>
       {address && (
         <>
-          {wrongNetwork && <p style={{ color: "orange", fontSize: 13, marginBottom: 12 }}>Wrong network — switch to Whitechain Sepolia (chain 1874).</p>}
+          {wrongNetwork && <p style={{ color: "orange", fontSize: 15, marginBottom: 12 }}>Wrong network — switch to Whitechain Sepolia (chain 1874).</p>}
           <button
             onClick={handleApprove}
             disabled={status === "approving" || status === "subscribing" || status === "recording" || wrongNetwork}
-            style={{ width: "100%", padding: "12px", fontSize: 15, cursor: "pointer", borderRadius: 8, border: "none", background: "#0ea5e9", color: "#fff", opacity: wrongNetwork ? 0.5 : 1 }}
+            style={{ width: "100%", padding: "12px", fontSize: 17, cursor: "pointer", borderRadius: 8, border: "none", background: "#0ea5e9", color: "#fff", opacity: wrongNetwork ? 0.5 : 1 }}
           >
             {status === "approving" ? "Approving allowance… (confirm in wallet)" :
              status === "subscribing" ? "Creating subscription… (confirm in wallet)" :
@@ -196,10 +196,10 @@ export function RealSubscriptionCheckout() {
           </button>
         </>
       )}
-      <p style={{ fontSize: 11, color: "#f59e0b", marginTop: 12 }}>
+      <p style={{ fontSize: 13, color: "#f59e0b", marginTop: 12 }}>
         You pay WBT gas for the initial approval + subscription creation. Renewals are gasless (relayer-sponsored).
       </p>
-      <p style={{ fontSize: 11, color: "#999", marginTop: 4 }}>
+      <p style={{ fontSize: 13, color: "#999", marginTop: 4 }}>
         To cancel: call cancel() on the subscription contract. To revoke unused allowance: call approve(contract, 0).
       </p>
     </div>

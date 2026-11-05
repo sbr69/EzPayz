@@ -38,10 +38,10 @@ export function RefundsList() {
       header: "Refund",
       render: (r) => (
         <div>
-          <Link to={`/refunds/${r.id}`} className="font-mono text-[12px] text-ink hover:text-accent hover:underline">
+          <Link to={`/refunds/${r.id}`} className="font-mono text-[14px] text-ink hover:text-accent hover:underline">
             {r.id}
           </Link>
-          <p className="text-[11.5px] text-ink-3">for {r.paymentId}</p>
+          <p className="text-[13px] text-ink-3">for {r.paymentId}</p>
         </div>
       ),
       csv: (r) => r.id,
@@ -52,8 +52,8 @@ export function RefundsList() {
       render: (r) => data.customers.find((c) => c.id === r.customerId)?.name ?? "Guest",
       csv: (r) => data.customers.find((c) => c.id === r.customerId)?.name ?? "Guest",
     },
-    { key: "amount", header: "Amount", align: "right", render: (r) => <AmountDisplay base={r.amount} className="text-[12.5px]" />, sortValue: (r) => Number(r.amount), csv: (r) => r.amount },
-    { key: "reason", header: "Reason", render: (r) => <span className="text-[12px] text-ink-3">{r.reason}</span> },
+    { key: "amount", header: "Amount", align: "right", render: (r) => <AmountDisplay base={r.amount} className="text-[14px]" />, sortValue: (r) => Number(r.amount), csv: (r) => r.amount },
+    { key: "reason", header: "Reason", render: (r) => <span className="text-[14px] text-ink-3">{r.reason}</span> },
     {
       key: "gas",
       header: "Gas",
@@ -62,14 +62,14 @@ export function RefundsList() {
       csv: (r) => (r.gasSponsored ? "Sponsored" : "Merchant paid"),
     },
     { key: "status", header: "Status", render: (r) => <StatusBadge label={REFUND_STATUS_META[r.status].label} tone={REFUND_TONES[r.status]} />, csv: (r) => REFUND_STATUS_META[r.status].label },
-    { key: "created", header: "Created", hideOnMobile: true, render: (r) => <span className="text-[12px] text-ink-3 tnum">{fmtDateTime(r.createdAt)}</span>, sortValue: (r) => new Date(r.createdAt).getTime(), csv: (r) => r.createdAt },
-    { key: "settled", header: "Settled", hideOnMobile: true, render: (r) => <span className="text-[12px] text-ink-3 tnum">{fmtDateTime(r.settledAt)}</span>, csv: (r) => r.settledAt ?? "" },
+    { key: "created", header: "Created", hideOnMobile: true, render: (r) => <span className="text-[14px] text-ink-3 tnum">{fmtDateTime(r.createdAt)}</span>, sortValue: (r) => new Date(r.createdAt).getTime(), csv: (r) => r.createdAt },
+    { key: "settled", header: "Settled", hideOnMobile: true, render: (r) => <span className="text-[14px] text-ink-3 tnum">{fmtDateTime(r.settledAt)}</span>, csv: (r) => r.settledAt ?? "" },
     {
       key: "actions",
       header: "",
       align: "right",
       render: (r) => (
-        <Link to={`/refunds/${r.id}`} className="text-[12px] font-medium text-accent hover:underline">
+        <Link to={`/refunds/${r.id}`} className="text-[14px] font-medium text-accent hover:underline">
           View
         </Link>
       ),
@@ -160,7 +160,7 @@ function SelectRefundablePayment({ payments, onSelected }: { payments: Payment[]
         value={value}
         onChange={(e) => setValue(e.target.value)}
         aria-label="Select a payment to refund"
-        className="h-9 max-w-[280px] rounded-md border border-line-strong bg-surface px-3 text-[13px] text-ink"
+        className="h-9 max-w-[280px] rounded-md border border-line-strong bg-surface px-3 text-[15px] text-ink"
       >
         <option value="">Select a settled payment…</option>
         {payments.map((p) => (
@@ -223,7 +223,7 @@ export function RefundDetail() {
           <>
             <StatusBadge label={REFUND_STATUS_META[refund.status].label} tone={REFUND_TONES[refund.status]} />
             <StatusBadge label={refund.gasSponsored ? "Gas sponsored by relayer" : "Merchant-paid gas"} tone={refund.gasSponsored ? "accent" : "neutral"} />
-            <span className="font-mono text-[11.5px] text-ink-4">{refund.id}</span>
+            <span className="font-mono text-[13px] text-ink-4">{refund.id}</span>
           </>
         }
         actions={
@@ -245,11 +245,11 @@ export function RefundDetail() {
           <CardHeader title="Refund details" />
           <div className="grid gap-x-8 px-5 py-2 sm:grid-cols-2">
             <KeyValue label="Refund ID">
-              <code className="font-mono text-[11.5px]">{refund.id}</code>
+              <code className="font-mono text-[13px]">{refund.id}</code>
             </KeyValue>
             <KeyValue label="Original payment">
               {payment ? (
-                <Link to={`/payments/${payment.id}`} className="font-mono text-[11.5px] text-accent hover:underline">
+                <Link to={`/payments/${payment.id}`} className="font-mono text-[13px] text-accent hover:underline">
                   {payment.id}
                 </Link>
               ) : (
@@ -266,7 +266,7 @@ export function RefundDetail() {
             <KeyValue label="Created">{fmtDateTime(refund.createdAt)}</KeyValue>
             <KeyValue label="Settled">{fmtDateTime(refund.settledAt)}</KeyValue>
             <KeyValue label="Authorization reference">
-              {refund.authorizationRef ? <code className="font-mono text-[11px]">{refund.authorizationRef}</code> : "—"}
+              {refund.authorizationRef ? <code className="font-mono text-[13px]">{refund.authorizationRef}</code> : "—"}
             </KeyValue>
             <KeyValue label="Transaction reference">
               <TxRefDisplay value={refund.txRef} />
@@ -291,13 +291,13 @@ export function RefundDetail() {
             <CardHeader title="Parties" />
             <div className="space-y-3 px-5 py-4">
               <div>
-                <p className="text-[11px] uppercase tracking-wide text-ink-4">Customer (refund recipient)</p>
-                <p className="mt-1 text-[12.5px] font-medium text-ink">{customer?.name ?? "Guest"}</p>
+                <p className="text-[13px] uppercase tracking-wide text-ink-4">Customer (refund recipient)</p>
+                <p className="mt-1 text-[14px] font-medium text-ink">{customer?.name ?? "Guest"}</p>
                 <AddressDisplay address={payment?.payerWallet} className="mt-0.5" />
               </div>
               <div>
-                <p className="text-[11px] uppercase tracking-wide text-ink-4">Merchant (refund sender)</p>
-                <p className="mt-1 text-[12.5px] font-medium text-ink">{data.merchant.displayName}</p>
+                <p className="text-[13px] uppercase tracking-wide text-ink-4">Merchant (refund sender)</p>
+                <p className="mt-1 text-[14px] font-medium text-ink">{data.merchant.displayName}</p>
                 <AddressDisplay address={data.merchant.payoutWallet} className="mt-0.5" />
               </div>
             </div>
@@ -318,7 +318,7 @@ export function RefundDetail() {
               />
             </div>
             <div className="border-t border-line px-4 py-3">
-              <p className="text-[11.5px] leading-relaxed text-ink-4">
+              <p className="text-[13px] leading-relaxed text-ink-4">
                 Cumulative refunds can never exceed the original settled amount. Validation runs in the
                 service layer using base-unit arithmetic.
               </p>

@@ -77,7 +77,7 @@ export function PaymentLinksList() {
           <Link to={`/payment-links/${l.id}`} className="font-medium text-ink hover:text-accent hover:underline">
             {l.title}
           </Link>
-          <p className="font-mono text-[11px] text-ink-4">/l/{l.slug}</p>
+          <p className="font-mono text-[13px] text-ink-4">/l/{l.slug}</p>
         </div>
       ),
       sortValue: (l) => l.title,
@@ -93,7 +93,7 @@ export function PaymentLinksList() {
       key: "amount",
       header: "Amount",
       align: "right",
-      render: (l) => <span className="text-[12.5px] text-ink tnum">{amountLabel(l)}</span>,
+      render: (l) => <span className="text-[14px] text-ink tnum">{amountLabel(l)}</span>,
       csv: (l) => amountLabel(l),
     },
     {
@@ -108,7 +108,7 @@ export function PaymentLinksList() {
       key: "collected",
       header: "Collected",
       align: "right",
-      render: (l) => <AmountDisplay base={l.totalCollected} className="text-[12.5px]" />,
+      render: (l) => <AmountDisplay base={l.totalCollected} className="text-[14px]" />,
       sortValue: (l) => Number(l.totalCollected),
       csv: (l) => l.totalCollected,
     },
@@ -122,7 +122,7 @@ export function PaymentLinksList() {
       key: "created",
       header: "Created",
       hideOnMobile: true,
-      render: (l) => <span className="text-[12px] text-ink-3 tnum">{fmtDateTime(l.createdAt)}</span>,
+      render: (l) => <span className="text-[14px] text-ink-3 tnum">{fmtDateTime(l.createdAt)}</span>,
       sortValue: (l) => new Date(l.createdAt).getTime(),
       csv: (l) => l.createdAt,
     },
@@ -130,7 +130,7 @@ export function PaymentLinksList() {
       key: "expiry",
       header: "Expiry",
       hideOnMobile: true,
-      render: (l) => <span className="text-[12px] text-ink-3 tnum">{fmtDateTime(l.expiresAt)}</span>,
+      render: (l) => <span className="text-[14px] text-ink-3 tnum">{fmtDateTime(l.expiresAt)}</span>,
       csv: (l) => l.expiresAt ?? "",
     },
     {
@@ -366,10 +366,10 @@ export function PaymentLinkForm() {
                       linkType === value ? "border-accent bg-accent-soft" : "border-line-strong hover:bg-canvas"
                     }`}
                   >
-                    <span className={`block text-[12.5px] font-semibold ${linkType === value ? "text-accent" : "text-ink"}`}>
+                    <span className={`block text-[14px] font-semibold ${linkType === value ? "text-accent" : "text-ink"}`}>
                       {title}
                     </span>
-                    <span className="mt-0.5 block text-[11.5px] leading-snug text-ink-3">{desc}</span>
+                    <span className="mt-0.5 block text-[13px] leading-snug text-ink-3">{desc}</span>
                   </button>
                 ))}
               </div>
@@ -471,16 +471,16 @@ export function PaymentLinkForm() {
             <CardHeader title="Checkout preview" description="What the customer sees when the link opens" />
             <div className="space-y-3 px-5 py-4">
               <div className="rounded-md border border-line bg-canvas p-4">
-                <p className="text-[11.5px] text-ink-4">{merchant.displayName}</p>
-                <p className="mt-1 text-[14px] font-semibold text-ink">{form.title || "Untitled link"}</p>
-                <p className="mt-1 text-[12.5px] leading-relaxed text-ink-3">{form.description || "Add a description"}</p>
+                <p className="text-[13px] text-ink-4">{merchant.displayName}</p>
+                <p className="mt-1 text-[16px] font-semibold text-ink">{form.title || "Untitled link"}</p>
+                <p className="mt-1 text-[14px] leading-relaxed text-ink-3">{form.description || "Add a description"}</p>
                 <p className="mt-3 text-[20px] font-semibold text-ink tnum">
                   {linkType === "customer_amount"
                     ? `${form.minAmount} – ${form.maxAmount} ${TOKEN.symbol}`
                     : `${form.amount || "0.00"} ${TOKEN.symbol}`}
                 </p>
                 {linkType === "reusable" ? (
-                  <p className="mt-1 text-[11.5px] text-ink-4">
+                  <p className="mt-1 text-[13px] text-ink-4">
                     Each checkout from this link creates its own payment record.
                   </p>
                 ) : null}
@@ -488,7 +488,7 @@ export function PaymentLinkForm() {
               <div className="flex justify-center rounded-md border border-dashed border-line-strong p-4">
                 <QRCodeImage value={hostedUrl(`l/preview-link`)} size={132} />
               </div>
-              <p className="text-[11.5px] leading-relaxed text-ink-4">
+              <p className="text-[13px] leading-relaxed text-ink-4">
                 The QR code is generated after the link exists. It always encodes the hosted checkout URL,
                 so the customer reviews the amount and recipient in the gateway UI before authorising.
               </p>
@@ -534,15 +534,15 @@ export function PaymentLinkDetail() {
   const url = hostedUrl(`l/${link.slug}`);
 
   const columns: Column<Payment>[] = [
-    { key: "id", header: "Payment", render: (p) => <code className="font-mono text-[12px]">{p.id}</code> },
+    { key: "id", header: "Payment", render: (p) => <code className="font-mono text-[14px]">{p.id}</code> },
     {
       key: "customer",
       header: "Customer",
       render: (p) => data.customers.find((c) => c.id === p.customerId)?.name ?? p.customerEmail ?? "Guest",
     },
-    { key: "amount", header: "Amount", align: "right", render: (p) => <AmountDisplay base={p.amount} className="text-[12.5px]" /> },
+    { key: "amount", header: "Amount", align: "right", render: (p) => <AmountDisplay base={p.amount} className="text-[14px]" /> },
     { key: "status", header: "Status", render: (p) => <StatusBadge label={p.status.replace(/_/g, " ")} tone={p.status === "succeeded" ? "positive" : "warn"} /> },
-    { key: "created", header: "Created", render: (p) => <span className="text-[12px] text-ink-3 tnum">{fmtDateTime(p.createdAt)}</span> },
+    { key: "created", header: "Created", render: (p) => <span className="text-[14px] text-ink-3 tnum">{fmtDateTime(p.createdAt)}</span> },
   ];
 
   return (
@@ -599,7 +599,7 @@ export function PaymentLinkDetail() {
           <CardHeader title="Link details" />
           <div className="grid gap-x-8 px-5 py-2 sm:grid-cols-2">
             <KeyValue label="Link ID">
-              <code className="font-mono text-[11.5px]">{link.id}</code>
+              <code className="font-mono text-[13px]">{link.id}</code>
             </KeyValue>
             <KeyValue label="Slug">/l/{link.slug}</KeyValue>
             <KeyValue label="Amount type">{typeLabels[link.linkType]}</KeyValue>
@@ -621,9 +621,9 @@ export function PaymentLinkDetail() {
             ) : null}
           </div>
           <div className="border-t border-line px-5 py-4">
-            <p className="text-[11.5px] font-medium uppercase tracking-wide text-ink-4">Checkout URL</p>
+            <p className="text-[13px] font-medium uppercase tracking-wide text-ink-4">Checkout URL</p>
             <div className="mt-1.5 flex items-center gap-2">
-              <code className="min-w-0 flex-1 truncate rounded border border-line bg-canvas px-2.5 py-1.5 font-mono text-[11.5px] text-ink-2">
+              <code className="min-w-0 flex-1 truncate rounded border border-line bg-canvas px-2.5 py-1.5 font-mono text-[13px] text-ink-2">
                 {url}
               </code>
               <Button
@@ -645,7 +645,7 @@ export function PaymentLinkDetail() {
           <CardHeader title="QR code" description="Encodes the hosted checkout URL" />
           <div className="flex flex-col items-center gap-3 px-5 py-5">
             <QRCodeImage value={url} size={180} />
-            <p className="text-center text-[11.5px] leading-relaxed text-ink-4">
+            <p className="text-center text-[13px] leading-relaxed text-ink-4">
               Scanning opens the checkout page. The code never encodes a raw transfer instruction, so the
               customer always reviews the request in the gateway UI.
             </p>

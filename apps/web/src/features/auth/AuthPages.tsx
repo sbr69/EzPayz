@@ -22,14 +22,14 @@ function AuthLayout({
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex h-16 max-w-5xl items-center px-5">
           <Link to="/" className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-[13px] font-bold text-white">
+            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-[15px] font-bold text-white">
               W
             </span>
-            <span className="text-[15px] font-semibold tracking-[-0.01em] text-ink">EzPayz</span>
+            <span className="text-[17px] font-semibold tracking-[-0.01em] text-ink">EzPayz</span>
           </Link>
           <Link
             to="/"
-            className="ml-auto inline-flex items-center gap-1.5 text-[12.5px] font-medium text-ink-3 hover:text-ink"
+            className="ml-auto inline-flex items-center gap-1.5 text-[14px] font-medium text-ink-3 hover:text-ink"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             Back to site
@@ -38,10 +38,10 @@ function AuthLayout({
       </header>
       <main className="flex flex-1 items-center justify-center px-5 py-12">
         <div className="w-full max-w-[420px]">
-          <h1 className="text-[22px] font-semibold tracking-[-0.02em] text-ink">{title}</h1>
-          <p className="mt-1.5 text-[13px] leading-relaxed text-ink-3">{subtitle}</p>
+          <h1 className="text-[24px] font-semibold tracking-[-0.02em] text-ink">{title}</h1>
+          <p className="mt-1.5 text-[15px] leading-relaxed text-ink-3">{subtitle}</p>
           <div className="mt-6">{children}</div>
-          {footer ? <div className="mt-5 text-center text-[12.5px] text-ink-3">{footer}</div> : null}
+          {footer ? <div className="mt-5 text-center text-[14px] text-ink-3">{footer}</div> : null}
         </div>
       </main>
     </div>
@@ -120,7 +120,7 @@ export function SignIn() {
           </Field>
           <div className="flex items-center justify-between">
             <Checkbox label="Keep me signed in" checked={remember} onChange={setRemember} />
-            <Link to="/forgot-password" className="text-[12.5px] font-medium text-accent hover:underline">
+            <Link to="/forgot-password" className="text-[14px] font-medium text-accent hover:underline">
               Forgot password?
             </Link>
           </div>
@@ -224,7 +224,7 @@ export function SignUp() {
             label="I accept the terms of service"
             description="By creating an account you agree to the gateway terms. This is a testnet MVP — no real funds are at risk."
           />
-          {errors.accept ? <p className="text-[12px] font-medium text-danger">{errors.accept}</p> : null}
+          {errors.accept ? <p className="text-[14px] font-medium text-danger">{errors.accept}</p> : null}
           <Button type="submit" variant="primary" size="lg" className="w-full" loading={loading}>
             Create account
           </Button>

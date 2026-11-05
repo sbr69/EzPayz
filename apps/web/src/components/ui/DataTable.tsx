@@ -113,7 +113,7 @@ export function DataTable<T>({
                 setPage(0);
               }}
               placeholder={searchPlaceholder}
-              className="h-8 pl-8 text-[13px]"
+              className="h-8 pl-8 text-[15px]"
               aria-label="Search table"
             />
           </div>
@@ -126,7 +126,7 @@ export function DataTable<T>({
               setFilterState((s) => ({ ...s, [f.key]: e.target.value }));
               setPage(0);
             }}
-            className="h-8 w-auto min-w-[130px] text-[12.5px]"
+            className="h-8 w-auto min-w-[130px] text-[14px]"
             aria-label={f.label}
           >
             {f.options.map((o) => (
@@ -163,7 +163,7 @@ export function DataTable<T>({
                       key={c.key}
                       scope="col"
                       className={cn(
-                        "px-4 py-2.5 text-[11.5px] font-semibold uppercase tracking-wide text-ink-4",
+                        "px-4 py-2.5 text-[13px] font-semibold uppercase tracking-wide text-ink-4",
                         c.align === "right" && "text-right",
                         c.hideOnMobile && "hidden lg:table-cell",
                       )}
@@ -218,7 +218,7 @@ export function DataTable<T>({
                     <td
                       key={c.key}
                       className={cn(
-                        "px-4 align-middle text-[13px] text-ink-2",
+                        "px-4 align-middle text-[15px] text-ink-2",
                         dense ? "py-2" : "py-3",
                         c.align === "right" && "text-right",
                         c.hideOnMobile && "hidden lg:table-cell",
@@ -237,7 +237,7 @@ export function DataTable<T>({
 
       {!loading && filtered.length > 0 ? (
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-4 py-2.5">
-          <p className="text-[12px] text-ink-4 tnum">
+          <p className="text-[14px] text-ink-4 tnum">
             Showing {safePage * pageSize + 1}–{Math.min((safePage + 1) * pageSize, filtered.length)} of{" "}
             {filtered.length}
           </p>
@@ -251,7 +251,7 @@ export function DataTable<T>({
             >
               Previous
             </Button>
-            <span className="px-1 text-[12px] text-ink-3 tnum">
+            <span className="px-1 text-[14px] text-ink-3 tnum">
               {safePage + 1} / {pageCount}
             </span>
             <Button

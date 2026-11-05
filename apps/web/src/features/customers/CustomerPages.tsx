@@ -62,7 +62,7 @@ export function CustomersList() {
           <Link to={`/customers/${c.id}`} className="font-medium text-ink hover:text-accent hover:underline">
             {c.name}
           </Link>
-          <p className="font-mono text-[11px] text-ink-4">{c.id}</p>
+          <p className="font-mono text-[13px] text-ink-4">{c.id}</p>
         </div>
       ),
       sortValue: (c) => c.name,
@@ -83,7 +83,7 @@ export function CustomersList() {
       render: (c) => (
         <div className="text-right">
           <span className="tnum text-ink">{c.successfulCount}</span>
-          <p className="text-[11px] text-ink-4">
+          <p className="text-[13px] text-ink-4">
             {c.volume !== "0" ? `${(Number(c.volume) / 1_000_000).toFixed(2)} ${TOKEN.symbol}` : "—"}
           </p>
         </div>
@@ -95,7 +95,7 @@ export function CustomersList() {
       key: "refunded",
       header: "Refunded",
       align: "right",
-      render: (c) => <AmountDisplay base={c.refunded} className="text-[12.5px]" />,
+      render: (c) => <AmountDisplay base={c.refunded} className="text-[14px]" />,
       csv: (c) => c.refunded,
     },
     {
@@ -110,14 +110,14 @@ export function CustomersList() {
       key: "last",
       header: "Last payment",
       hideOnMobile: true,
-      render: (c) => <span className="text-[12px] text-ink-3">{timeAgo(c.lastPaymentAt)}</span>,
+      render: (c) => <span className="text-[14px] text-ink-3">{timeAgo(c.lastPaymentAt)}</span>,
       csv: (c) => c.lastPaymentAt ?? "",
     },
     {
       key: "created",
       header: "Created",
       hideOnMobile: true,
-      render: (c) => <span className="text-[12px] text-ink-3 tnum">{fmtDateTime(c.createdAt)}</span>,
+      render: (c) => <span className="text-[14px] text-ink-3 tnum">{fmtDateTime(c.createdAt)}</span>,
       sortValue: (c) => new Date(c.createdAt).getTime(),
       csv: (c) => c.createdAt,
     },
@@ -262,7 +262,7 @@ export function CustomerDetail() {
         description={customer.email}
         meta={
           <>
-            <span className="font-mono text-[11.5px] text-ink-4">{customer.id}</span>
+            <span className="font-mono text-[13px] text-ink-4">{customer.id}</span>
             <StatusBadge label={`Customer since ${fmtDateTime(customer.createdAt)}`} tone="neutral" dot={false} />
           </>
         }
@@ -286,7 +286,7 @@ export function CustomerDetail() {
           <CardHeader title="Profile" />
           <div className="px-5 py-2">
             <KeyValue label="Customer ID">
-              <code className="font-mono text-[11.5px]">{customer.id}</code>
+              <code className="font-mono text-[13px]">{customer.id}</code>
             </KeyValue>
             <KeyValue label="Name">{customer.name}</KeyValue>
             <KeyValue label="Email">{customer.email}</KeyValue>
@@ -302,7 +302,7 @@ export function CustomerDetail() {
             <KeyValue label="Payments from this wallet">{payments.length}</KeyValue>
           </div>
           <div className="border-t border-line px-5 py-3">
-            <p className="text-[11.5px] leading-relaxed text-ink-4">
+            <p className="text-[13px] leading-relaxed text-ink-4">
               The gateway records the wallet used at checkout. It does not prove the wallet belongs to the
               named customer.
             </p>
@@ -312,20 +312,20 @@ export function CustomerDetail() {
           <CardHeader title="Summary" />
           <div className="grid grid-cols-2 gap-3 px-5 py-4">
             <div className="rounded-md border border-line bg-canvas/60 p-3">
-              <p className="text-[11px] uppercase tracking-wide text-ink-4">Successful</p>
-              <p className="mt-1 text-[16px] font-semibold text-ink tnum">{successful.length}</p>
+              <p className="text-[13px] uppercase tracking-wide text-ink-4">Successful</p>
+              <p className="mt-1 text-[18px] font-semibold text-ink tnum">{successful.length}</p>
             </div>
             <div className="rounded-md border border-line bg-canvas/60 p-3">
-              <p className="text-[11px] uppercase tracking-wide text-ink-4">Volume</p>
-              <AmountDisplay base={sumBase(successful.map((p) => p.amount))} className="text-[15px]" />
+              <p className="text-[13px] uppercase tracking-wide text-ink-4">Volume</p>
+              <AmountDisplay base={sumBase(successful.map((p) => p.amount))} className="text-[17px]" />
             </div>
             <div className="rounded-md border border-line bg-canvas/60 p-3">
-              <p className="text-[11px] uppercase tracking-wide text-ink-4">Refunded</p>
-              <AmountDisplay base={sumBase(refunds.filter((r) => r.status === "succeeded").map((r) => r.amount))} className="text-[15px]" />
+              <p className="text-[13px] uppercase tracking-wide text-ink-4">Refunded</p>
+              <AmountDisplay base={sumBase(refunds.filter((r) => r.status === "succeeded").map((r) => r.amount))} className="text-[17px]" />
             </div>
             <div className="rounded-md border border-line bg-canvas/60 p-3">
-              <p className="text-[11px] uppercase tracking-wide text-ink-4">Subscriptions</p>
-              <p className="mt-1 text-[16px] font-semibold text-ink tnum">{subscriptions.length}</p>
+              <p className="text-[13px] uppercase tracking-wide text-ink-4">Subscriptions</p>
+              <p className="mt-1 text-[18px] font-semibold text-ink tnum">{subscriptions.length}</p>
             </div>
           </div>
         </Card>
@@ -359,13 +359,13 @@ export function CustomerDetail() {
                   className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 transition-colors hover:bg-canvas"
                 >
                   <div className="min-w-0">
-                    <code className="font-mono text-[12px] text-ink">{p.id}</code>
-                    <p className="truncate text-[12px] text-ink-3">{p.description}</p>
+                    <code className="font-mono text-[14px] text-ink">{p.id}</code>
+                    <p className="truncate text-[14px] text-ink-3">{p.description}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <AmountDisplay base={p.amount} className="text-[12.5px]" />
+                    <AmountDisplay base={p.amount} className="text-[14px]" />
                     <StatusBadge label={PAYMENT_STATUS_META[p.status].label} tone={PAYMENT_TONES[p.status]} />
-                    <span className="hidden text-[11.5px] text-ink-4 tnum sm:inline">{timeAgo(p.createdAt)}</span>
+                    <span className="hidden text-[13px] text-ink-4 tnum sm:inline">{timeAgo(p.createdAt)}</span>
                   </div>
                 </Link>
               ))
@@ -381,11 +381,11 @@ export function CustomerDetail() {
               invoices.map((i) => (
                 <Link key={i.id} to={`/invoices/${i.id}`} className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-canvas">
                   <div className="min-w-0">
-                    <code className="font-mono text-[12px] text-ink">{i.id}</code>
-                    <p className="truncate text-[12px] text-ink-3">{i.title}</p>
+                    <code className="font-mono text-[14px] text-ink">{i.id}</code>
+                    <p className="truncate text-[14px] text-ink-3">{i.title}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <AmountDisplay base={i.total} className="text-[12.5px]" />
+                    <AmountDisplay base={i.total} className="text-[14px]" />
                     <StatusBadge label={i.status.replace(/_/g, " ")} tone={i.status === "paid" ? "positive" : "info"} />
                   </div>
                 </Link>
@@ -402,11 +402,11 @@ export function CustomerDetail() {
               subscriptions.map((s) => (
                 <Link key={s.id} to={`/subscriptions/${s.id}`} className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-canvas">
                   <div className="min-w-0">
-                    <code className="font-mono text-[12px] text-ink">{s.id}</code>
-                    <p className="truncate text-[12px] text-ink-3">{data.plans.find((p) => p.id === s.planId)?.name}</p>
+                    <code className="font-mono text-[14px] text-ink">{s.id}</code>
+                    <p className="truncate text-[14px] text-ink-3">{data.plans.find((p) => p.id === s.planId)?.name}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <AmountDisplay base={s.amount} className="text-[12.5px]" />
+                    <AmountDisplay base={s.amount} className="text-[14px]" />
                     <StatusBadge label={SUBSCRIPTION_STATUS_META[s.status].label} tone={SUBSCRIPTION_TONES[s.status]} />
                   </div>
                 </Link>
@@ -423,10 +423,10 @@ export function CustomerDetail() {
               refunds.map((r) => (
                 <Link key={r.id} to={`/refunds/${r.id}`} className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-canvas">
                   <div className="min-w-0">
-                    <code className="font-mono text-[12px] text-ink">{r.id}</code>
-                    <p className="max-w-md truncate text-[12px] text-ink-3">{r.reason}</p>
+                    <code className="font-mono text-[14px] text-ink">{r.id}</code>
+                    <p className="max-w-md truncate text-[14px] text-ink-3">{r.reason}</p>
                   </div>
-                  <AmountDisplay base={r.amount} className="text-[12.5px]" />
+                  <AmountDisplay base={r.amount} className="text-[14px]" />
                 </Link>
               ))
             )}
@@ -441,10 +441,10 @@ export function CustomerDetail() {
               orders.map((o) => (
                 <Link key={o.id} to={`/fulfilment/${o.id}`} className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-canvas">
                   <div className="min-w-0">
-                    <span className="text-[12.5px] font-medium text-ink">{o.orderReference}</span>
-                    <p className="text-[12px] text-ink-3">{o.status.replace(/_/g, " ")}</p>
+                    <span className="text-[14px] font-medium text-ink">{o.orderReference}</span>
+                    <p className="text-[14px] text-ink-3">{o.status.replace(/_/g, " ")}</p>
                   </div>
-                  <AmountDisplay base={o.amount} className="text-[12.5px]" />
+                  <AmountDisplay base={o.amount} className="text-[14px]" />
                 </Link>
               ))
             )}
@@ -458,7 +458,7 @@ export function CustomerDetail() {
             ) : (
               <ul className="space-y-2.5">
                 {customer.notes.map((n, i) => (
-                  <li key={i} className="rounded-md border border-line bg-canvas/60 px-3.5 py-2.5 text-[12.5px] text-ink-2">
+                  <li key={i} className="rounded-md border border-line bg-canvas/60 px-3.5 py-2.5 text-[14px] text-ink-2">
                     {n}
                   </li>
                 ))}
@@ -507,14 +507,14 @@ export function CustomerDetail() {
           <textarea
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            className="min-h-[100px] w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-[13.5px] text-ink focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/15"
+            className="min-h-[100px] w-full rounded-md border border-line-strong bg-surface px-3 py-2 text-[15px] text-ink focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/15"
             placeholder="Net-15 agreed for retainer work."
           />
         </Field>
       </Modal>
 
       <Divider className="my-2" />
-      <p className="text-center text-[11.5px] text-ink-4">
+      <p className="text-center text-[13px] text-ink-4">
         {payments.length} payments · {invoices.length} invoices · {subscriptions.length} subscriptions ·{" "}
         {refunds.length} refunds · {orders.length} orders
       </p>

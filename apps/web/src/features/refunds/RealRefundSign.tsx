@@ -82,39 +82,39 @@ export function RealRefundSign({ refundId, amount, payerWallet, merchantPayoutWa
     return (
       <div style={{ padding: "1rem", border: "1px solid #22c55e", borderRadius: 8, background: "#f0fdf4", fontFamily: "sans-serif" }}>
         <p style={{ margin: 0, color: "#16a34a", fontWeight: 600 }}>✓ Refund authorization submitted</p>
-        <p style={{ margin: "8px 0 0", fontSize: 13, color: "#666" }}>The relayer is submitting the refund on-chain. Check the refund status for the tx hash.</p>
+        <p style={{ margin: "8px 0 0", fontSize: 15, color: "#666" }}>The relayer is submitting the refund on-chain. Check the refund status for the tx hash.</p>
       </div>
     );
   }
 
   return (
     <div style={{ padding: "1rem", border: "1px solid #ddd", borderRadius: 8, fontFamily: "sans-serif" }}>
-      <h3 style={{ margin: "0 0 12px", fontSize: 16 }}>Authorize refund (gasless)</h3>
+      <h3 style={{ margin: "0 0 12px", fontSize: 18 }}>Authorize refund (gasless)</h3>
       <div style={{ marginBottom: 12 }}>
-        <p style={{ fontSize: 13, color: "#666", margin: 0 }}>Refund amount: <strong>{fmtAmount(amount)} USDT</strong></p>
-        <p style={{ fontSize: 13, color: "#666", margin: "4px 0 0" }}>To (original payer): {payerWallet.slice(0, 10)}…{payerWallet.slice(-4)}</p>
-        <p style={{ fontSize: 13, color: "#666", margin: "4px 0 0" }}>From (your payout wallet): {merchantPayoutWallet.slice(0, 10)}…{merchantPayoutWallet.slice(-4)}</p>
+        <p style={{ fontSize: 15, color: "#666", margin: 0 }}>Refund amount: <strong>{fmtAmount(amount)} USDT</strong></p>
+        <p style={{ fontSize: 15, color: "#666", margin: "4px 0 0" }}>To (original payer): {payerWallet.slice(0, 10)}…{payerWallet.slice(-4)}</p>
+        <p style={{ fontSize: 15, color: "#666", margin: "4px 0 0" }}>From (your payout wallet): {merchantPayoutWallet.slice(0, 10)}…{merchantPayoutWallet.slice(-4)}</p>
       </div>
       <div style={{ marginBottom: 12 }}>
         <ConnectButton />
       </div>
       {address && wrongWallet && (
-        <p style={{ color: "red", fontSize: 13, marginBottom: 12 }}>
+        <p style={{ color: "red", fontSize: 15, marginBottom: 12 }}>
           Connected wallet does not match the merchant payout wallet. Connect {merchantPayoutWallet.slice(0, 10)}…
         </p>
       )}
       {address && wrongNetwork && !wrongWallet && (
-        <p style={{ color: "orange", fontSize: 13, marginBottom: 12 }}>Wrong network — switch to Whitechain Sepolia (chain 1874).</p>
+        <p style={{ color: "orange", fontSize: 15, marginBottom: 12 }}>Wrong network — switch to Whitechain Sepolia (chain 1874).</p>
       )}
-      {error && <p style={{ color: "red", fontSize: 13, marginBottom: 12 }}>{error}</p>}
+      {error && <p style={{ color: "red", fontSize: 15, marginBottom: 12 }}>{error}</p>}
       <button
         onClick={handleSign}
         disabled={!address || wrongWallet || wrongNetwork || status === "signing" || status === "submitting"}
-        style={{ width: "100%", padding: "10px", fontSize: 14, cursor: "pointer", borderRadius: 8, border: "none", background: "#0ea5e9", color: "#fff", opacity: !address || wrongWallet || wrongNetwork ? 0.5 : 1 }}
+        style={{ width: "100%", padding: "10px", fontSize: 16, cursor: "pointer", borderRadius: 8, border: "none", background: "#0ea5e9", color: "#fff", opacity: !address || wrongWallet || wrongNetwork ? 0.5 : 1 }}
       >
         {status === "signing" ? "Sign in wallet…" : status === "submitting" ? "Submitting to relayer…" : `Sign refund authorization (${fmtAmount(amount)} USDT)`}
       </button>
-      <p style={{ fontSize: 11, color: "#999", marginTop: 8 }}>
+      <p style={{ fontSize: 13, color: "#999", marginTop: 8 }}>
         The relayer pays WBT gas. You only sign the EIP-3009 authorization.
       </p>
     </div>

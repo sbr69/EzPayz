@@ -23,7 +23,7 @@ const axisProps = {
   stroke: "#d6d2c8",
   tickLine: false,
   axisLine: false,
-  tick: { fontSize: 11, fill: "#6b7470" },
+  tick: { fontSize: 13, fill: "#6b7470" },
 } as const;
 
 export function VolumeChart({
@@ -50,7 +50,7 @@ export function VolumeChart({
             name === "volume"
               ? [fmtCompact(String(v ?? "0")), "Volume"]
               : [String(v ?? "0"), "Payments"]) as never}
-          contentStyle={{ fontSize: 12 }}
+          contentStyle={{ fontSize: 14 }}
         />
         <Area
           type="monotone"
@@ -82,8 +82,8 @@ export function StackedBarChart({
         <CartesianGrid stroke="#eceae4" vertical={false} />
         <XAxis dataKey="label" {...axisProps} />
         <YAxis {...axisProps} width={44} allowDecimals={false} />
-        <Tooltip contentStyle={{ fontSize: 12 }} />
-        <Legend wrapperStyle={{ fontSize: 11.5 }} iconType="circle" iconSize={7} />
+        <Tooltip contentStyle={{ fontSize: 14 }} />
+        <Legend wrapperStyle={{ fontSize: 13.5 }} iconType="circle" iconSize={7} />
         {keys.map((k, i) => (
           <Bar key={k} dataKey={k} name={labels[k] ?? k} stackId="a" fill={CHART_COLORS[i % CHART_COLORS.length]} radius={[0, 0, 0, 0]} />
         ))}
@@ -107,8 +107,8 @@ export function DonutChart({
             <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
           ))}
         </Pie>
-        <Tooltip contentStyle={{ fontSize: 12 }} />
-        <Legend wrapperStyle={{ fontSize: 11.5 }} iconType="circle" iconSize={7} />
+        <Tooltip contentStyle={{ fontSize: 14 }} />
+        <Legend wrapperStyle={{ fontSize: 13.5 }} iconType="circle" iconSize={7} />
       </PieChart>
     </ResponsiveContainer>
   );
@@ -133,7 +133,7 @@ export function TrendLineChart({
         <CartesianGrid stroke="#eceae4" vertical={false} />
         <XAxis dataKey="label" {...axisProps} />
         <YAxis {...axisProps} width={44} allowDecimals={false} />
-        <Tooltip contentStyle={{ fontSize: 12 }} />
+        <Tooltip contentStyle={{ fontSize: 14 }} />
         <Line
           type="monotone"
           dataKey={dataKey}
@@ -163,7 +163,7 @@ export function HorizontalBars({
         <YAxis type="category" dataKey="name" {...axisProps} width={110} />
         <Tooltip
           formatter={((v: unknown) => [`${fmtCompact(String(v ?? "0"))}`, "Collected"]) as never}
-          contentStyle={{ fontSize: 12 }}
+          contentStyle={{ fontSize: 14 }}
         />
         <Bar dataKey="value" fill="#0d7a6f" radius={[0, 3, 3, 0]} barSize={16} />
       </BarChart>

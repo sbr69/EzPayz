@@ -128,19 +128,19 @@ export function RealCheckout() {
     return (
       <div style={{ maxWidth: 480, margin: "2rem auto", padding: "1.5rem", border: "1px solid #ddd", borderRadius: 12, fontFamily: "sans-serif" }}>
         <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <div style={{ width: 48, height: 48, margin: "0 auto 12px", borderRadius: "50%", background: "#22c55e", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 24 }}>✓</div>
-          <h2 style={{ margin: 0, fontSize: 20 }}>Payment succeeded</h2>
-          <p style={{ color: "#666", fontSize: 14, margin: "4px 0 0" }}>{checkout.merchant.displayName}</p>
+          <div style={{ width: 48, height: 48, margin: "0 auto 12px", borderRadius: "50%", background: "#22c55e", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 28 }}>✓</div>
+          <h2 style={{ margin: 0, fontSize: 24 }}>Payment succeeded</h2>
+          <p style={{ color: "#666", fontSize: 16, margin: "4px 0 0" }}>{checkout.merchant.displayName}</p>
         </div>
         <div style={{ padding: 16, background: "#f5f5f5", borderRadius: 8, marginBottom: 16 }}>
-          <p style={{ fontSize: 12, color: "#666", margin: 0 }}>Amount paid</p>
-          <p style={{ fontSize: 24, fontWeight: 600, margin: "4px 0 0" }}>{displayAmt} {checkout.token.symbol}</p>
-          <p style={{ fontSize: 12, color: "#666", margin: "8px 0 0" }}>{checkout.description}</p>
+          <p style={{ fontSize: 14, color: "#666", margin: 0 }}>Amount paid</p>
+          <p style={{ fontSize: 28, fontWeight: 600, margin: "4px 0 0" }}>{displayAmt} {checkout.token.symbol}</p>
+          <p style={{ fontSize: 14, color: "#666", margin: "8px 0 0" }}>{checkout.description}</p>
         </div>
         {txRef && (
           <div style={{ marginBottom: 16 }}>
-            <p style={{ fontSize: 12, color: "#666", margin: 0 }}>Transaction</p>
-            <a href={`${EXPLORER}/tx/${txRef}`} target="_blank" rel="noreferrer" style={{ fontSize: 13, color: "#0ea5e9", wordBreak: "break-all" }}>
+            <p style={{ fontSize: 14, color: "#666", margin: 0 }}>Transaction</p>
+            <a href={`${EXPLORER}/tx/${txRef}`} target="_blank" rel="noreferrer" style={{ fontSize: 15, color: "#0ea5e9", wordBreak: "break-all" }}>
               {txRef.slice(0, 20)}…{txRef.slice(-8)} →
             </a>
           </div>
@@ -148,18 +148,18 @@ export function RealCheckout() {
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {checkout.successUrl && (
             <a href={`${checkout.successUrl}${checkout.successUrl.includes("?") ? "&" : "?"}paymentIntentId=${checkout.paymentIntentId}&status=succeeded`} style={{ flex: 1 }}>
-              <button style={{ width: "100%", padding: "10px", fontSize: 14, cursor: "pointer", borderRadius: 8, border: "none", background: "#0ea5e9", color: "#fff" }}>
+              <button style={{ width: "100%", padding: "10px", fontSize: 16, cursor: "pointer", borderRadius: 8, border: "none", background: "#0ea5e9", color: "#fff" }}>
                 Return to merchant
               </button>
             </a>
           )}
           <a href={`${API_URL}/v1/checkout/${slug}/receipt.pdf`} target="_blank" rel="noreferrer">
-            <button style={{ padding: "10px 16px", fontSize: 14, cursor: "pointer", borderRadius: 8, border: "1px solid #ddd", background: "#fff" }}>
+            <button style={{ padding: "10px 16px", fontSize: 16, cursor: "pointer", borderRadius: 8, border: "1px solid #ddd", background: "#fff" }}>
               Download receipt
             </button>
           </a>
         </div>
-        <p style={{ fontSize: 11, color: "#999", marginTop: 12, textAlign: "center" }}>
+        <p style={{ fontSize: 13, color: "#999", marginTop: 12, textAlign: "center" }}>
           Gasless payment — the gateway relayer paid WBT gas. You only signed the authorization.
         </p>
       </div>
@@ -170,34 +170,34 @@ export function RealCheckout() {
     <div style={{ maxWidth: 480, margin: "2rem auto", padding: "1.5rem", border: "1px solid #ddd", borderRadius: 12, fontFamily: "sans-serif" }}>
       <div style={{ marginBottom: 16 }}>
         <h2 style={{ margin: 0 }}>{checkout.merchant.displayName}</h2>
-        <p style={{ color: "#666", fontSize: 14 }}>{checkout.description}</p>
+        <p style={{ color: "#666", fontSize: 16 }}>{checkout.description}</p>
       </div>
       <div style={{ padding: 16, background: "#f5f5f5", borderRadius: 8, marginBottom: 16 }}>
-        <p style={{ fontSize: 12, color: "#666", margin: 0 }}>Amount due</p>
-        <p style={{ fontSize: 28, fontWeight: 600, margin: "4px 0 0" }}>
+        <p style={{ fontSize: 14, color: "#666", margin: 0 }}>Amount due</p>
+        <p style={{ fontSize: 32, fontWeight: 600, margin: "4px 0 0" }}>
           {displayAmt} {checkout.token.symbol}
         </p>
       </div>
       <div style={{ marginBottom: 16 }}>
-        <p style={{ fontSize: 12, color: "#666" }}>Recipient: {checkout.merchant.payoutWallet.slice(0, 10)}…{checkout.merchant.payoutWallet.slice(-4)}</p>
+        <p style={{ fontSize: 14, color: "#666" }}>Recipient: {checkout.merchant.payoutWallet.slice(0, 10)}…{checkout.merchant.payoutWallet.slice(-4)}</p>
       </div>
       <div style={{ marginBottom: 16 }}>
         <ConnectButton />
       </div>
       {address && (
         <>
-          {wrongNetwork && <p style={{ color: "orange", fontSize: 13 }}>Wrong network — switch to Whitechain Sepolia (chain 1874).</p>}
+          {wrongNetwork && <p style={{ color: "orange", fontSize: 15 }}>Wrong network — switch to Whitechain Sepolia (chain 1874).</p>}
           <button
             onClick={handlePay}
             disabled={status === "signing" || status === "submitted" || wrongNetwork}
-            style={{ width: "100%", padding: "12px", fontSize: 15, cursor: "pointer", borderRadius: 8, border: "none", background: "#0ea5e9", color: "#fff" }}
+            style={{ width: "100%", padding: "12px", fontSize: 17, cursor: "pointer", borderRadius: 8, border: "none", background: "#0ea5e9", color: "#fff" }}
           >
             {status === "signing" ? "Sign in wallet…" : status === "submitted" ? "Confirming on-chain…" : `Pay ${displayAmt} USDT (gasless)`}
           </button>
         </>
       )}
-      {status === "submitted" && <p style={{ color: "#0ea5e9", marginTop: 12, fontSize: 13 }}>Confirming on Whitechain Sepolia… this usually takes a few seconds.</p>}
-      <p style={{ fontSize: 11, color: "#999", marginTop: 12 }}>Gasless: the gateway relayer pays WBT gas. You only sign the authorization.</p>
+      {status === "submitted" && <p style={{ color: "#0ea5e9", marginTop: 12, fontSize: 15 }}>Confirming on Whitechain Sepolia… this usually takes a few seconds.</p>}
+      <p style={{ fontSize: 13, color: "#999", marginTop: 12 }}>Gasless: the gateway relayer pays WBT gas. You only sign the authorization.</p>
     </div>
   );
 }

@@ -47,16 +47,16 @@ export default function GasGuard() {
   }, [data.relayer]);
 
   const columns: Column<RelayerTransaction>[] = [
-    { key: "id", header: "Transaction", render: (r) => <code className="font-mono text-[11.5px]">{r.id}</code> },
+    { key: "id", header: "Transaction", render: (r) => <code className="font-mono text-[13px]">{r.id}</code> },
     {
       key: "merchant",
       header: "Merchant",
       render: () => data.merchant.displayName,
       csv: () => data.merchant.displayName,
     },
-    { key: "operation", header: "Operation", render: (r) => <span className="text-[12.5px]">{operationLabels[r.operation]}</span>, csv: (r) => r.operation },
-    { key: "gas", header: "Gas sponsored", align: "right", render: (r) => <span className="tnum text-[12.5px]">{fmtNumber(Number(r.gasSponsored))}</span>, sortValue: (r) => Number(r.gasSponsored), csv: (r) => r.gasSponsored },
-    { key: "wbt", header: "WBT cost", align: "right", render: (r) => <span className="tnum text-[12.5px]">{r.wbtCost}</span>, csv: (r) => r.wbtCost },
+    { key: "operation", header: "Operation", render: (r) => <span className="text-[14px]">{operationLabels[r.operation]}</span>, csv: (r) => r.operation },
+    { key: "gas", header: "Gas sponsored", align: "right", render: (r) => <span className="tnum text-[14px]">{fmtNumber(Number(r.gasSponsored))}</span>, sortValue: (r) => Number(r.gasSponsored), csv: (r) => r.gasSponsored },
+    { key: "wbt", header: "WBT cost", align: "right", render: (r) => <span className="tnum text-[14px]">{r.wbtCost}</span>, csv: (r) => r.wbtCost },
     {
       key: "status",
       header: "Status",
@@ -68,7 +68,7 @@ export default function GasGuard() {
       ),
       csv: (r) => r.status,
     },
-    { key: "created", header: "Date", render: (r) => <span className="text-[12px] text-ink-3 tnum">{fmtDateTime(r.createdAt)}</span>, sortValue: (r) => new Date(r.createdAt).getTime(), csv: (r) => r.createdAt },
+    { key: "created", header: "Date", render: (r) => <span className="text-[14px] text-ink-3 tnum">{fmtDateTime(r.createdAt)}</span>, sortValue: (r) => new Date(r.createdAt).getTime(), csv: (r) => r.createdAt },
     { key: "tx", header: "Transaction ref", render: (r) => <TxRefDisplay value={r.txRef} size="xs" /> },
     {
       key: "related",
@@ -76,7 +76,7 @@ export default function GasGuard() {
       align: "right",
       render: (r) =>
         r.paymentId ? (
-          <Link to={`/payments/${r.paymentId}`} className="text-[12px] font-medium text-accent hover:underline">
+          <Link to={`/payments/${r.paymentId}`} className="text-[14px] font-medium text-accent hover:underline">
             View payment
           </Link>
         ) : null,
@@ -161,10 +161,10 @@ export default function GasGuard() {
             <KeyValue label="Allowed network">{form.allowedNetwork}</KeyValue>
             <KeyValue label="Allowed token">{form.allowedToken}</KeyValue>
             <KeyValue label="Allowed contract">
-              <code className="break-all font-mono text-[11px]">{form.allowedContract}</code>
+              <code className="break-all font-mono text-[13px]">{form.allowedContract}</code>
             </KeyValue>
             <KeyValue label="Allowed functions">
-              <span className="font-mono text-[11px]">{form.allowedFunctions.join(", ")}</span>
+              <span className="font-mono text-[13px]">{form.allowedFunctions.join(", ")}</span>
             </KeyValue>
             <KeyValue label="Authorization expiry check">
               <StatusBadge label={form.authorisationExpiryCheck ? "Enforced" : "Disabled"} tone={form.authorisationExpiryCheck ? "positive" : "warn"} />
@@ -182,8 +182,8 @@ export default function GasGuard() {
                 disabled
               />
               <div>
-                <p className="text-[12.5px] font-medium text-ink">Emergency pause</p>
-                <p className="text-[11.5px] text-ink-3">Operator-only control, shown read-only for merchants.</p>
+                <p className="text-[14px] font-medium text-ink">Emergency pause</p>
+                <p className="text-[13px] text-ink-3">Operator-only control, shown read-only for merchants.</p>
               </div>
             </div>
             <div className="flex gap-2">
@@ -217,7 +217,7 @@ export default function GasGuard() {
             <CardHeader title="Usage" description="Merchant budget consumption" />
             <div className="space-y-3 px-5 py-4">
               <div>
-                <div className="flex items-center justify-between text-[12px]">
+                <div className="flex items-center justify-between text-[14px]">
                   <span className="text-ink-3">Merchant budget</span>
                   <span className="font-medium text-ink tnum">
                     {data.gasGuard.merchantSpentWbt.toFixed(4)} / {data.gasGuard.merchantBudgetWbt} WBT
@@ -231,7 +231,7 @@ export default function GasGuard() {
                 </div>
               </div>
               <div>
-                <div className="flex items-center justify-between text-[12px]">
+                <div className="flex items-center justify-between text-[14px]">
                   <span className="text-ink-3">Daily limit</span>
                   <span className="font-medium text-ink tnum">
                     {data.gasGuard.dailySpentWbt.toFixed(4)} / {data.gasGuard.dailyLimitWbt} WBT
@@ -252,8 +252,8 @@ export default function GasGuard() {
                   ["Rejected", fmtNumber(stats.rejected)],
                 ].map(([label, value]) => (
                   <div key={label} className="rounded-md border border-line bg-canvas/60 px-3 py-2">
-                    <p className="text-[11px] uppercase tracking-wide text-ink-4">{label}</p>
-                    <p className="mt-0.5 text-[14px] font-semibold text-ink tnum">{value}</p>
+                    <p className="text-[13px] uppercase tracking-wide text-ink-4">{label}</p>
+                    <p className="mt-0.5 text-[16px] font-semibold text-ink tnum">{value}</p>
                   </div>
                 ))}
               </div>
@@ -276,8 +276,8 @@ export default function GasGuard() {
                     <ShieldAlert className="mt-0.5 h-4 w-4 shrink-0 text-danger" />
                   )}
                   <div>
-                    <p className="text-[12.5px] font-medium text-ink">{String(label)}</p>
-                    <p className="text-[11.5px] leading-relaxed text-ink-3">{String(detail)}</p>
+                    <p className="text-[14px] font-medium text-ink">{String(label)}</p>
+                    <p className="text-[13px] leading-relaxed text-ink-3">{String(detail)}</p>
                   </div>
                 </div>
               ))}
@@ -291,7 +291,7 @@ export default function GasGuard() {
           title="Relayer activity"
           description="Every sponsored submission recorded for this workspace"
           actions={
-            <Link to="/settings/gas-sponsorship" className="text-[12px] font-medium text-accent hover:underline">
+            <Link to="/settings/gas-sponsorship" className="text-[14px] font-medium text-accent hover:underline">
               Merchant sponsorship settings
             </Link>
           }

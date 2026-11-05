@@ -23,9 +23,9 @@ export function EmptyState({
       <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full border border-line bg-canvas-alt text-ink-3">
         {icon ?? <Info className="h-5 w-5" />}
       </div>
-      <p className="text-[14px] font-semibold text-ink">{title}</p>
+      <p className="text-[16px] font-semibold text-ink">{title}</p>
       {description ? (
-        <p className="mt-1 max-w-md text-[12.5px] leading-relaxed text-ink-3">{description}</p>
+        <p className="mt-1 max-w-md text-[14px] leading-relaxed text-ink-3">{description}</p>
       ) : null}
       {action ? <div className="mt-4">{action}</div> : null}
     </div>
@@ -46,8 +46,8 @@ export function ErrorState({
       <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-danger-soft text-danger">
         <AlertCircle className="h-5 w-5" />
       </div>
-      <p className="text-[14px] font-semibold text-ink">{title}</p>
-      {description ? <p className="mt-1 max-w-md text-[12.5px] text-ink-3">{description}</p> : null}
+      <p className="text-[16px] font-semibold text-ink">{title}</p>
+      {description ? <p className="mt-1 max-w-md text-[14px] text-ink-3">{description}</p> : null}
       {onRetry ? (
         <Button className="mt-4" variant="secondary" onClick={onRetry}>
           Try again
@@ -80,7 +80,7 @@ export function TableSkeleton({ rows = 6, cols = 5 }: { rows?: number; cols?: nu
 
 export function InlineLoading({ label = "Working…" }: { label?: string }) {
   return (
-    <div className="flex items-center justify-center gap-2 px-6 py-10 text-[13px] text-ink-3">
+    <div className="flex items-center justify-center gap-2 px-6 py-10 text-[15px] text-ink-3">
       <Loader2 className="h-4 w-4 animate-spin" />
       {label}
     </div>
@@ -117,8 +117,8 @@ export function ToastHost() {
         >
           <span className="mt-0.5 shrink-0">{icons[t.tone]}</span>
           <div className="min-w-0 flex-1">
-            <p className="text-[13px] font-semibold text-ink">{t.title}</p>
-            {t.body ? <p className="mt-0.5 text-[12px] leading-relaxed text-ink-3">{t.body}</p> : null}
+            <p className="text-[15px] font-semibold text-ink">{t.title}</p>
+            {t.body ? <p className="mt-0.5 text-[14px] leading-relaxed text-ink-3">{t.body}</p> : null}
           </div>
           <button
             onClick={() => dismiss(t.id)}
@@ -140,7 +140,7 @@ export function DemoModeBanner({ compact }: { compact?: boolean }) {
   return (
     <div className="flex items-start gap-2 rounded-md border border-warn-line bg-warn-soft px-3 py-2 text-warn">
       <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-      <p className={cn("text-[12px] leading-relaxed", compact && "sm:hidden")}>
+      <p className={cn("text-[14px] leading-relaxed", compact && "sm:hidden")}>
         <span className="font-semibold">Demo mode.</span> All wallets, signatures, transactions and
         settlements shown here are simulated in the browser. No on-chain state is read or written and
         nothing is verified on Whitechain.
@@ -151,7 +151,7 @@ export function DemoModeBanner({ compact }: { compact?: boolean }) {
 
 export function SimulatedBadge({ label = "Simulated" }: { label?: string }) {
   return (
-    <span className="inline-flex items-center gap-1 rounded border border-warn-line bg-warn-soft px-1.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-wide text-warn">
+    <span className="inline-flex items-center gap-1 rounded border border-warn-line bg-warn-soft px-1.5 py-0.5 text-[12px] font-semibold uppercase tracking-wide text-warn">
       {label}
     </span>
   );
@@ -161,7 +161,7 @@ export function LoadingOverlay({ label }: { label: string }) {
   return (
     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 rounded-[10px] bg-surface/75 backdrop-blur-[1px]">
       <Loader2 className="h-5 w-5 animate-spin text-accent" />
-      <p className="text-[12.5px] font-medium text-ink-2">{label}</p>
+      <p className="text-[14px] font-medium text-ink-2">{label}</p>
     </div>
   );
 }

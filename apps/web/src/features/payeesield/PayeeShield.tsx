@@ -48,10 +48,10 @@ export function PayeeShieldPanel({
               )}
             </span>
             <div>
-              <p className="text-[13px] font-semibold text-ink">
+              <p className="text-[15px] font-semibold text-ink">
                 PayeeShield {record ? meta?.label.toLowerCase() : "not signed"}
               </p>
-              <p className="text-[11.5px] leading-relaxed text-ink-3">
+              <p className="text-[13px] leading-relaxed text-ink-3">
                 {record
                   ? `Signed by gateway key ${record.signingKeyId} · ${record.protectedFields.invoiceId}`
                   : "This request has not been signed by the gateway."}
@@ -76,7 +76,7 @@ export function PayeeShieldPanel({
                 </Pill>
               </KeyValue>
               <KeyValue label="Signed recipient">
-                <code className="font-mono text-[11.5px]">{`${record.protectedFields.recipient.slice(0, 10)}…${record.protectedFields.recipient.slice(-6)}`}</code>
+                <code className="font-mono text-[13px]">{`${record.protectedFields.recipient.slice(0, 10)}…${record.protectedFields.recipient.slice(-6)}`}</code>
                 <CopyButton value={record.protectedFields.recipient} label="Copy" size="xs" />
               </KeyValue>
               <KeyValue label="Signed amount">
@@ -126,11 +126,11 @@ export function PayeeShieldPanel({
               tone={tone === "verified" ? "positive" : tone === "expired" ? "warn" : "danger"}
               label={meta?.label ?? "Unknown"}
             />
-            <p className="text-[12.5px] leading-relaxed text-ink-3">{meta?.description}</p>
+            <p className="text-[14px] leading-relaxed text-ink-3">{meta?.description}</p>
             <div className="rounded-md border border-line bg-canvas/60 px-3.5 py-1">
               <KeyValue label="Invoice / request ID">{record.protectedFields.invoiceId}</KeyValue>
               <KeyValue label="Signed recipient">
-                <code className="break-all font-mono text-[11px]">{record.protectedFields.recipient}</code>
+                <code className="break-all font-mono text-[13px]">{record.protectedFields.recipient}</code>
                 <CopyButton value={record.protectedFields.recipient} label="Copy" size="xs" />
               </KeyValue>
               <KeyValue label="Exact amount">
@@ -141,16 +141,16 @@ export function PayeeShieldPanel({
               <KeyValue label="Token">{record.protectedFields.token}</KeyValue>
               <KeyValue label="Network">{record.protectedFields.network}</KeyValue>
               <KeyValue label="Token contract">
-                <code className="break-all font-mono text-[11px]">{TOKEN.contract}</code>
+                <code className="break-all font-mono text-[13px]">{TOKEN.contract}</code>
               </KeyValue>
               <KeyValue label="Expiry">{fmtDateTime(record.protectedFields.expiry)}</KeyValue>
               <KeyValue label="Nonce / reference">
-                <code className="font-mono text-[11.5px]">{record.protectedFields.nonce}</code>
+                <code className="font-mono text-[13px]">{record.protectedFields.nonce}</code>
               </KeyValue>
               <KeyValue label="Signature timestamp">{fmtDateTime(record.signatureTimestamp)}</KeyValue>
               <KeyValue label="Verification timestamp">{fmtDateTime(record.verifiedAt)}</KeyValue>
               <KeyValue label="Signature digest">
-                <code className="font-mono text-[11.5px]">{record.digest}</code>
+                <code className="font-mono text-[13px]">{record.digest}</code>
               </KeyValue>
               <KeyValue label="Signing key ID">
                 {record.signingKeyId}
@@ -233,7 +233,7 @@ export function PayeeShieldTamperLab({ invoiceId }: { invoiceId?: string }) {
         ))}
       </div>
       {running ? (
-        <div className="rounded-md border border-line bg-canvas px-3.5 py-6 text-center text-[12.5px] text-ink-3">
+        <div className="rounded-md border border-line bg-canvas px-3.5 py-6 text-center text-[14px] text-ink-3">
           Recomputing gateway signature…
         </div>
       ) : result ? (
@@ -258,8 +258,8 @@ export function PayeeShieldTamperLab({ invoiceId }: { invoiceId?: string }) {
         )
       ) : null}
       <div className="rounded-md border border-line bg-canvas/60 px-3.5 py-3">
-        <p className="text-[11.5px] font-semibold uppercase tracking-wide text-ink-4">Protected fields</p>
-        <ul className="mt-2 grid gap-1 text-[12px] text-ink-2 sm:grid-cols-2">
+        <p className="text-[13px] font-semibold uppercase tracking-wide text-ink-4">Protected fields</p>
+        <ul className="mt-2 grid gap-1 text-[14px] text-ink-2 sm:grid-cols-2">
           {[
             "invoice / request ID",
             "recipient wallet",

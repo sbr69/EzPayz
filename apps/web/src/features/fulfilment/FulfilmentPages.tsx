@@ -56,7 +56,7 @@ export function FulfilmentList() {
           <Link to={`/fulfilment/${o.id}`} className="font-medium text-ink hover:text-accent hover:underline">
             {o.orderReference}
           </Link>
-          <p className="font-mono text-[11px] text-ink-4">{o.paymentId}</p>
+          <p className="font-mono text-[13px] text-ink-4">{o.paymentId}</p>
         </div>
       ),
       csv: (o) => o.orderReference,
@@ -74,7 +74,7 @@ export function FulfilmentList() {
       render: (o) => data.products.find((p) => p.id === o.productId)?.name ?? "Custom engagement",
       csv: (o) => data.products.find((p) => p.id === o.productId)?.name ?? "Custom engagement",
     },
-    { key: "amount", header: "Amount", align: "right", render: (o) => <AmountDisplay base={o.amount} className="text-[12.5px]" />, csv: (o) => o.amount },
+    { key: "amount", header: "Amount", align: "right", render: (o) => <AmountDisplay base={o.amount} className="text-[14px]" />, csv: (o) => o.amount },
     {
       key: "status",
       header: "Fulfilment",
@@ -84,7 +84,7 @@ export function FulfilmentList() {
     {
       key: "updated",
       header: "Last updated",
-      render: (o) => <span className="text-[12px] text-ink-3">{timeAgo(o.updatedAt)}</span>,
+      render: (o) => <span className="text-[14px] text-ink-3">{timeAgo(o.updatedAt)}</span>,
       sortValue: (o) => new Date(o.updatedAt).getTime(),
       csv: (o) => o.updatedAt,
     },
@@ -201,7 +201,7 @@ export function FulfilmentDetail() {
         meta={
           <>
             <StatusBadge label={FULFILMENT_STATUS_META[order.status].label} tone={FULFILMENT_TONES[order.status]} />
-            <span className="font-mono text-[11.5px] text-ink-4">{order.id}</span>
+            <span className="font-mono text-[13px] text-ink-4">{order.id}</span>
           </>
         }
         actions={
@@ -281,12 +281,12 @@ export function FulfilmentDetail() {
             <CardHeader title="Order record" />
             <div className="px-5 py-2">
               <KeyValue label="Order ID">
-                <code className="font-mono text-[11.5px]">{order.id}</code>
+                <code className="font-mono text-[13px]">{order.id}</code>
               </KeyValue>
               <KeyValue label="Reference">{order.orderReference}</KeyValue>
               <KeyValue label="Payment">
                 {payment ? (
-                  <Link to={`/payments/${payment.id}`} className="font-mono text-[11.5px] text-accent hover:underline">
+                  <Link to={`/payments/${payment.id}`} className="font-mono text-[13px] text-accent hover:underline">
                     {payment.id}
                   </Link>
                 ) : (

@@ -170,9 +170,9 @@ export default function Analytics() {
           <div className="space-y-2">
             {metrics.byKind.map((k) => (
               <div key={k.kind} className="flex items-center justify-between rounded-md border border-line bg-canvas/60 px-3 py-2">
-                <span className="text-[12.5px] text-ink-2">{kindLabels[k.kind] ?? k.kind}</span>
+                <span className="text-[14px] text-ink-2">{kindLabels[k.kind] ?? k.kind}</span>
                 <div className="flex items-center gap-3">
-                  <span className="text-[12.5px] font-medium text-ink tnum">{k.count}</span>
+                  <span className="text-[14px] font-medium text-ink tnum">{k.count}</span>
                   <StatusBadge
                     tone="neutral"
                     dot={false}
@@ -196,14 +196,14 @@ export default function Analytics() {
             ["Net volume (base units)", fmtNumber(Number(metrics.netVolume))],
             ["Average value (base units)", fmtNumber(Number(metrics.avgValue))],
           ].map(([label, value]) => (
-            <div key={label} className="flex items-center justify-between gap-4 border-b border-line py-2 text-[12.5px] last:border-0">
+            <div key={label} className="flex items-center justify-between gap-4 border-b border-line py-2 text-[14px] last:border-0">
               <span className="text-ink-3">{label}</span>
               <span className="font-medium text-ink tnum">{value}</span>
             </div>
           ))}
         </div>
         <div className="border-t border-line px-5 py-3">
-          <p className="text-[11.5px] leading-relaxed text-ink-4">
+          <p className="text-[13px] leading-relaxed text-ink-4">
             Volume is the sum of base-unit amounts across settled payments, minus any amount that was
             received but differs from the requested amount. Net volume subtracts settled refunds. Totals
             reconcile with the payments table and the dashboard because they read the same records.
@@ -211,7 +211,7 @@ export default function Analytics() {
         </div>
       </Card>
 
-      <p className="text-center text-[11.5px] text-ink-4">
+      <p className="text-center text-[13px] text-ink-4">
         Sum of all payment records in the workspace: {fmtAmount(sumBase(data.payments.map((p) => p.amount)))} {TOKEN.symbol} requested
       </p>
     </>

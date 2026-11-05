@@ -18,21 +18,21 @@ export function CustomerOrderView() {
     <div className="min-h-screen bg-canvas">
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex h-16 max-w-3xl items-center gap-3 px-5">
-          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-[12px] font-bold text-white">
+          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-[14px] font-bold text-white">
             {data.merchant.logoText}
           </span>
           <div className="min-w-0">
-            <p className="truncate text-[14px] font-semibold leading-tight text-ink">{data.merchant.displayName}</p>
-            <p className="text-[11.5px] text-ink-4">Order status</p>
+            <p className="truncate text-[16px] font-semibold leading-tight text-ink">{data.merchant.displayName}</p>
+            <p className="text-[13px] text-ink-4">Order status</p>
           </div>
-          <a href="#/dashboard" className="ml-auto text-[12.5px] font-medium text-ink-3 hover:text-ink">
+          <a href="#/dashboard" className="ml-auto text-[14px] font-medium text-ink-3 hover:text-ink">
             Merchant view
           </a>
         </div>
       </header>
 
       <main className="mx-auto max-w-3xl space-y-4 px-5 py-8">
-        <div className="flex items-center gap-2 text-[12.5px] text-ink-4">
+        <div className="flex items-center gap-2 text-[14px] text-ink-4">
           <ArrowLeft className="h-3.5 w-3.5" />
           <a href="#/dashboard" className="hover:text-ink">
             Back to gateway
@@ -52,9 +52,9 @@ export function CustomerOrderView() {
             <Card>
               <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line px-5 py-4">
                 <div>
-                  <p className="text-[11.5px] text-ink-4">Order reference</p>
+                  <p className="text-[13px] text-ink-4">Order reference</p>
                   <h1 className="text-[19px] font-semibold tracking-[-0.02em] text-ink">{order.orderReference}</h1>
-                  <p className="mt-0.5 text-[12.5px] text-ink-3">Placed {fmtDateTime(order.updatedAt)}</p>
+                  <p className="mt-0.5 text-[14px] text-ink-3">Placed {fmtDateTime(order.updatedAt)}</p>
                 </div>
                 <StatusBadge
                   label={FULFILMENT_STATUS_META[order.status].label}
@@ -90,8 +90,8 @@ export function CustomerOrderView() {
                 <KeyValue label="Last update">{fmtDateTime(order.updatedAt)}</KeyValue>
               </div>
               <div className="border-t border-line px-5 py-4">
-                <p className="text-[11.5px] font-medium uppercase tracking-wide text-ink-4">Merchant update</p>
-                <p className="mt-1.5 text-[13px] leading-relaxed text-ink-2">{order.customerNotes}</p>
+                <p className="text-[13px] font-medium uppercase tracking-wide text-ink-4">Merchant update</p>
+                <p className="mt-1.5 text-[15px] leading-relaxed text-ink-2">{order.customerNotes}</p>
               </div>
             </Card>
 

@@ -84,20 +84,20 @@ export function PaymentLinkResolver() {
   return (
     <div style={{ maxWidth: 420, margin: "2rem auto", padding: "1.5rem", border: "1px solid #ddd", borderRadius: 12, fontFamily: "sans-serif" }}>
       <h2 style={{ margin: "0 0 8px" }}>{link.merchant.displayName}</h2>
-      <p style={{ color: "#666", fontSize: 14, margin: "0 0 16px" }}>{link.title}</p>
-      {link.description && <p style={{ color: "#999", fontSize: 13, margin: "0 0 16px" }}>{link.description}</p>}
+      <p style={{ color: "#666", fontSize: 16, margin: "0 0 16px" }}>{link.title}</p>
+      {link.description && <p style={{ color: "#999", fontSize: 15, margin: "0 0 16px" }}>{link.description}</p>}
       <div style={{ marginBottom: 16 }}>
-        <label style={{ fontSize: 12, color: "#666", display: "block", marginBottom: 4 }}>Amount (USDT)</label>
+        <label style={{ fontSize: 14, color: "#666", display: "block", marginBottom: 4 }}>Amount (USDT)</label>
         <input
           type="text"
           inputMode="decimal"
           value={customAmount}
           onChange={(e) => setCustomAmount(e.target.value)}
           placeholder={link.minAmount ? `Min ${fmtAmount(link.minAmount)}` : "0.00"}
-          style={{ width: "100%", padding: "10px", fontSize: 16, borderRadius: 8, border: "1px solid #ddd", boxSizing: "border-box" }}
+          style={{ width: "100%", padding: "10px", fontSize: 18, borderRadius: 8, border: "1px solid #ddd", boxSizing: "border-box" }}
         />
         {link.minAmount && link.maxAmount && (
-          <p style={{ fontSize: 12, color: "#999", margin: "4px 0 0" }}>
+          <p style={{ fontSize: 14, color: "#999", margin: "4px 0 0" }}>
             Between {fmtAmount(link.minAmount)} and {fmtAmount(link.maxAmount)} USDT
           </p>
         )}
@@ -105,7 +105,7 @@ export function PaymentLinkResolver() {
       <button
         onClick={() => startCheckout(customAmount)}
         disabled={!customAmount}
-        style={{ width: "100%", padding: "12px", fontSize: 15, cursor: "pointer", borderRadius: 8, border: "none", background: "#0ea5e9", color: "#fff", opacity: !customAmount ? 0.5 : 1 }}
+        style={{ width: "100%", padding: "12px", fontSize: 17, cursor: "pointer", borderRadius: 8, border: "none", background: "#0ea5e9", color: "#fff", opacity: !customAmount ? 0.5 : 1 }}
       >
         Pay
       </button>

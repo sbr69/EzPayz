@@ -30,13 +30,13 @@ import { DemoModeBanner } from "@/components/ui/Feedback";
 function Logo({ collapsed }: { collapsed?: boolean }) {
   return (
     <Link to="/dashboard" className="flex items-center gap-2.5 px-3 py-3.5">
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent text-[12px] font-bold text-white">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-accent text-[14px] font-bold text-white">
         W
       </span>
       {!collapsed ? (
         <span className="min-w-0">
-          <span className="block truncate text-[13.5px] font-semibold leading-tight text-ink">EzPayz</span>
-          <span className="block truncate text-[11px] text-ink-4">USDT gateway</span>
+          <span className="block truncate text-[15px] font-semibold leading-tight text-ink">EzPayz</span>
+          <span className="block truncate text-[13px] text-ink-4">USDT gateway</span>
         </span>
       ) : null}
     </Link>
@@ -49,7 +49,7 @@ function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?
       {MERCHANT_NAV.map((section) => (
         <div key={section.title}>
           {!collapsed ? (
-            <p className="px-3 pb-1 pt-2 text-[10.5px] font-semibold uppercase tracking-wider text-ink-4">
+            <p className="px-3 pb-1 pt-2 text-[12px] font-semibold uppercase tracking-wider text-ink-4">
               {section.title}
             </p>
           ) : (
@@ -65,7 +65,7 @@ function SidebarNav({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?
                   title={collapsed ? item.label : undefined}
                   className={({ isActive }) =>
                     cn(
-                      "group flex items-center gap-2.5 rounded-md px-3 py-[7px] text-[13px] font-medium transition-colors",
+                      "group flex items-center gap-2.5 rounded-md px-3 py-[7px] text-[15px] font-medium transition-colors",
                       isActive
                         ? "bg-accent-soft text-accent"
                         : "text-ink-2 hover:bg-canvas-alt hover:text-ink",
@@ -130,24 +130,24 @@ function MerchantSwitcher({ collapsed }: { collapsed: boolean }) {
         aria-expanded={open}
         aria-haspopup="listbox"
       >
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-ink text-[11px] font-bold text-white">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-ink text-[13px] font-bold text-white">
           {merchant.logoText}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[12.5px] font-semibold text-ink">{merchant.displayName}</span>
-          <span className="block truncate text-[11px] text-ink-4">Test workspace</span>
+          <span className="block truncate text-[14px] font-semibold text-ink">{merchant.displayName}</span>
+          <span className="block truncate text-[13px] text-ink-4">Test workspace</span>
         </span>
         <ChevronDown className={cn("h-3.5 w-3.5 shrink-0 text-ink-4 transition-transform", open && "rotate-180")} />
       </button>
       {open ? (
         <div className="absolute bottom-[calc(100%+4px)] left-2 right-2 z-30 overflow-hidden rounded-md border border-line bg-surface shadow-[0_10px_30px_rgba(27,31,30,0.12)]">
           <div className="flex items-center gap-2.5 border-b border-line bg-accent-soft/60 px-3 py-2.5">
-            <span className="flex h-6 w-6 items-center justify-center rounded bg-accent text-[10px] font-bold text-white">
+            <span className="flex h-6 w-6 items-center justify-center rounded bg-accent text-[12px] font-bold text-white">
               {merchant.logoText}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-[12.5px] font-semibold text-ink">{merchant.businessName}</p>
-              <p className="truncate text-[11px] text-ink-3">Active workspace</p>
+              <p className="truncate text-[14px] font-semibold text-ink">{merchant.businessName}</p>
+              <p className="truncate text-[13px] text-ink-3">Active workspace</p>
             </div>
             <Check className="h-3.5 w-3.5 text-accent" />
           </div>
@@ -156,7 +156,7 @@ function MerchantSwitcher({ collapsed }: { collapsed: boolean }) {
               setOpen(false);
               setCreateOpen(true);
             }}
-            className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[12.5px] text-ink-2 hover:bg-canvas"
+            className="flex w-full items-center gap-2 px-3 py-2.5 text-left text-[14px] text-ink-2 hover:bg-canvas"
           >
             <Plus className="h-3.5 w-3.5 text-ink-4" />
             Create new workspace
@@ -183,7 +183,7 @@ function MerchantSwitcher({ collapsed }: { collapsed: boolean }) {
 function WorkspaceList({ onNew }: { onNew: () => void }) {
   return (
     <div className="space-y-2">
-      <p className="text-[12.5px] text-ink-3">A single demo workspace is available.</p>
+      <p className="text-[14px] text-ink-3">A single demo workspace is available.</p>
       <Button variant="secondary" size="sm" icon={<Plus className="h-3.5 w-3.5" />} onClick={onNew}>
         New workspace
       </Button>
@@ -216,7 +216,7 @@ function NotificationCenter() {
       >
         <Bell className="h-4 w-4" />
         {unread > 0 ? (
-          <span className="absolute right-1 top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-danger px-1 text-[9px] font-bold text-white tnum">
+          <span className="absolute right-1 top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-danger px-1 text-[11px] font-bold text-white tnum">
             {unread}
           </span>
         ) : null}
@@ -224,10 +224,10 @@ function NotificationCenter() {
       {open ? (
         <div className="absolute right-0 top-[calc(100%+6px)] z-40 w-[min(360px,calc(100vw-2rem))] overflow-hidden rounded-md border border-line bg-surface shadow-[0_14px_40px_rgba(27,31,30,0.14)]">
           <div className="flex items-center justify-between border-b border-line px-3.5 py-2.5">
-            <p className="text-[13px] font-semibold text-ink">Notifications</p>
+            <p className="text-[15px] font-semibold text-ink">Notifications</p>
             <button
               onClick={markAll}
-              className="text-[11.5px] font-medium text-accent hover:underline"
+              className="text-[13px] font-medium text-accent hover:underline"
               disabled={!unread}
             >
               Mark all read
@@ -235,7 +235,7 @@ function NotificationCenter() {
           </div>
           <ul className="max-h-80 divide-y divide-line overflow-y-auto scroll-thin">
             {notifications.length === 0 ? (
-              <li className="px-3.5 py-6 text-center text-[12.5px] text-ink-4">No notifications</li>
+              <li className="px-3.5 py-6 text-center text-[14px] text-ink-4">No notifications</li>
             ) : (
               notifications.map((n) => (
                 <li key={n.id}>
@@ -255,9 +255,9 @@ function NotificationCenter() {
                         )}
                       />
                       <div className="min-w-0">
-                        <p className="text-[12.5px] font-medium text-ink">{n.title}</p>
-                        <p className="truncate text-[12px] text-ink-3">{n.body}</p>
-                        <p className="mt-0.5 text-[11px] text-ink-4">{timeAgo(n.at)}</p>
+                        <p className="text-[14px] font-medium text-ink">{n.title}</p>
+                        <p className="truncate text-[14px] text-ink-3">{n.body}</p>
+                        <p className="mt-0.5 text-[13px] text-ink-4">{timeAgo(n.at)}</p>
                       </div>
                     </div>
                   </a>
@@ -293,7 +293,7 @@ function ProfileMenu() {
         className="flex items-center gap-2 rounded-md border border-transparent px-1.5 py-1 transition-colors hover:border-line hover:bg-surface"
         aria-label="Account menu"
       >
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-canvas-alt text-[11px] font-bold text-ink-2">
+        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-canvas-alt text-[13px] font-bold text-ink-2">
           {merchant.logoText}
         </span>
         <ChevronDown className="h-3.5 w-3.5 text-ink-4" />
@@ -301,8 +301,8 @@ function ProfileMenu() {
       {open ? (
         <div className="absolute right-0 top-[calc(100%+6px)] z-40 w-60 overflow-hidden rounded-md border border-line bg-surface shadow-[0_14px_40px_rgba(27,31,30,0.14)]">
           <div className="border-b border-line px-3.5 py-2.5">
-            <p className="truncate text-[12.5px] font-semibold text-ink">{merchant.businessEmail}</p>
-            <p className="truncate text-[11.5px] text-ink-3">Merchant admin (demo)</p>
+            <p className="truncate text-[14px] font-semibold text-ink">{merchant.businessEmail}</p>
+            <p className="truncate text-[13px] text-ink-3">Merchant admin (demo)</p>
           </div>
           <div className="py-1">
             {[
@@ -315,7 +315,7 @@ function ProfileMenu() {
                 key={i.to}
                 href={`#${i.to}`}
                 onClick={() => setOpen(false)}
-                className="block px-3.5 py-2 text-[12.5px] text-ink-2 hover:bg-canvas"
+                className="block px-3.5 py-2 text-[14px] text-ink-2 hover:bg-canvas"
               >
                 {i.label}
               </a>
@@ -327,7 +327,7 @@ function ProfileMenu() {
                 signOut();
                 navigate("/sign-in");
               }}
-              className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-[12.5px] text-ink-2 hover:bg-canvas"
+              className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-[14px] text-ink-2 hover:bg-canvas"
             >
               <CircleUser className="h-3.5 w-3.5 text-ink-4" />
               Sign out
@@ -378,7 +378,7 @@ export function AppShell() {
         <div className="border-t border-line px-2 py-2">
           <button
             onClick={() => setCollapsed((v) => !v)}
-            className="flex w-full items-center justify-center gap-2 rounded-md px-3 py-2 text-[12px] font-medium text-ink-3 hover:bg-canvas-alt hover:text-ink"
+            className="flex w-full items-center justify-center gap-2 rounded-md px-3 py-2 text-[14px] font-medium text-ink-3 hover:bg-canvas-alt hover:text-ink"
           >
             {collapsed ? (
               <ChevronsRight className="h-3.5 w-3.5" />
@@ -423,16 +423,16 @@ export function AppShell() {
             <Menu className="h-4.5 w-4.5" />
           </button>
 
-          <span className="hidden items-center gap-1.5 rounded-md border border-warn-line bg-warn-soft px-2 py-1 text-[11.5px] font-semibold text-warn sm:inline-flex">
+          <span className="hidden items-center gap-1.5 rounded-md border border-warn-line bg-warn-soft px-2 py-1 text-[13px] font-semibold text-warn sm:inline-flex">
             <span className="h-1.5 w-1.5 rounded-full bg-warn" />
             Testnet · demo mode
           </span>
-          <span className="hidden items-center gap-1.5 rounded-md border border-line bg-canvas px-2 py-1 text-[11.5px] font-medium text-ink-3 md:inline-flex">
+          <span className="hidden items-center gap-1.5 rounded-md border border-line bg-canvas px-2 py-1 text-[13px] font-medium text-ink-3 md:inline-flex">
             {DEFAULT_NETWORK.name} · chain {DEFAULT_NETWORK.chainId}
           </span>
-          <span className="hidden items-center gap-1.5 text-[11.5px] text-ink-4 xl:inline-flex">
+          <span className="hidden items-center gap-1.5 text-[13px] text-ink-4 xl:inline-flex">
             Payout wallet
-            <code className="font-mono text-[11.5px] text-ink-2">
+            <code className="font-mono text-[13px] text-ink-2">
               {merchant.payoutWallet.slice(0, 8)}…{merchant.payoutWallet.slice(-4)}
             </code>
             {merchant.walletVerified ? <ShieldCheck className="h-3.5 w-3.5 text-positive" /> : null}
@@ -441,14 +441,14 @@ export function AppShell() {
           <div className="ml-auto flex items-center gap-1">
             <button
               onClick={() => setResetOpen(true)}
-              className="hidden items-center gap-1.5 rounded-md border border-transparent px-2 py-1.5 text-[12px] font-medium text-ink-3 transition-colors hover:border-line hover:bg-surface hover:text-ink sm:flex"
+              className="hidden items-center gap-1.5 rounded-md border border-transparent px-2 py-1.5 text-[14px] font-medium text-ink-3 transition-colors hover:border-line hover:bg-surface hover:text-ink sm:flex"
             >
               <RefreshCcw className="h-3.5 w-3.5" />
               Reset demo data
             </button>
             <a
               href="#/developers/quickstart"
-              className="hidden items-center gap-1.5 rounded-md border border-transparent px-2 py-1.5 text-[12px] font-medium text-ink-3 transition-colors hover:border-line hover:bg-surface hover:text-ink sm:flex"
+              className="hidden items-center gap-1.5 rounded-md border border-transparent px-2 py-1.5 text-[14px] font-medium text-ink-3 transition-colors hover:border-line hover:bg-surface hover:text-ink sm:flex"
             >
               <BookOpen className="h-3.5 w-3.5" />
               Docs
@@ -481,7 +481,7 @@ export function AppShell() {
         </main>
 
         <footer className="border-t border-line bg-surface px-4 py-4 sm:px-6 lg:px-8">
-          <div className="mx-auto flex w-full max-w-[1240px] flex-wrap items-center justify-between gap-2 text-[11.5px] text-ink-4">
+          <div className="mx-auto flex w-full max-w-[1240px] flex-wrap items-center justify-between gap-2 text-[13px] text-ink-4">
             <p>
               EzPayz frontend demo · {DEFAULT_NETWORK.name} · USDT · all transactions simulated
             </p>

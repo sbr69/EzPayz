@@ -49,10 +49,10 @@ export function InvoicesList() {
       header: "Invoice",
       render: (i) => (
         <div>
-          <Link to={`/invoices/${i.id}`} className="font-mono text-[12px] text-ink hover:text-accent hover:underline">
+          <Link to={`/invoices/${i.id}`} className="font-mono text-[14px] text-ink hover:text-accent hover:underline">
             {i.id}
           </Link>
-          <p className="text-[11.5px] text-ink-3">{i.title}</p>
+          <p className="text-[13px] text-ink-3">{i.title}</p>
         </div>
       ),
       sortValue: (i) => i.id,
@@ -68,7 +68,7 @@ export function InvoicesList() {
       key: "amount",
       header: "Total",
       align: "right",
-      render: (i) => <AmountDisplay base={i.total} className="text-[12.5px]" />,
+      render: (i) => <AmountDisplay base={i.total} className="text-[14px]" />,
       sortValue: (i) => Number(i.total),
       csv: (i) => i.total,
     },
@@ -95,7 +95,7 @@ export function InvoicesList() {
       key: "created",
       header: "Created",
       hideOnMobile: true,
-      render: (i) => <span className="text-[12px] text-ink-3 tnum">{fmtDateTime(i.createdAt)}</span>,
+      render: (i) => <span className="text-[14px] text-ink-3 tnum">{fmtDateTime(i.createdAt)}</span>,
       sortValue: (i) => new Date(i.createdAt).getTime(),
       csv: (i) => i.createdAt,
     },
@@ -103,7 +103,7 @@ export function InvoicesList() {
       key: "expiry",
       header: "Expires",
       hideOnMobile: true,
-      render: (i) => <span className="text-[12px] text-ink-3 tnum">{fmtDateTime(i.expiresAt)}</span>,
+      render: (i) => <span className="text-[14px] text-ink-3 tnum">{fmtDateTime(i.expiresAt)}</span>,
       csv: (i) => i.expiresAt ?? "",
     },
     {
@@ -376,7 +376,7 @@ export function InvoiceForm() {
 
             <div>
               <div className="mb-2 flex items-center justify-between">
-                <p className="text-[12.5px] font-medium text-ink-2">Line items</p>
+                <p className="text-[14px] font-medium text-ink-2">Line items</p>
                 <Button
                   size="sm"
                   variant="ghost"
@@ -430,7 +430,7 @@ export function InvoiceForm() {
                   </div>
                 ))}
               </div>
-              {errors.lines ? <p className="mt-2 text-[12px] font-medium text-danger">{errors.lines}</p> : null}
+              {errors.lines ? <p className="mt-2 text-[14px] font-medium text-danger">{errors.lines}</p> : null}
             </div>
           </div>
         </Card>
@@ -487,37 +487,37 @@ export function InvoicePreview({
     <div className={`px-5 py-4 ${compact ? "" : "sm:px-8 sm:py-6"}`}>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <p className="text-[13px] font-semibold text-ink">{merchantName}</p>
-          <p className="text-[11.5px] text-ink-4">USDT invoice</p>
+          <p className="text-[15px] font-semibold text-ink">{merchantName}</p>
+          <p className="text-[13px] text-ink-4">USDT invoice</p>
         </div>
         <div className="text-right">
-          <p className="font-mono text-[11.5px] text-ink-4">{invoice.id}</p>
-          <p className="text-[11.5px] text-ink-3 tnum">{fmtDateTime(invoice.createdAt)}</p>
+          <p className="font-mono text-[13px] text-ink-4">{invoice.id}</p>
+          <p className="text-[13px] text-ink-3 tnum">{fmtDateTime(invoice.createdAt)}</p>
         </div>
       </div>
       <Divider className="my-4" />
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
-          <p className="text-[11px] font-medium uppercase tracking-wide text-ink-4">Billed to</p>
-          <p className="mt-1 text-[12.5px] text-ink">{invoice.customerEmail || "—"}</p>
+          <p className="text-[13px] font-medium uppercase tracking-wide text-ink-4">Billed to</p>
+          <p className="mt-1 text-[14px] text-ink">{invoice.customerEmail || "—"}</p>
           {invoice.orderReference ? (
-            <p className="text-[11.5px] text-ink-4">Ref {invoice.orderReference}</p>
+            <p className="text-[13px] text-ink-4">Ref {invoice.orderReference}</p>
           ) : null}
         </div>
         <div className="sm:text-right">
-          <p className="text-[11px] font-medium uppercase tracking-wide text-ink-4">Amount due</p>
-          <AmountDisplay base={invoice.total} className="text-[18px]" />
+          <p className="text-[13px] font-medium uppercase tracking-wide text-ink-4">Amount due</p>
+          <AmountDisplay base={invoice.total} className="text-[20px]" />
           {invoice.expiresAt ? (
-            <p className="text-[11.5px] text-ink-4">Due by {fmtDateTime(invoice.expiresAt)}</p>
+            <p className="text-[13px] text-ink-4">Due by {fmtDateTime(invoice.expiresAt)}</p>
           ) : null}
         </div>
       </div>
-      <p className="mt-5 text-[13px] font-semibold text-ink">{invoice.title}</p>
-      {invoice.description ? <p className="mt-1 text-[12.5px] leading-relaxed text-ink-3">{invoice.description}</p> : null}
+      <p className="mt-5 text-[15px] font-semibold text-ink">{invoice.title}</p>
+      {invoice.description ? <p className="mt-1 text-[14px] leading-relaxed text-ink-3">{invoice.description}</p> : null}
 
-      <table className="mt-4 w-full text-left text-[12.5px]">
+      <table className="mt-4 w-full text-left text-[14px]">
         <thead>
-          <tr className="border-b border-line text-[11px] uppercase tracking-wide text-ink-4">
+          <tr className="border-b border-line text-[13px] uppercase tracking-wide text-ink-4">
             <th className="py-2 font-semibold">Description</th>
             <th className="py-2 text-right font-semibold">Qty</th>
             <th className="py-2 text-right font-semibold">Unit</th>
@@ -546,16 +546,16 @@ export function InvoicePreview({
         </tbody>
         <tfoot>
           <tr className="border-t border-line-strong">
-            <td colSpan={3} className="py-2.5 text-right text-[12.5px] font-semibold text-ink">
+            <td colSpan={3} className="py-2.5 text-right text-[14px] font-semibold text-ink">
               Total
             </td>
             <td className="py-2.5 text-right">
-              <AmountDisplay base={invoice.total} className="text-[14px]" />
+              <AmountDisplay base={invoice.total} className="text-[16px]" />
             </td>
           </tr>
         </tfoot>
       </table>
-      <p className="mt-3 text-[11px] text-ink-4">
+      <p className="mt-3 text-[13px] text-ink-4">
         Settlement in {TOKEN.symbol}. Token decimals are read from configured token metadata and are not
         verified for this contract.
       </p>
@@ -605,7 +605,7 @@ export function InvoiceDetail() {
               label={`PayeeShield ${invoice.payeeShield.status === "verified" ? "verified" : invoice.payeeShield.status.replace(/_/g, " ")}`}
               tone={invoice.payeeShield.status === "verified" ? "positive" : "danger"}
             />
-            <span className="font-mono text-[11.5px] text-ink-4">{invoice.id}</span>
+            <span className="font-mono text-[13px] text-ink-4">{invoice.id}</span>
           </>
         }
         actions={
@@ -661,9 +661,9 @@ export function InvoiceDetail() {
           <CardHeader title="Invoice" />
           <InvoicePreview invoice={invoice} merchantName={data.merchant.displayName} />
           <div className="border-t border-line px-5 py-3">
-            <p className="text-[11.5px] font-medium uppercase tracking-wide text-ink-4">Payment link</p>
+            <p className="text-[13px] font-medium uppercase tracking-wide text-ink-4">Payment link</p>
             <div className="mt-1.5 flex items-center gap-2">
-              <code className="min-w-0 flex-1 truncate rounded border border-line bg-canvas px-2.5 py-1.5 font-mono text-[11.5px] text-ink-2">
+              <code className="min-w-0 flex-1 truncate rounded border border-line bg-canvas px-2.5 py-1.5 font-mono text-[13px] text-ink-2">
                 {sessionUrl}
               </code>
               <CopyButton value={sessionUrl} label="Copy" />
@@ -678,7 +678,7 @@ export function InvoiceDetail() {
             <CardHeader title="Invoice record" />
             <div className="px-5 py-2">
               <KeyValue label="Invoice ID">
-                <code className="font-mono text-[11.5px]">{invoice.id}</code>
+                <code className="font-mono text-[13px]">{invoice.id}</code>
               </KeyValue>
               <KeyValue label="Customer">
                 {customer ? (
@@ -720,7 +720,7 @@ export function InvoiceDetail() {
               </KeyValue>
             </div>
             <div className="border-t border-line px-5 py-3">
-              <p className="text-[11.5px] leading-relaxed text-ink-4">
+              <p className="text-[13px] leading-relaxed text-ink-4">
                 Receipts are only emailed after settlement. Unpaid invoices are not emailed
                 automatically.
               </p>
@@ -741,10 +741,10 @@ export function InvoiceDetail() {
       <Card className="bg-canvas/40">
         <div className="flex items-start gap-3 px-5 py-4">
           <FileText className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-          <p className="text-[12.5px] leading-relaxed text-ink-3">
+          <p className="text-[14px] leading-relaxed text-ink-3">
             Total <strong className="text-ink">{fmtAmount(invoice.total)} {TOKEN.symbol}</strong> across{" "}
             {invoice.lineItems.length} line item{invoice.lineItems.length > 1 ? "s" : ""}. The signed amount
-            is <code className="font-mono text-[11.5px]">{invoice.payeeShield.protectedFields.amount}</code> base
+            is <code className="font-mono text-[13px]">{invoice.payeeShield.protectedFields.amount}</code> base
             units — verification compares the base-unit value, not the display string.
           </p>
         </div>

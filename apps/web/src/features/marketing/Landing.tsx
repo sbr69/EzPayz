@@ -75,12 +75,12 @@ export default function Landing() {
       <header className="sticky top-0 z-30 border-b border-line bg-surface/85 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-5">
           <Link to="/" className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-[13px] font-bold text-white">
+            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-[15px] font-bold text-white">
               W
             </span>
-            <span className="text-[15px] font-semibold tracking-[-0.01em] text-ink">EzPayz</span>
+            <span className="text-[17px] font-semibold tracking-[-0.01em] text-ink">EzPayz</span>
           </Link>
-          <nav className="ml-6 hidden items-center gap-5 text-[13px] text-ink-2 md:flex">
+          <nav className="ml-6 hidden items-center gap-5 text-[15px] text-ink-2 md:flex">
             <a href="#capabilities" className="hover:text-ink">
               Product
             </a>
@@ -116,14 +116,14 @@ export default function Landing() {
       <section className="border-b border-line bg-surface">
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 lg:grid-cols-[1.05fr_0.95fr] lg:py-20">
           <div>
-            <span className="inline-flex items-center gap-1.5 rounded border border-line bg-canvas px-2 py-1 text-[11.5px] font-medium text-ink-3">
+            <span className="inline-flex items-center gap-1.5 rounded border border-line bg-canvas px-2 py-1 text-[13px] font-medium text-ink-3">
               <span className="h-1.5 w-1.5 rounded-full bg-accent" />
               {DEFAULT_NETWORK.name} · chain {DEFAULT_NETWORK.chainId} · {TOKEN.symbol}
             </span>
             <h1 className="mt-5 text-[34px] font-semibold leading-[1.12] tracking-[-0.03em] text-ink sm:text-[42px]">
               One integration. Complete USDT payment infrastructure on Whitechain.
             </h1>
-            <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-ink-2">
+            <p className="mt-4 max-w-xl text-[17px] leading-relaxed text-ink-2">
               Accept USDT with hosted checkout, payment links and invoices. Bill on a schedule or by
               usage. Refund, track delivery and resolve payment exceptions — from the first signature to
               what happens after settlement.
@@ -145,7 +145,7 @@ export default function Landing() {
                 </Button>
               </Link>
             </div>
-            <p className="mt-4 text-[12px] text-ink-4">
+            <p className="mt-4 text-[14px] text-ink-4">
               This is a frontend demo. Wallets, signatures and settlements are simulated — nothing is
               broadcast to Whitechain.
             </p>
@@ -158,7 +158,7 @@ export default function Landing() {
                 <span className="h-2.5 w-2.5 rounded-full bg-line-strong" />
                 <span className="h-2.5 w-2.5 rounded-full bg-line-strong" />
               </div>
-              <span className="font-mono text-[11px] text-ink-4">checkout.tsx</span>
+              <span className="font-mono text-[13px] text-ink-4">checkout.tsx</span>
             </div>
             <div className="p-4">
               <CodeBlock
@@ -184,8 +184,8 @@ export default function Pay() {
                   "Relayer submits and sponsors gas",
                   "Webhook confirms settlement",
                 ].map((line, i) => (
-                  <div key={line} className="flex items-center gap-2.5 text-[12.5px] text-ink-2">
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent-soft text-[10.5px] font-bold text-accent tnum">
+                  <div key={line} className="flex items-center gap-2.5 text-[14px] text-ink-2">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent-soft text-[12px] font-bold text-accent tnum">
                       {i + 1}
                     </span>
                     {line}
@@ -206,8 +206,8 @@ export default function Pay() {
             { label: "Post-payment tooling", value: "Refunds, delivery, exceptions" },
           ].map((m) => (
             <div key={m.label}>
-              <p className="text-[11.5px] font-semibold uppercase tracking-wide text-ink-4">{m.label}</p>
-              <p className="mt-1 text-[15px] font-medium text-ink">{m.value}</p>
+              <p className="text-[13px] font-semibold uppercase tracking-wide text-ink-4">{m.label}</p>
+              <p className="mt-1 text-[17px] font-medium text-ink">{m.value}</p>
             </div>
           ))}
         </div>
@@ -217,7 +217,7 @@ export default function Pay() {
       <section id="capabilities" className="border-b border-line">
         <div className="mx-auto max-w-6xl px-5 py-14">
           <h2 className="text-[24px] font-semibold tracking-[-0.02em] text-ink">Everything you need to get paid</h2>
-          <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-ink-3">
+          <p className="mt-2 max-w-2xl text-[16px] leading-relaxed text-ink-3">
             The payment is only the middle of the story. The gateway covers the request before payment,
             the checkout itself, and the operations that follow it.
           </p>
@@ -225,8 +225,8 @@ export default function Pay() {
             {capabilities.map((c) => (
               <Card key={c.title} className="p-4">
                 <c.icon className="h-4.5 w-4.5 text-accent" strokeWidth={1.9} />
-                <h3 className="mt-3 text-[13.5px] font-semibold text-ink">{c.title}</h3>
-                <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-3">{c.body}</p>
+                <h3 className="mt-3 text-[15px] font-semibold text-ink">{c.title}</h3>
+                <p className="mt-1.5 text-[14px] leading-relaxed text-ink-3">{c.body}</p>
               </Card>
             ))}
           </div>
@@ -237,14 +237,14 @@ export default function Pay() {
       <section id="gasless" className="border-b border-line bg-surface">
         <div className="mx-auto grid max-w-6xl gap-8 px-5 py-14 lg:grid-cols-2">
           <div>
-            <span className="inline-flex items-center gap-1.5 rounded border border-accent-line bg-accent-soft px-2 py-1 text-[11.5px] font-semibold text-accent">
+            <span className="inline-flex items-center gap-1.5 rounded border border-accent-line bg-accent-soft px-2 py-1 text-[13px] font-semibold text-accent">
               <Gauge className="h-3.5 w-3.5" />
               GasGuard
             </span>
             <h2 className="mt-4 text-[24px] font-semibold tracking-[-0.02em] text-ink">
               Gasless checkout for your customers
             </h2>
-            <p className="mt-3 text-[14px] leading-relaxed text-ink-2">
+            <p className="mt-3 text-[16px] leading-relaxed text-ink-2">
               Supported one-time payment flows are sponsored by the merchant through the gateway relayer.
               The customer does not need WBT for gas on those flows — they still connect a wallet and
               still sign the payment authorization.
@@ -256,20 +256,20 @@ export default function Pay() {
                 "Merchant-level sponsorship budget visibility and reporting",
                 "Explicit fallback to merchant-paid gas where delegation is unavailable",
               ].map((t) => (
-                <li key={t} className="flex items-start gap-2.5 text-[13px] text-ink-2">
+                <li key={t} className="flex items-start gap-2.5 text-[15px] text-ink-2">
                   <Check className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
                   {t}
                 </li>
               ))}
             </ul>
-            <p className="mt-5 rounded-md border border-warn-line bg-warn-soft px-3.5 py-3 text-[12px] leading-relaxed text-warn">
+            <p className="mt-5 rounded-md border border-warn-line bg-warn-soft px-3.5 py-3 text-[14px] leading-relaxed text-warn">
               Delegated transfers require the token contract to support them. Support for the configured
               test {TOKEN.symbol} contract has not been verified yet, so this demo simulates the flow
               rather than claiming it works on-chain.
             </p>
           </div>
           <Card className="p-5">
-            <p className="text-[11.5px] font-semibold uppercase tracking-wide text-ink-4">Relayer policy</p>
+            <p className="text-[13px] font-semibold uppercase tracking-wide text-ink-4">Relayer policy</p>
             <div className="mt-3 space-y-3">
               {[
                 ["Max gas per transaction", "120,000"],
@@ -281,8 +281,8 @@ export default function Pay() {
                 ["Emergency pause", "Off"],
               ].map(([k, v]) => (
                 <div key={k} className="flex items-center justify-between gap-4 border-b border-line pb-2.5 last:border-0">
-                  <span className="text-[12.5px] text-ink-3">{k}</span>
-                  <span className="text-[12.5px] font-medium text-ink tnum">{v}</span>
+                  <span className="text-[14px] text-ink-3">{k}</span>
+                  <span className="text-[14px] font-medium text-ink tnum">{v}</span>
                 </div>
               ))}
             </div>
@@ -294,19 +294,19 @@ export default function Pay() {
       <section id="security" className="border-b border-line">
         <div className="mx-auto grid max-w-6xl gap-8 px-5 py-14 lg:grid-cols-[1fr_1fr]">
           <div>
-            <span className="inline-flex items-center gap-1.5 rounded border border-positive-line bg-positive-soft px-2 py-1 text-[11.5px] font-semibold text-positive">
+            <span className="inline-flex items-center gap-1.5 rounded border border-positive-line bg-positive-soft px-2 py-1 text-[13px] font-semibold text-positive">
               <ShieldCheck className="h-3.5 w-3.5" />
               PayeeShield
             </span>
             <h2 className="mt-4 text-[24px] font-semibold tracking-[-0.02em] text-ink">
               Signed payment requests your customers can verify
             </h2>
-            <p className="mt-3 text-[14px] leading-relaxed text-ink-2">
+            <p className="mt-3 text-[16px] leading-relaxed text-ink-2">
               Every invoice and payment request is signed by a delegated gateway key over the fields that
               matter: recipient, amount, token, network, expiry and reference. The customer sees the
               verification result before they authorize anything.
             </p>
-            <ul className="mt-5 space-y-2.5 text-[13px] text-ink-2">
+            <ul className="mt-5 space-y-2.5 text-[15px] text-ink-2">
               {[
                 "Tampered requests are rejected before checkout",
                 "Signing keys are rotated and can be revoked",
@@ -318,7 +318,7 @@ export default function Pay() {
                 </li>
               ))}
             </ul>
-            <p className="mt-5 text-[12px] leading-relaxed text-ink-4">
+            <p className="mt-5 text-[14px] leading-relaxed text-ink-4">
               The gateway signature proves the request came from the delegated signing key and was not
               modified. It is not legal merchant verification.
             </p>
@@ -326,7 +326,7 @@ export default function Pay() {
           <Card className="p-5">
             <div className="flex items-center gap-2.5">
               <ShieldCheck className="h-5 w-5 text-positive" />
-              <p className="text-[13.5px] font-semibold text-ink">Verified merchant request</p>
+              <p className="text-[15px] font-semibold text-ink">Verified merchant request</p>
             </div>
             <div className="mt-4 space-y-2.5">
               {[
@@ -338,13 +338,13 @@ export default function Pay() {
                 ["Expiry", "14 days"],
                 ["Signing key", "gwk_2F91A"],
               ].map(([k, v]) => (
-                <div key={k} className="flex items-center justify-between gap-4 text-[12.5px]">
+                <div key={k} className="flex items-center justify-between gap-4 text-[14px]">
                   <span className="text-ink-3">{k}</span>
                   <span className="font-mono text-ink-2">{v}</span>
                 </div>
               ))}
             </div>
-            <div className="mt-4 rounded-md border border-positive-line bg-positive-soft px-3 py-2.5 text-[12px] text-positive">
+            <div className="mt-4 rounded-md border border-positive-line bg-positive-soft px-3 py-2.5 text-[14px] text-positive">
               All protected fields matched. If any value is changed after signing, verification fails and
               checkout is blocked.
             </div>
@@ -357,14 +357,14 @@ export default function Pay() {
         <div className="mx-auto max-w-6xl px-5 py-14">
           <div className="grid gap-8 lg:grid-cols-[1fr_1fr]">
             <div>
-              <span className="inline-flex items-center gap-1.5 rounded border border-line bg-canvas px-2 py-1 text-[11.5px] font-semibold text-ink-3">
+              <span className="inline-flex items-center gap-1.5 rounded border border-line bg-canvas px-2 py-1 text-[13px] font-semibold text-ink-3">
                 <Code2 className="h-3.5 w-3.5" />
                 {GATEWAY.sdkPackage}
               </span>
               <h2 className="mt-4 text-[24px] font-semibold tracking-[-0.02em] text-ink">
                 Built for developers first
               </h2>
-              <p className="mt-3 text-[14px] leading-relaxed text-ink-2">
+              <p className="mt-3 text-[16px] leading-relaxed text-ink-2">
                 A typed SDK, predictable resources and webhook events that mirror the payment lifecycle.
                 The integration below is the whole checkout surface.
               </p>
@@ -401,9 +401,9 @@ console.log(session.url);`}
           <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {steps.map((s, i) => (
               <Card key={s.title} className="p-4">
-                <span className="text-[11.5px] font-semibold text-accent tnum">Step {i + 1}</span>
-                <h3 className="mt-1.5 text-[13.5px] font-semibold text-ink">{s.title}</h3>
-                <p className="mt-1 text-[12.5px] leading-relaxed text-ink-3">{s.body}</p>
+                <span className="text-[13px] font-semibold text-accent tnum">Step {i + 1}</span>
+                <h3 className="mt-1.5 text-[15px] font-semibold text-ink">{s.title}</h3>
+                <p className="mt-1 text-[14px] leading-relaxed text-ink-3">{s.body}</p>
               </Card>
             ))}
           </div>
@@ -414,7 +414,7 @@ console.log(session.url);`}
       <section className="border-b border-line">
         <div className="mx-auto max-w-6xl px-5 py-14">
           <h2 className="text-[24px] font-semibold tracking-[-0.02em] text-ink">What happens after payment</h2>
-          <p className="mt-2 max-w-2xl text-[14px] leading-relaxed text-ink-3">
+          <p className="mt-2 max-w-2xl text-[16px] leading-relaxed text-ink-3">
             Refunds, delivery tracking, exception handling and reporting live alongside the payment record
             they belong to, with one consistent set of references.
           </p>
@@ -438,8 +438,8 @@ console.log(session.url);`}
             ].map((c) => (
               <Card key={c.title} className="p-4">
                 <c.icon className="h-4.5 w-4.5 text-accent" strokeWidth={1.9} />
-                <h3 className="mt-3 text-[13.5px] font-semibold text-ink">{c.title}</h3>
-                <p className="mt-1.5 text-[12.5px] leading-relaxed text-ink-3">{c.body}</p>
+                <h3 className="mt-3 text-[15px] font-semibold text-ink">{c.title}</h3>
+                <p className="mt-1.5 text-[14px] leading-relaxed text-ink-3">{c.body}</p>
               </Card>
             ))}
           </div>
@@ -453,7 +453,7 @@ console.log(session.url);`}
             <h2 className="text-[26px] font-semibold tracking-[-0.02em] text-ink">
               Start accepting USDT on Whitechain
             </h2>
-            <p className="mx-auto mt-3 max-w-xl text-[14px] leading-relaxed text-ink-2">
+            <p className="mx-auto mt-3 max-w-xl text-[16px] leading-relaxed text-ink-2">
               Open the demo merchant workspace to explore checkout, invoices, subscriptions, refunds and
               the developer platform with seeded data.
             </p>
@@ -474,7 +474,7 @@ console.log(session.url);`}
       </section>
 
       <footer className="border-t border-line bg-surface">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-6 text-[12px] text-ink-4">
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-5 py-6 text-[14px] text-ink-4">
           <p>
             EzPayz — frontend demo for {DEFAULT_NETWORK.name}. {TOKEN.symbol} contract{" "}
             <code className="font-mono">{TOKEN.contract.slice(0, 12)}…</code>

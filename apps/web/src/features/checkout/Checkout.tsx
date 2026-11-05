@@ -163,16 +163,16 @@ export default function Checkout() {
       <CheckoutFrame>
         <Card>
           <div className="border-b border-line px-6 py-5 text-center">
-            <span className="flex h-12 w-12 items-center justify-center rounded-md bg-ink text-[15px] font-bold text-white">
+            <span className="flex h-12 w-12 items-center justify-center rounded-md bg-ink text-[17px] font-bold text-white">
               {data.merchant.logoText}
             </span>
-            <p className="mt-3 text-[15px] font-semibold text-ink">{data.merchant.displayName}</p>
-            <p className="text-[11.5px] text-ink-4">{DEFAULT_NETWORK.name}</p>
+            <p className="mt-3 text-[17px] font-semibold text-ink">{data.merchant.displayName}</p>
+            <p className="text-[13px] text-ink-4">{DEFAULT_NETWORK.name}</p>
           </div>
           <div className="space-y-4 px-6 py-5">
             <div>
               <h1 className="text-[19px] font-semibold tracking-[-0.02em] text-ink">{link.title}</h1>
-              <p className="mt-1.5 text-[13px] leading-relaxed text-ink-3">{link.description}</p>
+              <p className="mt-1.5 text-[15px] leading-relaxed text-ink-3">{link.description}</p>
             </div>
             {link.linkType === "customer_amount" ? (
               <Field
@@ -191,7 +191,7 @@ export default function Checkout() {
               </Field>
             ) : (
               <div className="rounded-md border border-line bg-canvas p-4">
-                <p className="text-[11px] uppercase tracking-wide text-ink-4">Amount due</p>
+                <p className="text-[13px] uppercase tracking-wide text-ink-4">Amount due</p>
                 <AmountDisplay base={link.amount!} className="text-[24px]" />
               </div>
             )}
@@ -227,7 +227,7 @@ export default function Checkout() {
             >
               Continue to payment
             </Button>
-            <p className="text-center text-[11.5px] text-ink-4">
+            <p className="text-center text-[13px] text-ink-4">
               Powered by EzPayz · simulated demo checkout
             </p>
           </div>
@@ -246,7 +246,7 @@ export default function Checkout() {
         <Card>
           <div className="flex flex-col items-center gap-3 px-6 py-16">
             <Loader2 className="h-5 w-5 animate-spin text-accent" />
-            <p className="text-[13px] text-ink-3">Loading payment request…</p>
+            <p className="text-[15px] text-ink-3">Loading payment request…</p>
           </div>
         </Card>
       </CheckoutFrame>
@@ -262,7 +262,7 @@ export default function Checkout() {
               <XCircle className="h-5 w-5" />
             </div>
             <h1 className="text-[17px] font-semibold text-ink">Payment request not found</h1>
-            <p className="mx-auto max-w-sm text-[13px] leading-relaxed text-ink-3">
+            <p className="mx-auto max-w-sm text-[15px] leading-relaxed text-ink-3">
               {ERROR_CONTENT.invalid_request.body}
             </p>
             <a href="#/dashboard">
@@ -291,13 +291,13 @@ export default function Checkout() {
               {shieldFailed ? <AlertTriangle className="h-5 w-5" /> : <Clock className="h-5 w-5" />}
             </div>
             <h1 className="text-[17px] font-semibold text-ink">{ERROR_CONTENT[state].title}</h1>
-            <p className="mx-auto max-w-sm text-[13px] leading-relaxed text-ink-3">{ERROR_CONTENT[state].body}</p>
+            <p className="mx-auto max-w-sm text-[15px] leading-relaxed text-ink-3">{ERROR_CONTENT[state].body}</p>
             {shieldFailed && payment.payeeShield ? (
               <div className="mx-auto max-w-sm rounded-md border border-danger-line bg-danger-soft px-3.5 py-3 text-left">
-                <p className="text-[12px] font-semibold text-danger">
+                <p className="text-[14px] font-semibold text-danger">
                   Failing field: {payment.payeeShield.failedField ?? "signature"}
                 </p>
-                <p className="mt-1 text-[11.5px] leading-relaxed text-danger/90">
+                <p className="mt-1 text-[13px] leading-relaxed text-danger/90">
                   Gateway signing key {payment.payeeShield.signingKeyId} · status{" "}
                   {payment.payeeShield.signingKeyStatus}
                 </p>
@@ -428,12 +428,12 @@ export default function Checkout() {
         <Card>
           <div className="flex items-start justify-between gap-3 border-b border-line px-6 py-4">
             <div className="flex items-center gap-3">
-              <span className="flex h-10 w-10 items-center justify-center rounded-md bg-ink text-[13px] font-bold text-white">
+              <span className="flex h-10 w-10 items-center justify-center rounded-md bg-ink text-[15px] font-bold text-white">
                 {data.merchant.logoText}
               </span>
               <div>
-                <p className="text-[14px] font-semibold leading-tight text-ink">{data.merchant.displayName}</p>
-                <p className="text-[11.5px] text-ink-4">{data.merchant.website.replace("https://", "")}</p>
+                <p className="text-[16px] font-semibold leading-tight text-ink">{data.merchant.displayName}</p>
+                <p className="text-[13px] text-ink-4">{data.merchant.website.replace("https://", "")}</p>
               </div>
             </div>
             <StatusBadge label={`${DEFAULT_NETWORK.name}`} tone="warn" dot={false} />
@@ -441,21 +441,21 @@ export default function Checkout() {
 
           <div className="space-y-5 px-6 py-5">
             <div>
-              <p className="text-[11px] font-medium uppercase tracking-wide text-ink-4">Amount due</p>
+              <p className="text-[13px] font-medium uppercase tracking-wide text-ink-4">Amount due</p>
               <div className="mt-1 flex items-baseline gap-2">
                 <span className="text-[30px] font-semibold leading-none tracking-[-0.02em] text-ink tnum">
                   {fmtAmount(amountToPay)}
                 </span>
-                <span className="text-[15px] font-medium text-ink-3">{TOKEN.symbol}</span>
+                <span className="text-[17px] font-medium text-ink-3">{TOKEN.symbol}</span>
               </div>
-              <p className="mt-1 text-[11.5px] text-ink-4">
+              <p className="mt-1 text-[13px] text-ink-4">
                 {TOKEN.name} · <code className="font-mono">{TOKEN.contract.slice(0, 12)}…</code>
               </p>
             </div>
 
             <div className="rounded-md border border-line bg-canvas/70 p-4">
-              <p className="text-[13px] font-semibold text-ink">{payment.description}</p>
-              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11.5px] text-ink-3">
+              <p className="text-[15px] font-semibold text-ink">{payment.description}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-ink-3">
                 <span className="flex items-center gap-1">
                   <Clock className="h-3 w-3" />
                   {payment.expiresAt ? `Expires ${untilFuture(payment.expiresAt)}` : "No expiry"}
@@ -469,7 +469,7 @@ export default function Checkout() {
             </div>
 
             <div className="space-y-3">
-              <p className="text-[11.5px] font-semibold uppercase tracking-wide text-ink-4">Progress</p>
+              <p className="text-[13px] font-semibold uppercase tracking-wide text-ink-4">Progress</p>
               <ol className="space-y-2">
                 {STEPS.map((s, i) => {
                   const done = i < step;
@@ -497,7 +497,7 @@ export default function Checkout() {
                         {failed ? <XCircle className="h-2.5 w-2.5" /> : done ? <Check className="h-2.5 w-2.5" /> : i + 1}
                       </span>
                       <span
-                        className={`text-[12.5px] leading-5 ${
+                        className={`text-[14px] leading-5 ${
                           current ? "font-semibold text-ink" : done ? "text-ink-2" : "text-ink-4"
                         }`}
                       >
@@ -547,17 +547,17 @@ export default function Checkout() {
 
             {/* Wallet panel */}
             <div className="space-y-3">
-              <p className="text-[11.5px] font-semibold uppercase tracking-wide text-ink-4">Your wallet</p>
+              <p className="text-[13px] font-semibold uppercase tracking-wide text-ink-4">Your wallet</p>
               <div className="rounded-md border border-line p-3.5">
                 {wallet.status === "disconnected" || wallet.status === "rejected" || wallet.status === "disconnected_unexpectedly" ? (
                   <div className="space-y-2.5">
                     <div className="flex items-start gap-2.5">
                       <Wallet className="mt-0.5 h-4 w-4 shrink-0 text-ink-3" />
                       <div>
-                        <p className="text-[13px] font-medium text-ink">
+                        <p className="text-[15px] font-medium text-ink">
                           {wallet.status === "rejected" ? "Connection rejected" : "Connect your wallet"}
                         </p>
-                        <p className="text-[11.5px] leading-relaxed text-ink-3">
+                        <p className="text-[13px] leading-relaxed text-ink-3">
                           {wallet.status === "rejected"
                             ? "The wallet request was declined. You can try again."
                             : wallet.hasProvider
@@ -565,7 +565,7 @@ export default function Checkout() {
                               : "No browser wallet detected — a simulated demo wallet will be used."}
                         </p>
                         {wallet.status === "disconnected_unexpectedly" ? (
-                          <p className="mt-1 text-[11.5px] text-warn">{wallet.error}</p>
+                          <p className="mt-1 text-[13px] text-warn">{wallet.error}</p>
                         ) : null}
                       </div>
                     </div>
@@ -575,8 +575,8 @@ export default function Checkout() {
                   </div>
                 ) : wallet.status === "wrong_network" ? (
                   <div className="space-y-2.5">
-                    <p className="text-[13px] font-medium text-warn">Connected to the wrong network</p>
-                    <p className="text-[11.5px] leading-relaxed text-ink-3">
+                    <p className="text-[15px] font-medium text-warn">Connected to the wrong network</p>
+                    <p className="text-[13px] leading-relaxed text-ink-3">
                       {wallet.error ?? `Switch to ${DEFAULT_NETWORK.name} (chain ${DEFAULT_NETWORK.chainId}) to continue.`}
                     </p>
                     <Button variant="secondary" size="sm" onClick={wallet.switchNetwork} loading={wallet.busy}>
@@ -586,10 +586,10 @@ export default function Checkout() {
                 ) : (
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="text-[13px] font-medium text-ink">{wallet.providerName}</p>
-                      <code className="font-mono text-[11.5px] text-ink-3">{wallet.address}</code>
+                      <p className="text-[15px] font-medium text-ink">{wallet.providerName}</p>
+                      <code className="font-mono text-[13px] text-ink-3">{wallet.address}</code>
                       {wallet.simulated ? (
-                        <p className="mt-0.5 text-[11px] text-warn">Simulated wallet — no browser wallet detected.</p>
+                        <p className="mt-0.5 text-[13px] text-warn">Simulated wallet — no browser wallet detected.</p>
                       ) : null}
                     </div>
                     <Button variant="ghost" size="sm" onClick={wallet.disconnect}>
@@ -628,10 +628,10 @@ export default function Checkout() {
               {running ? "Processing payment…" : `Authorize payment of ${fmtAmount(amountToPay)} ${TOKEN.symbol}`}
             </Button>
 
-            <p className="text-center text-[11.5px] leading-relaxed text-ink-4">
+            <p className="text-center text-[13px] leading-relaxed text-ink-4">
               {GASLESS_DISCLOSURE}
             </p>
-            <p className="text-center text-[11px] text-ink-4">
+            <p className="text-center text-[13px] text-ink-4">
               Simulated demo checkout — no signature is requested from your wallet and nothing is broadcast
               to Whitechain.
             </p>
@@ -641,7 +641,7 @@ export default function Checkout() {
         <div className="space-y-4">
           <Card>
             <div className="px-5 py-4">
-              <p className="text-[11.5px] font-semibold uppercase tracking-wide text-ink-4">Order summary</p>
+              <p className="text-[13px] font-semibold uppercase tracking-wide text-ink-4">Order summary</p>
               <div className="mt-2 space-y-1">
                 <KeyValue label="Merchant">{data.merchant.displayName}</KeyValue>
                 <KeyValue label="Description">{payment.description}</KeyValue>
@@ -655,19 +655,19 @@ export default function Checkout() {
                   {DEFAULT_NETWORK.name} · chain {DEFAULT_NETWORK.chainId}
                 </KeyValue>
                 <KeyValue label="Payment reference">
-                  <code className="font-mono text-[11.5px]">{payment.id}</code>
+                  <code className="font-mono text-[13px]">{payment.id}</code>
                   <CopyButton value={payment.id} label="Copy" size="xs" />
                 </KeyValue>
                 {payment.invoiceId ? (
                   <KeyValue label="Invoice">
-                    <code className="font-mono text-[11.5px]">{payment.invoiceId}</code>
+                    <code className="font-mono text-[13px]">{payment.invoiceId}</code>
                   </KeyValue>
                 ) : null}
                 <KeyValue label="Expires">{fmtDateTime(payment.expiresAt)}</KeyValue>
               </div>
               <button
                 onClick={() => setShowDetails((v) => !v)}
-                className="mt-3 flex w-full items-center justify-between rounded-md border border-line bg-canvas px-3 py-2 text-[12.5px] font-medium text-ink-2 hover:bg-canvas-alt"
+                className="mt-3 flex w-full items-center justify-between rounded-md border border-line bg-canvas px-3 py-2 text-[14px] font-medium text-ink-2 hover:bg-canvas-alt"
               >
                 Recipient and verification details
                 <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showDetails ? "rotate-180" : ""}`} />
@@ -675,9 +675,9 @@ export default function Checkout() {
               {showDetails ? (
                 <div className="mt-3 space-y-3">
                   <div className="rounded-md border border-line bg-canvas/60 px-3.5 py-2">
-                    <p className="text-[11px] uppercase tracking-wide text-ink-4">Merchant payout wallet</p>
+                    <p className="text-[13px] uppercase tracking-wide text-ink-4">Merchant payout wallet</p>
                     <AddressDisplay address={payment.payoutWallet} full className="mt-1" />
-                    <p className="mt-1.5 text-[11px] leading-relaxed text-ink-4">
+                    <p className="mt-1.5 text-[13px] leading-relaxed text-ink-4">
                       Check this address before authorising. The gateway signature covers it, but only you can
                       confirm it is the merchant you expect.
                     </p>
@@ -690,11 +690,11 @@ export default function Checkout() {
 
           <Card className="bg-canvas/60">
             <div className="space-y-2 px-5 py-4">
-              <p className="flex items-center gap-1.5 text-[12px] font-semibold text-ink">
+              <p className="flex items-center gap-1.5 text-[14px] font-semibold text-ink">
                 <Info className="h-3.5 w-3.5 text-accent" />
                 What happens when you pay
               </p>
-              <ol className="space-y-1.5 text-[11.5px] leading-relaxed text-ink-3">
+              <ol className="space-y-1.5 text-[13px] leading-relaxed text-ink-3">
                 <li>1. You connect your wallet and confirm the network.</li>
                 <li>2. You sign a payment authorization for this exact amount and recipient.</li>
                 <li>3. The gateway relayer submits the transaction and sponsors the network gas.</li>
@@ -706,8 +706,8 @@ export default function Checkout() {
 
           <Card>
             <div className="space-y-2.5 px-5 py-4">
-              <p className="text-[11.5px] font-semibold uppercase tracking-wide text-ink-4">Demo outcome controls</p>
-              <p className="text-[11.5px] leading-relaxed text-ink-4">
+              <p className="text-[13px] font-semibold uppercase tracking-wide text-ink-4">Demo outcome controls</p>
+              <p className="text-[13px] leading-relaxed text-ink-4">
                 Frontend demo only. Choose how the simulated settlement completes.
               </p>
               <div className="grid grid-cols-2 gap-2">
@@ -724,7 +724,7 @@ export default function Checkout() {
                   <button
                     key={value}
                     onClick={() => setDemoMode(value)}
-                    className={`rounded-md border px-2.5 py-2 text-left text-[11.5px] font-medium transition-colors ${
+                    className={`rounded-md border px-2.5 py-2 text-left text-[13px] font-medium transition-colors ${
                       demoMode === value ? "border-accent bg-accent-soft text-accent" : "border-line-strong text-ink-2 hover:bg-canvas"
                     }`}
                   >
@@ -757,22 +757,22 @@ export function CheckoutSuccess({ payment, merchantName }: { payment: Payment; m
             <CheckCircle2 className="h-6 w-6" />
           </div>
           <h1 className="mt-3 text-[20px] font-semibold tracking-[-0.02em] text-ink">Payment successful</h1>
-          <p className="mt-1 text-[13px] text-ink-3">
+          <p className="mt-1 text-[15px] text-ink-3">
             {merchantName} received your payment. A simulated settlement was recorded.
           </p>
         </div>
         <div className="space-y-4 px-6 py-5">
           <div className="rounded-md border border-line bg-canvas p-4 text-center">
-            <p className="text-[11px] uppercase tracking-wide text-ink-4">Amount paid</p>
+            <p className="text-[13px] uppercase tracking-wide text-ink-4">Amount paid</p>
             <AmountDisplay base={payment.receivedAmount ?? payment.amount} className="text-[26px]" />
           </div>
           <div className="space-y-1">
             <KeyValue label="Merchant">{merchantName}</KeyValue>
             <KeyValue label="Your wallet">
-              <code className="break-all font-mono text-[11.5px]">{payment.payerWallet}</code>
+              <code className="break-all font-mono text-[13px]">{payment.payerWallet}</code>
             </KeyValue>
             <KeyValue label="Payment ID">
-              <code className="font-mono text-[11.5px]">{payment.id}</code>
+              <code className="font-mono text-[13px]">{payment.id}</code>
               <CopyButton value={payment.id} label="Copy" size="xs" />
             </KeyValue>
             <KeyValue label="Transaction reference">
@@ -789,7 +789,7 @@ export function CheckoutSuccess({ payment, merchantName }: { payment: Payment; m
             {payment.customerEmail ? <KeyValue label="Sent to">{payment.customerEmail}</KeyValue> : null}
           </div>
 
-          <div className="rounded-md border border-warn-line bg-warn-soft px-3.5 py-2.5 text-[11.5px] leading-relaxed text-warn">
+          <div className="rounded-md border border-warn-line bg-warn-soft px-3.5 py-2.5 text-[13px] leading-relaxed text-warn">
             Demo transaction — the reference above was generated by the mock service layer. Nothing was
             broadcast to Whitechain and there is no on-chain record.
           </div>
@@ -821,7 +821,7 @@ export function CheckoutSuccess({ payment, merchantName }: { payment: Payment; m
           </div>
 
           <div className="pt-2">
-            <p className="mb-2 text-[11.5px] font-semibold uppercase tracking-wide text-ink-4">Payment timeline</p>
+            <p className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-ink-4">Payment timeline</p>
             <Timeline
               entries={payment.timeline.map((t, i) => ({
                 label: t.label,
@@ -833,11 +833,11 @@ export function CheckoutSuccess({ payment, merchantName }: { payment: Payment; m
             />
           </div>
 
-          <p className="text-center text-[11.5px] text-ink-4">
+          <p className="text-center text-[13px] text-ink-4">
             Status: {PAYMENT_STATUS_META[payment.status].label} · settlement recorded by the gateway, not by
             this page
           </p>
-          <p className="text-center text-[11px] text-ink-4">
+          <p className="text-center text-[13px] text-ink-4">
             <ExternalLink className="mr-1 inline h-3 w-3" />
             Explorer links are placeholders in demo mode
           </p>
@@ -857,12 +857,12 @@ export function CheckoutFrame({ children }: { children: React.ReactNode }) {
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex h-14 max-w-5xl items-center justify-between gap-3 px-5">
           <div className="flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-accent text-[11px] font-bold text-white">
+            <span className="flex h-7 w-7 items-center justify-center rounded-md bg-accent text-[13px] font-bold text-white">
               W
             </span>
-            <span className="text-[13px] font-semibold text-ink">EzPayz</span>
+            <span className="text-[15px] font-semibold text-ink">EzPayz</span>
           </div>
-          <span className="flex items-center gap-1.5 rounded border border-warn-line bg-warn-soft px-2 py-1 text-[11px] font-semibold text-warn">
+          <span className="flex items-center gap-1.5 rounded border border-warn-line bg-warn-soft px-2 py-1 text-[13px] font-semibold text-warn">
             <span className="h-1.5 w-1.5 rounded-full bg-warn" />
             Demo checkout · simulated
           </span>
@@ -873,7 +873,7 @@ export function CheckoutFrame({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <footer className="border-t border-line bg-surface px-5 py-4">
-        <p className="mx-auto max-w-5xl text-[11.5px] text-ink-4">
+        <p className="mx-auto max-w-5xl text-[13px] text-ink-4">
           Payments are settled in {TOKEN.symbol} on {DEFAULT_NETWORK.name}. This is a frontend demo: wallets,
           signatures and settlements are simulated.{" "}
           <Link to="/roadmap" className="hover:text-ink">
