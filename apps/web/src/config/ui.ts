@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   BarChart3,
   BookOpen,
+  Boxes,
   Code2,
   CreditCard,
   Gauge,
@@ -213,6 +214,7 @@ export const MERCHANT_NAV: NavSection[] = [
     title: "Business",
     items: [
       { label: "Customers", to: "/customers", icon: Users },
+      { label: "Products & Services", to: "/products", icon: Boxes },
       { label: "Subscriptions", to: "/subscriptions", icon: Repeat },
       { label: "Fulfilment", to: "/fulfilment", icon: PackageCheck },
     ],

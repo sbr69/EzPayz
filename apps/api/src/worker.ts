@@ -3,6 +3,7 @@ import { Worker } from "bullmq";
 import { getRedisConnection } from "./queues/connection";
 import { relayAndSettle } from "./services/relayer";
 import { renewAndSettle } from "./services/renewal";
+import { calculateUsageCharge } from "./services/usageBilling";
 import { relayAndSettleRefund } from "./services/refund";
 import { dispatchWebhookEvent } from "./services/webhook";
 import { processEmail } from "./services/email";
@@ -89,6 +90,23 @@ async function pollDueSubscriptions(): Promise<void> {
       if (!sub.onChainSubscriptionId) continue;
       const intervalSec = INTERVAL_SECONDS[sub.interval] ?? 2592000;
       const periodId = Math.floor(Date.now() / 1000 / intervalSec);
+
+      // Determine charge amount: fixed plans use the stored amount;
+      // usage plans calculate from unbilled usage records × unitPrice.
+      let chargeAmount = sub.amount;
+      const plan = await prisma.subscriptionPlan.findUnique({ where: { id: sub.planId } });
+      if (plan?.billingMode === "usage") {
+        const sinceDate = sub.nextBillingAt ?? new Date(Date.now() - intervalSec * 1000);
+        const usage = await calculateUsageCharge(sub.id, sinceDate);
+        chargeAmount = usage.amount;
+        if (chargeAmount === "0") {
+          // No usage this cycle — skip the charge but advance the billing date.
+          const newNext = new Date(sub.nextBillingAt!.getTime() + intervalSec * 1000);
+          await prisma.subscription.update({ where: { id: sub.id }, data: { nextBillingAt: newNext } });
+          continue;
+        }
+      }
+
       await getRelayerQueue().add(
         "renew-subscription",
         {
@@ -96,7 +114,7 @@ async function pollDueSubscriptions(): Promise<void> {
           merchantId: sub.merchantId,
           onChainSubscriptionId: sub.onChainSubscriptionId,
           periodId,
-          amount: sub.amount,
+          amount: chargeAmount,
           customerId: sub.customerId,
         },
         { jobId: `${sub.id}-${periodId}` }

@@ -26,7 +26,7 @@ export function useSyncRealData() {
         if (cancelled) return;
 
         // Fetch all list data in parallel.
-        const [paymentsRes, refundsRes, subscriptionsRes, exceptionsRes, invoicesRes, plansRes, linksRes, webhooksRes, fulfilmentRes, customersRes, apiKeysRes, webhookEventsRes] = await Promise.allSettled([
+        const [paymentsRes, refundsRes, subscriptionsRes, exceptionsRes, invoicesRes, plansRes, linksRes, webhooksRes, fulfilmentRes, customersRes, apiKeysRes, webhookEventsRes, productsRes] = await Promise.allSettled([
           apiFetch<{ paymentIntents: unknown[] }>("/v1/payment-intents?limit=100"),
           apiFetch<{ refunds: unknown[] }>("/v1/refunds?limit=100"),
           apiFetch<{ subscriptions: unknown[] }>("/v1/subscriptions?limit=100"),
@@ -39,6 +39,7 @@ export function useSyncRealData() {
           apiFetch<{ customers: unknown[] }>("/v1/customers?limit=100"),
           apiFetch<{ apiKeys: unknown[] }>("/v1/api-keys"),
           apiFetch<{ events: unknown[] }>("/v1/webhooks/events?limit=100"),
+          apiFetch<{ products: unknown[] }>("/v1/products?limit=100"),
         ]);
 
         if (cancelled) return;
@@ -59,6 +60,7 @@ export function useSyncRealData() {
         if (customersRes.status === "fulfilled") data.customers = customersRes.value.customers ?? [];
         if (apiKeysRes.status === "fulfilled") data.apiKeys = apiKeysRes.value.apiKeys ?? [];
         if (webhookEventsRes.status === "fulfilled") data.webhookEvents = webhookEventsRes.value.events ?? [];
+        if (productsRes.status === "fulfilled") data.products = productsRes.value.products ?? [];
 
         replaceData(data as never);
       } catch {

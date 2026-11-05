@@ -27,6 +27,7 @@ import { usageRoutes } from "./routes/v1/usage";
 import { refundRoutes } from "./routes/v1/refunds";
 import { customerRoutes } from "./routes/v1/customers";
 import { gasGuardRoutes } from "./routes/v1/gasGuard";
+import { productRoutes } from "./routes/v1/products";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -64,6 +65,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(refundRoutes, { prefix: "/v1/refunds" });
   await app.register(customerRoutes, { prefix: "/v1/customers" });
   await app.register(gasGuardRoutes, { prefix: "/v1/gas-guard" });
+  await app.register(productRoutes, { prefix: "/v1/products" });
 
   // MCP server — Streamable HTTP at /mcp (for remote MCP clients).
   await mountMcp(app);
