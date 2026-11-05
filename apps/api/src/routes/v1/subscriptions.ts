@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma } from "../../db/client";
 import { recordOnChainSubscription } from "../../services/subscription";
+import { getRelayerQueue } from "../../queues";
 
 const createSchema = z.object({
   onChainSubscriptionId: z.string().regex(/^0x[a-fA-F0-9]{64}$/),
@@ -64,5 +65,30 @@ export async function subscriptionRoutes(app: FastifyInstance): Promise<void> {
     });
     if (res.count === 0) return reply.code(404).send({ error: { code: "not_found", message: "Active subscription not found" } });
     return reply.send({ cancelled: true, note: "Customer must also submit on-chain cancel() to block future charges + revoke allowance via approve(0)." });
+  });
+
+  // POST /v1/subscriptions/:id/renew-now — manually enqueue a relayer renewal job (dev/admin trigger;
+  // identical path to the scheduler). Useful for testing without waiting for the 60s poll.
+  app.post("/:id/renew-now", { preHandler: [app.authenticate] }, async (req, reply) => {
+    const id = (req.params as { id: string }).id;
+    const sub = await prisma.subscription.findFirst({ where: { id, merchantId: req.merchantId! } });
+    if (!sub) return reply.code(404).send({ error: { code: "not_found", message: "Subscription not found" } });
+    if (sub.status !== "active") return reply.code(409).send({ error: { code: "invalid_state", message: "Subscription not active" } });
+    if (!sub.onChainSubscriptionId) return reply.code(400).send({ error: { code: "no_onchain_id", message: "Subscription has no on-chain id" } });
+    const intervalSec = sub.interval === "hourly" ? 3600 : sub.interval === "daily" ? 86400 : 2592000;
+    const periodId = Math.floor(Date.now() / 1000 / intervalSec);
+    await getRelayerQueue().add(
+      "renew-subscription",
+      {
+        subscriptionDbId: sub.id,
+        merchantId: sub.merchantId,
+        onChainSubscriptionId: sub.onChainSubscriptionId,
+        periodId,
+        amount: sub.amount,
+        customerId: sub.customerId,
+      },
+      { jobId: `${sub.id}-${periodId}` }
+    );
+    return reply.code(202).send({ renewQueued: true, periodId });
   });
 }

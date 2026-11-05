@@ -21,8 +21,9 @@ export async function renewAndSettle(job: {
   customerId: string;
 }): Promise<{ txHash: string; settled: boolean }> {
   const walletClient = getRelayerWalletClient();
-  const attempt = await prisma.renewalAttempt.create({
-    data: {
+  const attempt = await prisma.renewalAttempt.upsert({
+    where: { subscriptionId_billingSequence: { subscriptionId: job.subscriptionDbId, billingSequence: String(job.periodId) } },
+    create: {
       subscriptionId: job.subscriptionDbId,
       attempt: 1,
       scheduledFor: new Date(),
@@ -30,6 +31,7 @@ export async function renewAndSettle(job: {
       status: "submitted",
       billingSequence: String(job.periodId),
     },
+    update: { status: "submitted", attempt: { increment: 1 } },
   });
 
   let txHash: string;

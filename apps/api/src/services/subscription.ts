@@ -24,29 +24,29 @@ export async function recordOnChainSubscription(opts: {
   onChainSubscriptionId: string;
   payerWallet: string;
 }) {
-  const onChain = (await publicClient.readContract({
+  const [payer, merchant, amount, intervalSeconds, maxChargePerCycle, cumulativeCap, totalSpent, nextDueTime, expiry, active, cancelled] = (await publicClient.readContract({
     address: SUBSCRIPTION_CONTRACT_ADDRESS as `0x${string}`,
     abi: SUBSCRIPTION_ABI,
     functionName: "getSubscription",
     args: [opts.onChainSubscriptionId as `0x${string}`],
-  })) as unknown as OnChainSubscription;
+  })) as [string, string, bigint, bigint, bigint, bigint, bigint, bigint, bigint, boolean, boolean];
 
-  if (onChain.payer.toLowerCase() !== opts.payerWallet.toLowerCase()) {
+  if (payer.toLowerCase() !== opts.payerWallet.toLowerCase()) {
     throw { statusCode: 400, code: "payer_mismatch", message: "On-chain payer does not match the provided wallet" };
   }
-  if (onChain.merchant.toLowerCase() !== opts.merchantPayoutWallet.toLowerCase()) {
+  if (merchant.toLowerCase() !== opts.merchantPayoutWallet.toLowerCase()) {
     throw { statusCode: 400, code: "merchant_mismatch", message: "On-chain merchant does not match the merchant payout wallet" };
   }
-  if (!onChain.active || onChain.cancelled) {
+  if (!active || cancelled) {
     throw { statusCode: 400, code: "not_active", message: "On-chain subscription is not active" };
   }
 
   const plan = await prisma.subscriptionPlan.findFirst({ where: { id: opts.planId, merchantId: opts.merchantId } });
   if (!plan) throw { statusCode: 404, code: "plan_not_found", message: "Plan not found" };
-  if (onChain.amount !== BigInt(plan.amount)) {
+  if (amount !== BigInt(plan.amount)) {
     throw { statusCode: 400, code: "amount_mismatch", message: "On-chain amount does not match the plan" };
   }
-  if (onChain.intervalSeconds !== BigInt(INTERVAL_SECONDS[plan.interval])) {
+  if (intervalSeconds !== BigInt(INTERVAL_SECONDS[plan.interval])) {
     throw { statusCode: 400, code: "interval_mismatch", message: "On-chain interval does not match the plan" };
   }
 
@@ -57,7 +57,7 @@ export async function recordOnChainSubscription(opts: {
     });
   }
 
-  const allowanceRemaining = (onChain.cumulativeCap - onChain.totalSpent).toString();
+  const allowanceRemaining = (cumulativeCap - totalSpent).toString();
   return prisma.subscription.create({
     data: {
       merchantId: opts.merchantId,
@@ -69,10 +69,10 @@ export async function recordOnChainSubscription(opts: {
       interval: plan.interval,
       maxChargePerCycle: plan.maxChargePerCycle,
       cumulativeLimit: plan.cumulativeLimit,
-      spent: onChain.totalSpent.toString(),
+      spent: totalSpent.toString(),
       allowanceRemaining,
-      nextBillingAt: new Date(Number(onChain.nextDueTime) * 1000),
-      expiresAt: new Date(Number(onChain.expiry) * 1000),
+      nextBillingAt: new Date(Number(nextDueTime) * 1000),
+      expiresAt: new Date(Number(expiry) * 1000),
       activationTxRef: opts.onChainSubscriptionId,
       retryPolicyJson: { maxAttempts: 3, backoff: "exponential", intervalMinutes: 60 } as unknown as Prisma.InputJsonValue,
     },
