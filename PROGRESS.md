@@ -1,7 +1,7 @@
 # Progress — EzPayz
 
 **Last updated:** 31 October 2026
-**Status:** Feature-complete MVP + Phase 10 (dev-ex) + Phase 11 (Razorpay parity) + Phase 12 (integration fixes) + Phase 13 (MCP server) + Phase 14 (Razorpay parity audit fixes). All 14 phases built. Full developer flow verified. Local (no deploy yet).
+**Status:** Feature-complete MVP + Phase 10-14 + Phase 15 (remaining limitations fixed). All 15 phases built. Full developer flow verified end-to-end. Local (no deploy yet). All known limitations from Phase 14 audit resolved except email (deferred) + settings pages requiring migrations (notification/security/gas-guard).
 
 ---
 
@@ -288,11 +288,11 @@ Senior-developer codebase audit identified 16 remaining gaps. Fixed in two batch
 16. Settings wallet verify wired to real challenge→sign→verify flow.
 
 **Remaining known limitations (documented, not blocking):**
-- Field mismatches: some create forms send extra fields (customerId, expiresInHours, etc.) that the API silently strips. Forms work but some fields aren't stored.
-- Webhook signing secret stored as plaintext (security — needs encryption at rest for production).
-- Missing backend routes: `GET /v1/plans/:id`, `PATCH /v1/webhooks/:id`, `POST /v1/webhooks/:id/test`, `POST /v1/webhooks/:id/rotate-secret`, `POST /v1/invoices/:id/checkout`, `PATCH /v1/gas-guard`, customer notes, products CRUD.
-- Settings pages (checkout, notifications, security, gas sponsorship) still use fake save — wallet settings is real.
-- Email deferred (code preserved, stubbed).
+- Settings pages (notifications, security, gas sponsorship) still use fake save — wallet settings + checkout settings are real. These need backend endpoints requiring Prisma migrations.
+- Email deferred (code preserved, stubbed — no SMTP). Downloadable PDF receipt is primary.
+- Products CRUD routes not built (page hidden from navigation, code preserved).
+- Customer notes not implemented (needs schema migration).
+- Legacy mock components preserved (Checkout, SubscriptionCheckout) but routes removed from router.
 
 ---
 
@@ -303,7 +303,7 @@ Senior-developer codebase audit identified 16 remaining gaps. Fixed in two batch
 - [ ] **Real email**: wire an SMTP provider (e.g., Resend) for receipt/refund/renewal emails. Currently stubbed (logged, no SMTP). The downloadable PDF receipt is the primary receipt mechanism for the MVP. Email deferred — will be wired in a later phase.
 - [ ] **JWT_SECRET + PAYEESHIELD_SIGNING_KEY**: set strong production values (not the dev defaults).
 - [ ] **Relayer key custody**: move `RELAYER_PRIVATE_KEY` from `.env` to a KMS/HSM.
-- [ ] **Webhook signing secret**: encrypt at rest (currently plaintext in the `signingSecretHash` column — MVP).
+- [ ] **Webhook signing secret**: ✅ encrypted at rest (AES-256-GCM, utils/crypto.ts).
 - [ ] **Per-merchant PayeeShield keys**: per-merchant EIP-712 signing keys (currently a single gateway key — confirmed for MVP).
 - [ ] **GasGuard hardening**: per-tx gas ceiling via `eth_estimateGas`, per-merchant rate limits, nonce/replay protection on the relayer. Currently minimal (chain/token allowlist + global pause).
 - [ ] **CORS**: tighten to the deployed frontend origin (currently `origin: true`).
