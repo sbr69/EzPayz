@@ -21,7 +21,7 @@ The product should work like a conventional payment gateway from the merchant's 
 The gateway will provide:
 
 - One-time USDT checkout, payment links and QR payments.
-- Invoice records and downloadable paid receipts (PDF). Email delivery is deferred for the MVP.
+- Invoice records and post-payment receipt emails.
 - Merchant transaction history, customer records and analytics.
 - Full and partial refunds initiated by the merchant.
 - Payment confirmation, reconciliation and signed webhooks.
@@ -42,7 +42,7 @@ The hackathon MVP must be demonstrated end to end on Whitechain Sepolia using th
 
 **Give a business everything it needs to get paid in USDT on Whitechain, from the first checkout to what happens after it.**
 
-A separate merchant application should be able to integrate a usable payment flow with a minimal integration — a handful of API calls on the server to create a payment intent, plus mounting the checkout widget on the frontend — while the gateway handles payment creation, authorization, settlement tracking, notifications, customer records, refunds and recurring billing infrastructure. The exact line count varies by integration style (hosted checkout, embedded widget, or payment link) and is not fixed at a specific number.
+A separate merchant application should be able to integrate a usable payment flow in approximately 20 lines of application code, while the gateway handles payment creation, authorization, settlement tracking, notifications, customer records, refunds and recurring billing infrastructure.
 
 ### 2.2 Problem
 
@@ -71,7 +71,7 @@ It should expose a shared payment infrastructure through which different busines
 2. Provide a customer-facing checkout that can complete a one-time payment without the customer paying WBT gas, using EIP-3009 and the gateway relayer where supported.
 3. Transfer one-time payment funds directly from the payer to the merchant wallet.
 4. Provide payment links and QR codes that open the same checkout flow.
-5. Create invoice records and generate a downloadable paid receipt (PDF) after successful settlement. Email delivery is deferred for the MVP.
+5. Create invoice records and email a paid receipt after successful settlement.
 6. Give merchants a dashboard for payments, refunds, invoices, customers, subscriptions and analytics.
 7. Provide full and partial merchant-authorized refunds as separate transfers from the merchant wallet to the payer.
 8. Provide recurring billing through a subscription contract using a bounded ERC-20 allowance and backend-triggered renewal execution.
@@ -139,7 +139,7 @@ The team operating merchant onboarding, API credentials, relayer infrastructure,
 |---|---|
 | USDT checkout on Whitechain | One-time checkout using the official ETHGlobal test USDT contract on Whitechain Sepolia. |
 | Payment links and QR payments | Generate shareable links and QR codes that open a hosted checkout. |
-| Invoice generation and receipts | Create invoice records; generate a downloadable paid invoice/receipt (PDF) after successful settlement. Email delivery is deferred for the MVP (stubbed). |
+| Invoice generation and email delivery | Create invoice records; send a paid invoice/receipt email after successful settlement. |
 | Full and partial refunds | Merchant-authorized USDT transfers from merchant wallet to payer wallet. |
 | Payment confirmation and webhooks | Verify chain settlement server-side and deliver signed webhook events. |
 | Merchant dashboard, transactions and analytics | Manage payment activity and merchant operations. |
@@ -198,9 +198,7 @@ These values are based on the current ETHGlobal Whitechain qualification page an
 
 - The required test USDT contract must be used for the main payment demo. A team-created test token does not satisfy the stated qualification requirement.
 - Read and validate token decimals from the contract; do not hardcode assumed decimals.
-- Use integer/base-unit arithmetic for all internal money math, database storage and on-chain amounts. Do not use floating-point arithmetic for token values.
-- The **public REST API and SDK accept human-readable decimal amounts** (e.g. `"10.00"` for 10 USDT). The SDK converts these to base units (USDT has 6 decimals → `"10000000"`) before storing or sending on-chain. This mirrors how Stripe/Razorpay expose amounts (`"10.00"`) while keeping integer math internally, and is the single biggest developer-experience decision: merchants should never have to reason about 6-decimal token math at the API boundary.
-- Amounts are always represented as strings (never numbers) to preserve precision.
+- Use integer/base-unit arithmetic for all amounts. Do not use floating-point arithmetic for token values.
 - Confirm the token's `transfer`, `approve`, `allowance` and `transferFrom` behavior.
 - Confirm whether the exact test USDT contract implements the EIP-3009 methods and domain/signature scheme needed by the one-time gasless flow.
 - Do not claim that EIP-3009 works on the required test USDT until its ABI and behavior have been verified with integration tests.
@@ -229,7 +227,7 @@ The dashboard must provide the following areas:
 - **Overview:** gross USDT received, successful payments, pending payments, refunds, active subscriptions and payment failure/exception counts.
 - **Payments:** searchable payment history with amount, status, payer, merchant payout address, token, network, created time and transaction hash.
 - **Payment links:** create, copy, disable and inspect links; view payment status.
-- **Invoices:** create and inspect invoices, view paid status, download the paid receipt PDF, and view email receipt activity (email deferred for MVP).
+- **Invoices:** create and inspect invoices, view paid status and email receipt activity.
 - **Customers:** merchant-scoped customer records and payment/subscription history.
 - **Subscriptions:** plans, active subscriptions, next billing time, authorization limits, renewal history and cancellation status.
 - **Refunds:** create full or partial refunds, inspect refund status and transaction hash.
@@ -254,13 +252,11 @@ The checkout page must clearly show:
 
 - Merchant display name and available brand mark.
 - Invoice/order reference and payment description.
-- Exact USDT amount (formatted human-readable, e.g. `10.00 USDT`, not raw base units).
+- Exact USDT amount.
 - Merchant payout identity/address in a human-readable verification view.
 - Whitechain network context, token identity and expiry where applicable.
 - A clear payment action and payment status.
 - Error messages for expired, invalid, already-paid or unavailable requests.
-
-After successful settlement, the checkout shows a **success page** with the transaction hash, an explorer link, and a **downloadable paid receipt (PDF)**. If the merchant provided a `successUrl`, the customer is also redirected there with `?paymentIntentId=...&status=succeeded` (UX only; the merchant must still rely on the webhook for fulfilment).
 
 The customer must not need WBT for gas in the supported EIP-3009 one-time gasless payment flow. The customer signs a typed payment authorization; this is a wallet signature, not a gas-paying blockchain transaction. The gateway must never request a seed phrase.
 
@@ -291,7 +287,7 @@ The MVP does not include a selected embedded-wallet provider. Therefore, the act
 10. USDT transfers directly from payer to merchant wallet.
 11. Backend observes the transaction and verifies the token transfer, correct sender, recipient, amount, token contract and chain.
 12. Once the configured settlement-confidence threshold is met, the payment is marked successful.
-13. Gateway emits webhook events, updates the dashboard and generates the downloadable paid receipt (PDF). Email is deferred for the MVP.
+13. Gateway emits webhook events, updates the dashboard and emails the paid receipt.
 
 ### 10.2 Required security checks
 
@@ -362,20 +358,6 @@ Cancellation and ERC-20 allowance revocation are separate operations:
 
 The subscription setup and cancellation path is **not fully gasless in the MVP**. Do not market it as a no-transaction/no-WBT experience. The Whitechain Scale demo should use the one-time EIP-3009 flow to demonstrate the payer gasless experience unless gasless subscription setup is separately implemented.
 
-### 11.4.1 Subscription hosted checkout (merchant-site integration)
-
-Subscriptions are offered to customers **through the merchant's own website** via a hosted checkout widget, mirroring the one-time payment integration pattern (Stripe Billing / Razorpay Subscriptions model):
-
-1. Merchant creates a plan via the SDK/API (`POST /v1/plans`).
-2. Merchant backend creates a subscription checkout session (`POST /v1/subscriptions/checkout`) → returns `{ subscriptionId, clientSecret, checkoutUrl }`.
-3. Merchant frontend mounts `<WhitechainSubscriptionCheckout clientSecret={...} />` — the customer sees the plan terms (amount, interval, per-cycle cap, cumulative limit, expiry, cancellation method, merchant payout address).
-4. Customer connects wallet, approves the bounded ERC-20 allowance to the SubscriptionContract, and calls `createSubscription(...)` on-chain (customer pays WBT gas for these one-time setup transactions).
-5. Gateway observes the on-chain `SubscriptionCreated` event (or the merchant's frontend reports it) and mirrors the subscription record.
-6. The gateway scheduler handles all renewals (relayer pays WBT gas) — the merchant does not build renewal logic.
-7. Cancellation is available both in the merchant's site (via the widget) and in the gateway dashboard.
-
-This means a developer can offer recurring billing with the same integration shape as one-time payments: server creates a session, frontend mounts a widget, gateway handles the lifecycle. The customer's initial approval + activation costs WBT gas (disclosed in the UI); renewals are gasless to the customer.
-
 ### 11.5 Subscription contract invariants
 
 The contract must enforce:
@@ -432,28 +414,15 @@ Refunds are not reversals of the original blockchain transaction. A refund is a 
 
 The merchant must authorize the refund. If the token's EIP-3009 implementation supports merchant-signed transfer authorization, the gateway may submit it through the relayer and sponsor gas. If this is not supported or not implemented, the merchant sends the refund transaction directly and pays WBT gas. The final implementation path must be made explicit in the UI; the MVP must not imply a refund has been submitted when only a refund request has been recorded.
 
-### 12.3.1 Refund signing path (MVP)
-
-For the MVP, the merchant signs the refund EIP-3009 `TransferWithAuthorization` **in the gateway dashboard browser** via an integrated wallet connector (Wagmi + RainbowKit, already wired in `apps/web`):
-
-1. Merchant connects their payout wallet in the dashboard (proving wallet control).
-2. Merchant initiates a full/partial refund on a succeeded payment.
-3. Dashboard prompts the connected wallet to sign the EIP-3009 authorization (from = merchant payout wallet, to = original payer, value = refund amount in base units).
-4. Dashboard submits the signature to `POST /v1/refunds/:id/authorize`.
-5. Gateway validates + relayer submits on-chain + pays WBT gas.
-
-The **merchant backend signing** path (where the merchant's server holds the payout key and signs without exposing it to a browser) is the production-recommended approach for security, but is **deferred** for the MVP. It will be documented as the future hardened path.
-
 ## 13. Invoices, receipts and PayeeShield
 
 ### 13.1 Invoice lifecycle
 
 - Merchant creates an invoice record with line items/description, amount, token, payout address, invoice ID, due/expiry time and customer email (where supplied).
 - Invoice can be associated with a payment link or checkout session.
-- On successful payment settlement, invoice status becomes paid and the gateway generates a **downloadable paid invoice/receipt (PDF)** available both on the checkout success page and in the merchant dashboard.
-- Email delivery of the receipt is **deferred for the MVP** (the email service is stubbed — logged, not sent via SMTP). The downloadable PDF invoice is the primary receipt mechanism for the MVP. Email will be wired in a later phase; until then, the `EmailLog` table and email worker remain in place but do not deliver real mail.
+- On successful payment settlement, invoice status becomes paid and the gateway emails a paid invoice/receipt to the customer.
 - Failed, pending, expired and cancelled states must be represented accurately.
-- Pre-payment invoice email/reminders are not part of the MVP.
+- The agreed MVP email behavior is **post-payment receipt email**. Pre-payment invoice email/reminders are not required unless separately added.
 
 ### 13.2 PayeeShield: signed invoice integrity
 
@@ -468,9 +437,7 @@ PayeeShield protects the payment request against tampering; it does not certify 
 - Show a clear warning if signature verification fails.
 - Keep signing keys separate from relayer keys. The gateway must not have the merchant's private key.
 
-### 13.3 Email behavior (deferred for MVP)
-
-Email delivery is **not wired for the MVP** (the email worker is stubbed — it logs and marks `sent` without SMTP). The primary receipt mechanism for the MVP is the **downloadable PDF invoice** (`GET /v1/invoices/:id/pdf`, and a download button on the checkout success page + dashboard). When email is wired in a later phase:
+### 13.3 Email behavior
 
 - Send paid receipt only after verified settlement.
 - Email should include merchant identity, invoice/order reference, amount/token, network, paid timestamp, transaction hash/explorer link and refund/support reference.
@@ -569,34 +536,22 @@ The gateway relayer is a gas payer, not a custodian of payer USDT.
 
 ### 17.2 Integration objective
 
-A separate demo merchant application should be able to add checkout with a minimal integration — a server-side call to create a payment intent (using the secret key) and a frontend mount of the checkout widget (using a short-lived `clientSecret`, never the secret key) — excluding account creation and environment configuration. The exact line count is not fixed; it varies by integration style.
+A separate demo merchant application should be able to add checkout in approximately 20 lines of application code, excluding account creation and environment configuration.
 
 ### 17.3 Illustrative integration (API names are provisional)
 
-The integration uses two credentials and a short-lived session token, mirroring the Stripe/Razorpay model:
-
-- **Secret key** (`sk_...`) — server-side only. Creates payment intents, refunds, webhooks, plans.
-- **Publishable key** (`pk_...`) — browser-safe, read-only scope (resolve public checkout links, read a payment intent by ID). Cannot create refunds or mutate merchant settings.
-- **`clientSecret`** — a short-lived (5–15 minute), signed token returned when a payment intent or subscription checkout session is created. The browser widget uses this instead of any long-lived key.
-
 ```ts
-// Server-side (merchant backend) — secret key only
-import { WhitechainClient } from "@ezpayz/sdk";
-const pay = new WhitechainClient(process.env.WHITECHAIN_SECRET_KEY!, "https://gateway...");
+import { WhitechainPay } from "@whitechain-pay/sdk";
 
-const { id, clientSecret, checkoutUrl } = await pay.paymentIntents.create({
-  amount: "10.00",            // human-readable — SDK converts to base units
-  description: "Pro plan",
-  successUrl: "https://merchant.com/thankyou",
-  cancelUrl: "https://merchant.com/cart",
-  metadata: { orderId: "4821" },
+const pay = new WhitechainPay({
+  publishableKey: process.env.NEXT_PUBLIC_WCP_KEY!,
 });
 
-// Client-side (browser) — clientSecret only, never the secret key
+// Client-side React example (illustrative API)
 <WhitechainCheckout
-  clientSecret={clientSecret}
-  onSuccess={(r) => window.location.href = successUrl + "?paymentId=" + r.paymentIntentId}
-  onError={(e) => showPaymentError(e)}
+  paymentIntentId={paymentIntent.id}
+  onSuccess={(receipt) => showConfirmation(receipt)}
+  onError={(error) => showPaymentError(error)}
 />
 ```
 
@@ -617,23 +572,21 @@ The following is a proposed resource model. Exact path names and JSON schemas ma
 
 | Resource | Example operations |
 |---|---|
-| Payment intents | `POST /v1/payment-intents` (accepts `successUrl`/`cancelUrl`/`metadata`, human-readable `amount`), `GET /v1/payment-intents/:id` |
-| Checkout sessions | `GET /v1/checkout/:slug` (public, PayeeShield-signed), `POST /v1/checkout/:slug/authorize` (EIP-3009) |
+| Payment intents | `POST /v1/payment-intents`, `GET /v1/payment-intents/:id` |
+| Checkout sessions | `POST /v1/checkout-sessions`, `GET /v1/checkout-sessions/:id` |
 | Payment links | `POST /v1/payment-links`, `GET /v1/payment-links/:id`, disable link |
-| Invoices | `POST /v1/invoices`, `GET /v1/invoices/:id`, `GET /v1/invoices/:id/pdf` (downloadable receipt) |
-| Refunds | `POST /v1/refunds`, `GET /v1/refunds/:id`, `POST /v1/refunds/:id/authorize` (merchant-signed EIP-3009) |
+| Invoices | `POST /v1/invoices`, `GET /v1/invoices/:id` |
+| Refunds | `POST /v1/refunds`, `GET /v1/refunds/:id` |
 | Customers | `POST /v1/customers`, `GET /v1/customers/:id`, list customers |
 | Products/plans | CRUD for merchant-owned product and subscription plan definitions |
-| Subscriptions | `POST /v1/subscriptions/checkout` (creates hosted checkout session → `clientSecret`), `GET /v1/subscriptions/:id`, `POST /v1/subscriptions/:id/cancel` |
+| Subscriptions | `POST /v1/subscriptions`, `GET /v1/subscriptions/:id`, `POST /v1/subscriptions/:id/cancel` |
 | Usage | Record usage events and retrieve usage/billing summaries |
 | Webhooks | Create/update endpoint, inspect delivery attempts and replay eligible events |
 | Developer status | Supported network/token/feature capability information |
 
 ### 17.6 API requirements
 
-- Two key types: a **secret key** (`sk_...`, server-only, full write access) and a **publishable key** (`pk_...`, browser-safe, read-only scope limited to resolving public checkout links and reading payment intents by ID). The auth layer must enforce scope — a publishable key must not be able to create refunds, mutate settings, or read other merchants' data.
-- A short-lived **`clientSecret`** (5–15 min, signed by the gateway) is issued per checkout/subscription session. The browser widget authenticates with this, never with the secret key. This limits the blast radius of a leaked browser credential.
-- Payment intent creation accepts optional `successUrl` / `cancelUrl` / `returnUrl`. After settlement, the hosted checkout redirects the customer to `successUrl` with `?paymentIntentId=...&status=succeeded`. This is UX-only; the webhook remains the source of truth for fulfilment (the browser redirect must never be trusted as proof of payment).
+- Secret API keys are server-side only; publishable keys may be used by the browser where needed.
 - All write operations support idempotency keys.
 - Validate merchant ownership for every resource.
 - Use consistent pagination, filtering and timestamp formats.
@@ -681,12 +634,12 @@ The following is a proposed resource model. Exact path names and JSON schemas ma
 
 | Component | Responsibility |
 |---|---|
-| Merchant dashboard | Merchant onboarding, payment operations, customer records, subscriptions, refunds (with wallet-connect for signing), analytics and settings. |
-| Hosted checkout / React widgets | Customer-facing payment experience: one-time checkout widget + subscription checkout widget (mountable on merchant site). |
-| JavaScript/TypeScript SDK | Merchant integration wrapper, typed client utilities, amount formatting helpers, webhook verification. |
-| Node.js backend | REST API, authentication (JWT + secret/publishable keys + clientSecret), authorization, business logic and orchestration. |
+| Merchant dashboard | Merchant onboarding, payment operations, customer records, subscriptions, refunds, analytics and settings. |
+| Hosted checkout / React widget | Customer-facing payment experience. |
+| JavaScript/TypeScript SDK | Merchant integration wrapper and typed client utilities. |
+| Node.js backend | REST API, authentication, authorization, business logic and orchestration. |
 | Payment service | Payment-intent creation, status transitions and reconciliation mapping. |
-| Invoice service | Invoice records, signed invoice payloads, paid receipt PDF generation. |
+| Invoice service | Invoice records, signed invoice payloads and paid receipt generation. |
 | Relayer service | Validate and submit authorized transactions; manage WBT gas spending. |
 | GasGuard policy engine | Sponsorship allowlists, budgets, rate limits and circuit breakers. |
 | Subscription contract | Enforce allowance-backed recurring charges and spending limits. |
@@ -884,7 +837,7 @@ A feature is accepted only when it is demonstrated through the actual applicatio
 
 ### 24.3 Developer integration
 
-- [ ] A separate demo app integrates the checkout widget/SDK with a minimal integration (server creates intent with secret key; frontend mounts widget with clientSecret), excluding configuration and merchant account setup.
+- [ ] A separate demo app integrates the checkout widget/SDK in approximately 20 lines of application code, excluding configuration and merchant account setup.
 - [ ] Node.js backend can create payment intents and verify status.
 - [ ] REST API supports payment links and invoices.
 - [ ] Webhook signature can be verified by the demo merchant app.
@@ -951,7 +904,7 @@ Recommended sequence:
 4. Open checkout as the customer and review merchant, amount and token.
 5. Complete the EIP-3009 typed authorization; show that the customer does not pay WBT gas.
 6. Show the gateway relayer transaction on Whitechain Sepolia and the USDT transfer directly to the merchant wallet.
-7. Show the merchant payment marked successful, the webhook received by the demo app and the downloadable paid receipt PDF. (Email deferred for MVP.)
+7. Show the merchant payment marked successful, the webhook received by the demo app and the paid receipt email.
 8. Demonstrate PayeeShield rejecting a tampered payout address.
 9. Demonstrate one post-payment feature: issue a partial refund **or** run a subscription setup/renewal, depending on the reliability of the implementation.
 10. Show GasGuard budget/limits and at least one rejected unsafe relayer request.
@@ -1028,9 +981,9 @@ The product scope is confirmed, but the following engineering and operational de
 | P1 | Subscription setup/cancellation is not gasless under the selected standard allowance architecture. | Make this explicit in UX and demo; do not promise fully gasless subscriptions. |
 | P1 | ERC-20 allowance revocation cannot normally be performed by the subscription contract for the customer. | Provide an explicit customer-signed revoke-allowance action. |
 | P1 | Relayer economic model is not finalized. | Define gateway sponsorship budget and future merchant reimbursement/fee policy. |
-| P1 | Refund relayer path is conditional. | Decided: merchant signs EIP-3009 in the dashboard browser via Wagmi for the MVP; backend-signing deferred as the production-hardened path. |
-| P1 | Database, email provider, hosting, monitoring and key-management providers are not selected. | Email deferred for MVP (stubbed). Database = Neon Postgres. Redis = Upstash. Hosting deferred (local testing first). |
-| P1 | Chain confirmation/finality policy needs configuration. | Confirmed: `confirmed` = 1 block (~1–2s), `finalized` = 5 blocks (~5s), configurable in `apps/api/src/config/settlement.ts`. Whitechain Sepolia treated as shallow-reorg EVM testnet. |
+| P1 | Refund relayer path is conditional. | Decide whether refunds use merchant-signed EIP-3009 authorization through relayer or merchant-submitted transactions. |
+| P1 | Database, email provider, hosting, monitoring and key-management providers are not selected. | Select implementations without changing the product requirements. |
+| P1 | Chain confirmation/finality policy needs configuration. | Set a chain-aware policy and test delayed, replaced and reorged transactions. |
 | P2 | Legal/compliance scope for production merchants and fiat off-ramp is unresolved. | Complete jurisdictional and business-partner review before production launch. |
 | P2 | Production contract security is unaudited. | Obtain independent review/audit before mainnet use with real funds. |
 
@@ -1082,14 +1035,10 @@ The following sources define external standards, chain configuration and hackath
 | Per-cycle and total limits | Explicit maximum charge per cycle and cumulative spending limit |
 | Expiry/cancellation | Subscription expiry and immediate cancellation; customer separately revokes remaining allowance |
 | Gas payer | Gateway relayer for one-time EIP-3009 payment and recurring renewal; customer normally pays initial approval and cancellation gas |
-| Refund | Merchant-authorized transfer from merchant wallet to payer; full and partial. MVP signing path: merchant signs EIP-3009 in the dashboard browser via Wagmi. Backend-signing deferred. |
+| Refund | Merchant-authorized transfer from merchant wallet to payer; full and partial |
 | DeliveryGuard | Fulfilment tracking only, no custody or escrow |
-| Invoices/receipts | Generate invoice records + downloadable paid receipt PDF. Email delivery deferred for MVP (stubbed). |
-| Developer surfaces | JavaScript/TypeScript npm SDK (private registry for MVP; public publish documented for later), React checkout widget, React subscription checkout widget, Node.js middleware, REST API, webhooks |
-| API credentials | Secret key (server, full write) + publishable key (browser, read-only) + short-lived clientSecret per checkout/subscription session |
-| Amounts | Human-readable decimal strings at the public API (`"10.00"`); base units internally and on-chain |
-| Return URLs | `successUrl`/`cancelUrl` on payment intents; checkout redirects after settlement (UX only; webhook is source of truth) |
-| Finality | confirmed = 1 block, finalized = 5 blocks (configurable) |
+| Invoices/email | Generate invoice records; email paid receipt after successful settlement |
+| Developer surfaces | JavaScript/TypeScript npm SDK, React checkout widget, Node.js middleware, REST API, webhooks |
 | Merchant/customer model | One merchant account supports multiple business types; customer records isolated per merchant |
 | Hackathon scope | Every selected MVP feature is in MVP scope; future items are separately documented |
 | Future integrations | x402, Arkiv, Chainlink CRE, WhiteBIT, EzPayz, multi-chain, API marketplace and enterprise features |
