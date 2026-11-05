@@ -1,7 +1,7 @@
 # Progress — EzPayz
 
 **Last updated:** 31 October 2026
-**Status:** Feature-complete MVP + developer-friendliness pass (Phase 10) + Razorpay-parity gap closure (Phase 11) + critical integration blocker fixes + full developer flow audit (Phase 12). All 12 phases built. 3 real e2e tests passed on Whitechain Sepolia. Local (no deploy yet). Full developer integration flow verified end-to-end (register → onboard → create intent → checkout → settle → webhook → dashboard) with 0 remaining blockers.
+**Status:** Feature-complete MVP + developer-friendliness pass (Phase 10) + Razorpay-parity gap closure (Phase 11) + critical integration blocker fixes + full developer flow audit (Phase 12) + MCP server for AI agents (Phase 13). All 13 phases built. 3 real e2e tests passed on Whitechain Sepolia. Local (no deploy yet). Full developer integration flow verified end-to-end with 0 remaining blockers. MCP server exposes 11 tools + 8 resources to AI agents via stdio + HTTP transports.
 
 ---
 
@@ -217,6 +217,44 @@ Senior-developer codebase audit identified blocking issues preventing developer 
 8. Dashboard shows real data (synced from API) ✅
 9. Payment links work end-to-end (`/l/:slug` → resolve → checkout) ✅
 10. Browser bundle works (correct `from`, `sr.txRef`, `sr.status`) ✅
+
+### Phase 13 — MCP server for AI agents ✅
+
+Built an MCP (Model Context Protocol) server that exposes the gateway's tools + documentation to AI agents (Claude Desktop, Cursor, VS Code). Uses `@modelcontextprotocol/server` v2.4.0 (current stable, 2026-07-28 spec).
+
+**Package:** `packages/mcp/` (standalone, built via tsup, stdio entry point)
+
+**Two transports:**
+- **stdio** (`src/index.ts`) — for local use with Claude Desktop/Cursor (subprocess)
+- **Streamable HTTP** — mounted on `apps/api` at `/mcp` via `@modelcontextprotocol/fastify` middleware (remote, multi-client)
+
+**11 Tools (model-controlled — AI invokes autonomously):**
+- `create_payment_intent` — create a gasless USDT payment intent
+- `list_payments` — list payment intents (cursor pagination + filters)
+- `get_payment` — get a specific payment intent
+- `create_payment_link` — create a reusable payment link
+- `create_refund` — initiate a refund
+- `list_refunds` — list refunds
+- `list_customers` — list customers (email search)
+- `list_subscriptions` — list subscriptions
+- `create_plan` — create a subscription plan
+- `get_analytics` — analytics overview
+- `verify_webhook_signature` — HMAC-SHA256 verification
+
+Each tool has: Zod v4 input schema, annotations (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`), structured error handling (`isError: true` for recoverable errors).
+
+**8 Resources (application-driven — AI reads for context):**
+- `whitechain://docs/how-to-use` — full HOW_TO_USE.md
+- `whitechain://docs/prd` — full PRD
+- `whitechain://docs/flow` — payment flow document
+- `whitechain://docs/eip-3009` — EIP-3009 verification report
+- `whitechain://docs/api-reference` — complete REST API reference (auto-generated)
+- `whitechain://docs/sdk-guide` — SDK installation + usage guide
+- `whitechain://status` — live gateway status (network, token, capabilities)
+
+**Auth:** `GATEWAY_SECRET_KEY` env var (merchant's secret API key). Passed as Bearer header on all gateway API calls.
+
+**Shared server factory:** `src/server.ts` — `createServer()` returns a fully configured `McpServer` with all tools + resources registered. Used by both stdio and HTTP transports.
 
 ---
 

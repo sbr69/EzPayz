@@ -41,9 +41,10 @@ EIP-3009 verification: [docs/EIP3009_VERIFICATION.md](docs/EIP3009_VERIFICATION.
 
 ```
 apps/web        React dashboard + hosted checkout. Auth is real (JWT from /v1/auth/login, auto-attached by apiFetch). Dashboard syncs real data from the API via useSyncRealData hook. Real checkout, subscription checkout, refund signing, onboarding wallet verify — all wired to the live API via wagmi/RainbowKit.
-apps/api        Fastify REST API + auth + business logic + BullMQ workers (relayer/observer/webhook/email/scheduler)
+apps/api        Fastify REST API + auth + business logic + BullMQ workers (relayer/observer/webhook/email/scheduler) + MCP server at /mcp
 packages/contracts   Foundry/Solidity — SubscriptionContract (deployed + verified)
 packages/sdk    @ezpayz/sdk — typed server client + <WhitechainCheckout/> widget + webhook middleware
+packages/mcp    @ezpayz/mcp — MCP server (11 tools + 8 resources) for AI agents (Claude Desktop, Cursor, VS Code). stdio + HTTP transports.
 docs/           PRD, FLOW, PLAN, EIP-3009 verification
 ```
 
@@ -156,6 +157,26 @@ formatBaseUnits("10000000")    // → "10.00"
 parseHumanAmount("10.00")      // → "10000000"
 const valid = verifyWebhookSignature(secret, rawBody, signature);
 ```
+
+---
+
+## MCP server
+
+The gateway includes an MCP (Model Context Protocol) server at `packages/mcp/` that exposes tools + documentation to AI agents. See `packages/mcp/README.md` for full setup.
+
+**Local (Claude Desktop / Cursor):**
+```bash
+cd packages/mcp && pnpm build
+```
+```json
+{ "mcpServers": { "whitechain": { "command": "node", "args": ["packages/mcp/dist/index.js"], "env": { "GATEWAY_SECRET_KEY": "wcp_sec_...", "GATEWAY_API_URL": "http://localhost:3000" } } } }
+```
+
+**Remote (HTTP):** The MCP server is mounted at `/mcp` on the gateway API. Connect via `mcp-remote`.
+
+**11 tools:** create_payment_intent, list_payments, get_payment, create_payment_link, create_refund, list_refunds, list_customers, list_subscriptions, create_plan, get_analytics, verify_webhook_signature
+
+**8 resources:** how-to-use, PRD, flow, EIP-3009, API reference, SDK guide, live gateway status
 
 ---
 
