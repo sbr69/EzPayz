@@ -289,9 +289,8 @@ Senior-developer codebase audit identified 16 remaining gaps. Fixed in two batch
 
 **Remaining known limitations (documented, not blocking):**
 - Email deferred (code preserved, stubbed — no SMTP). Downloadable PDF receipt is primary.
-- Products CRUD routes not built (page hidden from navigation, code preserved).
 - Schema drift from earlier db push usage — database was reset during notificationPrefs migration. Re-register + re-onboard to test.
-- Some form fields (billingMode, unitLabel, unitPrice for plans) are stored but don't affect subscription behavior yet (billing mode is cosmetic until usage-based billing logic is implemented).
+- Usage-based billing calculation implemented but not yet tested end-to-end with real usage records + on-chain charge. Fixed-amount subscriptions are fully tested (3 real e2e transactions passed).
 
 ---
 
