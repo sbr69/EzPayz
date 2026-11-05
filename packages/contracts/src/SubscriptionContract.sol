@@ -6,6 +6,9 @@ import {Pausable} from "@openzeppelin/utils/Pausable.sol";
 import {ReentrancyGuard} from "@openzeppelin/utils/ReentrancyGuard.sol";
 import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
+import {EIP712} from "@openzeppelin/utils/cryptography/EIP712.sol";
+import {ECDSA} from "@openzeppelin/utils/cryptography/ECDSA.sol";
+import {Nonces} from "@openzeppelin/utils/Nonces.sol";
 
 /// @title SubscriptionContract — non-custodial recurring USDT billing on Whitechain.
 /// @notice Single ERC-20 spender with internal per-subscription accounting.
@@ -19,7 +22,13 @@ import {SafeERC20} from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
 ///   - cancelled subscriptions can never be charged
 ///   - reentrancy protection + checks-effects-interactions
 ///   - a failed transfer reverts the whole tx, so state is NOT advanced
-contract SubscriptionContract is AccessControl, Pausable, ReentrancyGuard {
+///
+/// Gasless lifecycle via BySig functions:
+///   - createSubscriptionBySig: payer signs EIP-712 message, relayer submits
+///   - cancelBySig: payer signs EIP-712 message, relayer submits
+///   - The initial ERC-20 allowance is set via USDT.permit() (EIP-2612) — also gasless.
+///   - Renewals use charge() with the allowance set by permit — unchanged.
+contract SubscriptionContract is AccessControl, Pausable, ReentrancyGuard, EIP712, Nonces {
     using SafeERC20 for IERC20;
 
     bytes32 public constant CHARGER_ROLE = keccak256("CHARGER_ROLE");
@@ -45,6 +54,15 @@ contract SubscriptionContract is AccessControl, Pausable, ReentrancyGuard {
     /// @dev subId => periodId => charged. Enforces "a billing period cannot be charged more than once".
     mapping(bytes32 => mapping(uint256 => bool)) public chargedPeriods;
 
+    // ----- EIP-712 type hashes for BySig functions -----
+    bytes32 private constant CREATE_SUB_TYPEHASH =
+        keccak256(
+            "CreateSubscriptionBySig(bytes32 subscriptionId,address payer,address merchant,uint256 amount,uint256 intervalSeconds,uint256 maxChargePerCycle,uint256 cumulativeCap,uint256 nextDueTime,uint256 expiry,uint256 nonce,uint256 deadline)"
+        );
+
+    bytes32 private constant CANCEL_SUB_TYPEHASH =
+        keccak256("CancelBySig(bytes32 subscriptionId,address payer,uint256 nonce,uint256 deadline)");
+
     event SubscriptionCreated(
         bytes32 indexed subscriptionId,
         address indexed payer,
@@ -61,11 +79,15 @@ contract SubscriptionContract is AccessControl, Pausable, ReentrancyGuard {
     );
     event SubscriptionCancelled(bytes32 indexed subscriptionId);
 
-    constructor(address token_) {
+    constructor(address token_) EIP712("SubscriptionContract", "1") {
         require(token_ != address(0), "Invalid token");
         token = IERC20(token_);
         _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
+
+    // ---------------------------------------------------------------
+    // Direct-call functions (customer pays gas — kept for backward compat)
+    // ---------------------------------------------------------------
 
     /// @notice Customer creates/activates a subscription. Caller becomes the payer.
     function createSubscription(
@@ -78,6 +100,96 @@ contract SubscriptionContract is AccessControl, Pausable, ReentrancyGuard {
         uint256 nextDueTime,
         uint256 expiry
     ) external {
+        _createSubscription(subscriptionId, msg.sender, merchant, amount, intervalSeconds, maxChargePerCycle, cumulativeCap, nextDueTime, expiry);
+    }
+
+    /// @notice Customer cancels their own subscription. Blocks all future charges immediately.
+    function cancel(bytes32 subscriptionId) external {
+        Subscription storage s = subscriptions[subscriptionId];
+        require(s.payer == msg.sender, "Not payer");
+        _cancel(subscriptionId);
+    }
+
+    // ---------------------------------------------------------------
+    // BySig functions (relayer submits, pays gas — customer only signs)
+    // ---------------------------------------------------------------
+
+    /// @notice Creates a subscription via an EIP-712 signature from the payer.
+    /// @dev The relayer calls this with the payer's off-chain signature. The contract
+    ///      recovers the signer and verifies it matches `payer`. Gas is paid by the relayer.
+    ///      The ERC-20 allowance must already be set (via USDT.permit or approve) before
+    ///      the first charge() call.
+    function createSubscriptionBySig(
+        bytes32 subscriptionId,
+        address payer,
+        address merchant,
+        uint256 amount,
+        uint256 intervalSeconds,
+        uint256 maxChargePerCycle,
+        uint256 cumulativeCap,
+        uint256 nextDueTime,
+        uint256 expiry,
+        uint256 deadline,
+        bytes calldata signature
+    ) external {
+        require(block.timestamp <= deadline, "Signature expired");
+        bytes32 digest = _hashTypedDataV4(
+            keccak256(
+                abi.encode(
+                    CREATE_SUB_TYPEHASH,
+                    subscriptionId,
+                    payer,
+                    merchant,
+                    amount,
+                    intervalSeconds,
+                    maxChargePerCycle,
+                    cumulativeCap,
+                    nextDueTime,
+                    expiry,
+                    _useNonce(payer),
+                    deadline
+                )
+            )
+        );
+        address signer = ECDSA.recover(digest, signature);
+        require(signer == payer, "Invalid signature");
+        _createSubscription(subscriptionId, payer, merchant, amount, intervalSeconds, maxChargePerCycle, cumulativeCap, nextDueTime, expiry);
+    }
+
+    /// @notice Cancels a subscription via an EIP-712 signature from the payer.
+    /// @dev The relayer calls this with the payer's off-chain signature. Gas is paid by the relayer.
+    function cancelBySig(
+        bytes32 subscriptionId,
+        address payer,
+        uint256 deadline,
+        bytes calldata signature
+    ) external {
+        require(block.timestamp <= deadline, "Signature expired");
+        Subscription storage s = subscriptions[subscriptionId];
+        require(s.payer == payer, "Payer mismatch");
+        bytes32 digest = _hashTypedDataV4(
+            keccak256(abi.encode(CANCEL_SUB_TYPEHASH, subscriptionId, payer, _useNonce(payer), deadline))
+        );
+        address signer = ECDSA.recover(digest, signature);
+        require(signer == payer, "Invalid signature");
+        _cancel(subscriptionId);
+    }
+
+    // ---------------------------------------------------------------
+    // Internal functions
+    // ---------------------------------------------------------------
+
+    function _createSubscription(
+        bytes32 subscriptionId,
+        address payer,
+        address merchant,
+        uint256 amount,
+        uint256 intervalSeconds,
+        uint256 maxChargePerCycle,
+        uint256 cumulativeCap,
+        uint256 nextDueTime,
+        uint256 expiry
+    ) internal {
         require(subscriptions[subscriptionId].payer == address(0), "Subscription exists");
         require(merchant != address(0), "Invalid merchant");
         require(intervalSeconds > 0, "Invalid interval");
@@ -86,7 +198,7 @@ contract SubscriptionContract is AccessControl, Pausable, ReentrancyGuard {
         require(expiry > block.timestamp, "Invalid expiry");
         require(nextDueTime > block.timestamp, "Invalid nextDueTime");
         subscriptions[subscriptionId] = Subscription({
-            payer: msg.sender,
+            payer: payer,
             merchant: merchant,
             amount: amount,
             intervalSeconds: intervalSeconds,
@@ -100,7 +212,7 @@ contract SubscriptionContract is AccessControl, Pausable, ReentrancyGuard {
         });
         emit SubscriptionCreated(
             subscriptionId,
-            msg.sender,
+            payer,
             merchant,
             amount,
             intervalSeconds,
@@ -110,6 +222,18 @@ contract SubscriptionContract is AccessControl, Pausable, ReentrancyGuard {
             expiry
         );
     }
+
+    function _cancel(bytes32 subscriptionId) internal {
+        Subscription storage s = subscriptions[subscriptionId];
+        require(!s.cancelled, "Already cancelled");
+        s.cancelled = true;
+        s.active = false;
+        emit SubscriptionCancelled(subscriptionId);
+    }
+
+    // ---------------------------------------------------------------
+    // Charge + admin (unchanged)
+    // ---------------------------------------------------------------
 
     /// @notice Relayer charges a subscription for a specific billing period.
     /// @param amount Relayer-computed charge (fixed plan amount or usage-based);
@@ -131,27 +255,13 @@ contract SubscriptionContract is AccessControl, Pausable, ReentrancyGuard {
         require(amount <= s.maxChargePerCycle, "Exceeds per-cycle cap");
         require(s.totalSpent + amount <= s.cumulativeCap, "Exceeds cumulative cap");
 
-        // checks-effects-interactions: commit accounting BEFORE the external token call.
-        // A failed safeTransferFrom reverts the whole tx, rolling back these effects,
-        // so a failed renewal does NOT advance the cycle or increase totalSpent.
         chargedPeriods[subscriptionId][periodId] = true;
         s.totalSpent += amount;
         s.nextDueTime += s.intervalSeconds;
 
-        // Non-custodial: USDT moves directly payer -> merchant.
         token.safeTransferFrom(s.payer, s.merchant, amount);
 
         emit SubscriptionCharged(subscriptionId, periodId, amount, s.totalSpent, s.nextDueTime);
-    }
-
-    /// @notice Customer cancels their own subscription. Blocks all future charges immediately.
-    function cancel(bytes32 subscriptionId) external {
-        Subscription storage s = subscriptions[subscriptionId];
-        require(s.payer == msg.sender, "Not payer");
-        require(!s.cancelled, "Already cancelled");
-        s.cancelled = true;
-        s.active = false;
-        emit SubscriptionCancelled(subscriptionId);
     }
 
     function pause() external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -171,5 +281,10 @@ contract SubscriptionContract is AccessControl, Pausable, ReentrancyGuard {
     function remainingCumulative(bytes32 subscriptionId) external view returns (uint256) {
         Subscription storage s = subscriptions[subscriptionId];
         return s.cumulativeCap > s.totalSpent ? s.cumulativeCap - s.totalSpent : 0;
+    }
+
+    /// @dev EIP-712 domain separator — returned for off-chain signing verification.
+    function domainSeparatorV4() external view returns (bytes32) {
+        return _domainSeparatorV4();
     }
 }

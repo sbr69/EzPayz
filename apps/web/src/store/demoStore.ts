@@ -17,11 +17,13 @@ interface DemoState {
   hydrated: boolean;
   signedIn: boolean;
   signedInEmail: string | null;
+  isDemo: boolean;
   onboardingStep: number;
   toasts: Toast[];
   /* --- plumbing --- */
   reset: () => void;
   signIn: (email: string | null) => void;
+  enterDemoMode: (email: string) => void;
   signOut: () => void;
   setOnboardingStep: (step: number) => void;
   pushToast: (t: Omit<Toast, "id">) => void;
@@ -46,6 +48,7 @@ export const useDemo = create<DemoState>()(
       hydrated: false,
       signedIn: false,
       signedInEmail: null,
+      isDemo: false,
       onboardingStep: 0,
       toasts: [],
       reset: () =>
@@ -54,8 +57,10 @@ export const useDemo = create<DemoState>()(
           onboardingStep: 0,
           toasts: [],
         }),
-      signIn: (email) => set({ signedIn: true, signedInEmail: email }),
-      signOut: () => set({ signedIn: false, signedInEmail: null }),
+      signIn: (email) => set({ signedIn: true, signedInEmail: email, isDemo: false }),
+      enterDemoMode: (email) =>
+        set({ signedIn: true, signedInEmail: email, isDemo: true, data: buildSeed() }),
+      signOut: () => set({ signedIn: false, signedInEmail: null, isDemo: false }),
       setOnboardingStep: (step) => set({ onboardingStep: step }),
       pushToast: (t) =>
         set((s) => ({ toasts: [...s.toasts, { ...t, id: rid() }].slice(-4) })),
@@ -120,6 +125,7 @@ export const useDemo = create<DemoState>()(
         data: s.data,
         signedIn: s.signedIn,
         signedInEmail: s.signedInEmail,
+        isDemo: s.isDemo,
         onboardingStep: s.onboardingStep,
       }),
       onRehydrateStorage: () => (state) => {

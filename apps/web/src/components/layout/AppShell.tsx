@@ -415,6 +415,7 @@ function ProfileMenu() {
 export function AppShell() {
   useSyncRealData(); // Fetch real API data → populate Zustand store for all dashboard pages
   const signedIn = useDemo((s) => s.signedIn);
+  const isDemo = useDemo((s) => s.isDemo);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
@@ -551,10 +552,16 @@ export function AppShell() {
             <Menu className="h-4 w-4" />
           </button>
 
-          <span className="hidden items-center gap-1.5 rounded-full border border-warn-line bg-warn-soft px-2.5 py-1 text-[14px] font-semibold text-warn sm:inline-flex">
-            <span className="anim-pulse-soft h-1.5 w-1.5 rounded-full bg-warn" />
-            Testnet · demo mode
-          </span>
+          {isDemo ? (
+            <span className="hidden items-center gap-1.5 rounded-full border border-warn-line bg-warn-soft px-2.5 py-1 text-[14px] font-semibold text-warn sm:inline-flex">
+              <span className="anim-pulse-soft h-1.5 w-1.5 rounded-full bg-warn" />
+              Demo mode
+            </span>
+          ) : (
+            <span className="hidden items-center gap-1.5 rounded-full border border-line bg-canvas px-2.5 py-1 text-[14px] font-medium text-ink-3 sm:inline-flex">
+              Testnet
+            </span>
+          )}
           <span className="hidden items-center gap-1.5 rounded-full border border-line bg-canvas px-2.5 py-1 text-[14px] font-medium text-ink-3 md:inline-flex">
             {DEFAULT_NETWORK.name} · chain {DEFAULT_NETWORK.chainId}
           </span>
@@ -603,7 +610,7 @@ export function AppShell() {
 
         <main className="flex-1 px-5 py-8 sm:px-8 lg:px-12 sm:py-10 2xl:px-20">
           <div className="w-full space-y-8">
-            <DemoModeBanner />
+            {isDemo ? <DemoModeBanner /> : null}
             <PageTransition key={location.pathname} className="space-y-8">
               <Outlet />
             </PageTransition>

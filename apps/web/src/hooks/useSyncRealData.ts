@@ -12,11 +12,14 @@ import { apiFetch, setMutationCallback } from "@/services/api/http";
  */
 export function useSyncRealData() {
   const signedIn = useDemo((s) => s.signedIn);
+  const isDemo = useDemo((s) => s.isDemo);
   const replaceData = useDemo((s) => s.replaceData);
   const syncRef = useRef<() => void>(() => {});
 
   useEffect(() => {
-    if (!signedIn) return;
+    // In demo mode the store already holds the mock seed data — never hit the
+    // real API (there is no JWT and the backend may not be running).
+    if (!signedIn || isDemo) return;
     let cancelled = false;
 
     async function sync() {
@@ -79,5 +82,5 @@ export function useSyncRealData() {
       cancelled = true;
       setMutationCallback(null);
     };
-  }, [signedIn, replaceData]);
+  }, [signedIn, isDemo, replaceData]);
 }

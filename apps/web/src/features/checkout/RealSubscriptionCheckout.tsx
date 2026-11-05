@@ -1,14 +1,11 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { motion } from "motion/react";
-import { useAccount, useSendTransaction, usePublicClient } from "wagmi";
+import { useAccount, useSignTypedData, usePublicClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { AlertCircle, ArrowUpRight, Loader2, Repeat, ShieldCheck } from "lucide-react";
 import { apiFetch } from "@/services/api/http";
 import { DEFAULT_NETWORK } from "@/config/app";
-
-const CHAIN_ID = DEFAULT_NETWORK.chainId;
-const EXPLORER = DEFAULT_NETWORK.explorerUrl ?? "https://explorer.testnet.whitechain.io";
 import { Button, Callout, Card, Divider } from "@/components/ui";
 import { DrawnCheck, EASE_OUT_QUART } from "@/components/ui/motion";
 import { CheckoutFrame } from "./CheckoutFrame";
@@ -46,10 +43,10 @@ const INTERVAL_LABEL: Record<string, string> = { hourly: "per hour", daily: "per
 export function RealSubscriptionCheckout() {
   const { slug = "" } = useParams<{ slug: string }>();
   const { address, chainId } = useAccount();
-  const { sendTransactionAsync } = useSendTransaction();
+  const { signTypedDataAsync } = useSignTypedData();
   const publicClient = usePublicClient();
   const [checkout, setCheckout] = useState<SubCheckoutData | null>(null);
-  const [status, setStatus] = useState<"loading" | "ready" | "approving" | "subscribing" | "recording" | "succeeded" | "failed">("loading");
+  const [status, setStatus] = useState<"loading" | "ready" | "signing-permit" | "signing-sub" | "submitting" | "succeeded" | "failed">("loading");
   const [error, setError] = useState("");
   const [approvalTx, setApprovalTx] = useState<string | null>(null);
   const [activationTx, setActivationTx] = useState<string | null>(null);
@@ -68,63 +65,104 @@ export function RealSubscriptionCheckout() {
   }, [slug]);
 
   const handleApprove = async () => {
-    if (!checkout || !address) return;
-    setStatus("approving");
+    if (!checkout || !address || !publicClient) return;
     setError("");
     try {
-      // Step 1: approve the SubscriptionContract as a spender (ERC-20 approve).
-      // approve(address spender, uint256 amount) = selector 0x095ea7b3 + address + uint256
-      const approveData =
-        "0x095ea7b3" +
-        checkout.subscriptionContract.slice(2).toLowerCase().padStart(64, "0") +
-        BigInt(checkout.plan.cumulativeLimit).toString(16).padStart(64, "0");
-
-      const approveTx = await sendTransactionAsync({
-        to: checkout.token.address as `0x${string}`,
-        data: approveData as `0x${string}`,
-      });
-      setApprovalTx(approveTx);
-      // Wait for the approve tx to be mined before proceeding.
-      if (publicClient) await publicClient.waitForTransactionReceipt({ hash: approveTx });
-
-      // Step 2: createSubscription on the SubscriptionContract.
-      setStatus("subscribing");
       const now = Math.floor(Date.now() / 1000);
       const intervalSec = checkout.plan.interval === "hourly" ? 3600 : checkout.plan.interval === "daily" ? 86400 : 2592000;
       const nextDue = now + intervalSec;
       const expiry = now + (checkout.plan.planExpiryMonths ?? 12) * 2592000;
-      const subId = "0x" + Array.from(crypto.getRandomValues(new Uint8Array(32))).map((b) => b.toString(16).padStart(2, "0")).join("");
+      const subId = ("0x" + Array.from(crypto.getRandomValues(new Uint8Array(32))).map((b) => b.toString(16).padStart(2, "0")).join("")) as `0x${string}`;
+      const deadline = String(now + 600); // 10 min deadline for signatures
 
-      // createSubscription(bytes32,address,uint256,uint256,uint256,uint256,uint256,uint256) selector = 0x9d1c02f1
-      const createData =
-        "0x9d1c02f1" +
-        subId.slice(2).padStart(64, "0") +
-        checkout.merchant.payoutWallet.slice(2).toLowerCase().padStart(64, "0") +
-        BigInt(checkout.plan.amount).toString(16).padStart(64, "0") +
-        BigInt(intervalSec).toString(16).padStart(64, "0") +
-        BigInt(checkout.plan.maxChargePerCycle).toString(16).padStart(64, "0") +
-        BigInt(checkout.plan.cumulativeLimit).toString(16).padStart(64, "0") +
-        BigInt(nextDue).toString(16).padStart(64, "0") +
-        BigInt(expiry).toString(16).padStart(64, "0");
+      // Step 1: Read the USDT nonce for the Permit (EIP-2612).
+      setStatus("signing-permit");
+      const usdtNonce = await publicClient.readContract({
+        address: checkout.token.address as `0x${string}`,
+        abi: [{ inputs: [{ type: "address" }], name: "nonces", outputs: [{ type: "uint256" }], stateMutability: "view", type: "function" }],
+        functionName: "nonces",
+        args: [address as `0x${string}`],
+      }) as bigint;
 
-      const createTx = await sendTransactionAsync({
-        to: checkout.subscriptionContract as `0x${string}`,
-        data: createData as `0x${string}`,
+      // Step 2: Customer signs the Permit (EIP-2612) — gasless allowance setup.
+      const permitSignature = await signTypedDataAsync({
+        domain: { name: "Tether USD", version: "1", chainId: DEFAULT_NETWORK.chainId, verifyingContract: checkout.token.address as `0x${string}` },
+        types: { Permit: [
+          { name: "owner", type: "address" },
+          { name: "spender", type: "address" },
+          { name: "value", type: "uint256" },
+          { name: "nonce", type: "uint256" },
+          { name: "deadline", type: "uint256" },
+        ]},
+        primaryType: "Permit",
+        message: {
+          owner: address as `0x${string}`,
+          spender: checkout.subscriptionContract as `0x${string}`,
+          value: BigInt(checkout.plan.cumulativeLimit),
+          nonce: usdtNonce,
+          deadline: BigInt(deadline),
+        },
       });
-      setActivationTx(createTx);
-      // Wait for the createSubscription tx to be mined before mirroring.
-      if (publicClient) await publicClient.waitForTransactionReceipt({ hash: createTx });
 
-      // Step 3: mirror the subscription to the gateway via the PUBLIC activate endpoint
-      // (no auth required — the checkout slug acts as authorization).
-      setStatus("recording");
-      await apiFetch(`/v1/checkout/subscription/${slug}/activate`, {
+      // Step 3: Read the SubscriptionContract nonce for createSubscriptionBySig.
+      setStatus("signing-sub");
+      const subNonce = await publicClient.readContract({
+        address: checkout.subscriptionContract as `0x${string}`,
+        abi: [{ inputs: [{ type: "address" }], name: "nonces", outputs: [{ type: "uint256" }], stateMutability: "view", type: "function" }],
+        functionName: "nonces",
+        args: [address as `0x${string}`],
+      }) as bigint;
+
+      // Step 4: Customer signs createSubscriptionBySig — gasless subscription creation.
+      const createSubSignature = await signTypedDataAsync({
+        domain: { name: "SubscriptionContract", version: "1", chainId: DEFAULT_NETWORK.chainId, verifyingContract: checkout.subscriptionContract as `0x${string}` },
+        types: { CreateSubscriptionBySig: [
+          { name: "subscriptionId", type: "bytes32" },
+          { name: "payer", type: "address" },
+          { name: "merchant", type: "address" },
+          { name: "amount", type: "uint256" },
+          { name: "intervalSeconds", type: "uint256" },
+          { name: "maxChargePerCycle", type: "uint256" },
+          { name: "cumulativeCap", type: "uint256" },
+          { name: "nextDueTime", type: "uint256" },
+          { name: "expiry", type: "uint256" },
+          { name: "nonce", type: "uint256" },
+          { name: "deadline", type: "uint256" },
+        ]},
+        primaryType: "CreateSubscriptionBySig",
+        message: {
+          subscriptionId: subId as `0x${string}`,
+          payer: address as `0x${string}`,
+          merchant: checkout.merchant.payoutWallet as `0x${string}`,
+          amount: BigInt(checkout.plan.amount),
+          intervalSeconds: BigInt(intervalSec),
+          maxChargePerCycle: BigInt(checkout.plan.maxChargePerCycle),
+          cumulativeCap: BigInt(checkout.plan.cumulativeLimit),
+          nextDueTime: BigInt(nextDue),
+          expiry: BigInt(expiry),
+          nonce: subNonce,
+          deadline: BigInt(deadline),
+        },
+      });
+
+      // Step 5: Submit both signatures to the gateway — relayer submits the transactions.
+      setStatus("submitting");
+      await apiFetch<{ status: string }>(`/v1/checkout/subscription/${slug}/activate-by-sig`, {
         method: "POST",
         body: JSON.stringify({
-          onChainSubscriptionId: subId,
           payerWallet: address,
+          subscriptionId: subId,
+          permitSignature,
+          permitDeadline: deadline,
+          permitNonce: String(usdtNonce),
+          createSubSignature,
+          createSubDeadline: deadline,
+          createSubNonce: String(subNonce),
         }),
       });
+
+      setApprovalTx(null); // relayer submits — tx hashes come via webhook later
+      setActivationTx(null);
       setStatus("succeeded");
     } catch (e) {
       setError((e as Error).message);
@@ -165,10 +203,10 @@ export function RealSubscriptionCheckout() {
     );
   }
 
-  const wrongNetwork = chainId !== undefined && chainId !== CHAIN_ID;
-  const busy = status === "approving" || status === "subscribing" || status === "recording";
+  const wrongNetwork = chainId !== undefined && chainId !== DEFAULT_NETWORK.chainId;
+  const busy = status === "signing-permit" || status === "signing-sub" || status === "submitting";
   const stepIndex =
-    status === "recording" ? 3 : status === "subscribing" ? 2 : busy ? 1 : 0;
+    status === "submitting" ? 3 : status === "signing-sub" ? 2 : busy ? 1 : 0;
 
   if (status === "succeeded") {
     return (
@@ -210,7 +248,7 @@ export function RealSubscriptionCheckout() {
                     >
                       <span className="text-[14px] text-ink-3">{row.label}</span>
                       <a
-                        href={`${EXPLORER}/tx/${row.tx}`}
+                        href={`${DEFAULT_NETWORK.explorerUrl ?? "https://explorer.testnet.whitechain.io"}/tx/${row.tx}`}
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex shrink-0 items-center gap-1 font-mono text-[14px] font-medium text-accent hover:underline"
@@ -314,7 +352,7 @@ export function RealSubscriptionCheckout() {
 
           {address && wrongNetwork ? (
             <Callout tone="warn" title="Wrong network">
-              Switch to Whitechain Sepolia (chain {CHAIN_ID}) to continue.
+              Switch to Whitechain Sepolia (chain {DEFAULT_NETWORK.chainId}) to continue.
             </Callout>
           ) : null}
 
@@ -331,14 +369,14 @@ export function RealSubscriptionCheckout() {
               className="w-full"
               onClick={handleApprove}
               disabled={busy || wrongNetwork}
-              loading={status === "approving"}
-              icon={status === "subscribing" || status === "recording" ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined}
+              loading={status === "signing-permit"}
+              icon={status === "signing-sub" || status === "submitting" ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined}
             >
-              {status === "approving"
+              {status === "signing-permit"
                 ? "Approving allowance… (confirm in wallet)"
-                : status === "subscribing"
+                : status === "signing-sub"
                   ? "Creating subscription… (confirm in wallet)"
-                  : status === "recording"
+                  : status === "submitting"
                     ? "Recording subscription…"
                     : `Approve ${checkout.plan.displayCumulativeLimit} ${checkout.token.symbol} & subscribe`}
             </Button>

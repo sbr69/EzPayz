@@ -9,6 +9,10 @@ import { isEmail } from "@/lib/money";
 import { apiFetch } from "@/services/api/http";
 import { DEFAULT_NETWORK, TOKEN } from "@/config/app";
 
+/** Demo login credential — intercepted in the frontend (no API call). */
+const DEMO_EMAIL = "demo@whitechain.dev";
+const DEMO_PASSWORD = "demodemo123";
+
 function AuthLayout({
   title,
   subtitle,
@@ -130,6 +134,7 @@ function StaggerField({ children }: { children: ReactNode }) {
 
 export function SignIn() {
   const signIn = useDemo((s) => s.signIn);
+  const enterDemoMode = useDemo((s) => s.enterDemoMode);
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -150,6 +155,14 @@ export function SignIn() {
     setError(null);
     setLoading(true);
     try {
+      // Demo credential — frontend-only, no API call. Flips the app into demo
+      // mode (mock adapter + seed data) so the dashboard works without a backend.
+      if (email.trim().toLowerCase() === DEMO_EMAIL && password === DEMO_PASSWORD) {
+        enterDemoMode(DEMO_EMAIL);
+        setLoading(false);
+        navigate("/dashboard");
+        return;
+      }
       const res = await apiFetch<{ merchantId: string; token: string }>("/v1/auth/login", {
         method: "POST",
         body: JSON.stringify({ businessEmail: email, password }),

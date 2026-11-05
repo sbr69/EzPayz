@@ -1,20 +1,39 @@
 // Service abstraction layer.
 //
-// Feature flag: when VITE_DEMO_MODE=true, the app uses the mock adapter (seed data,
-// simulated wallet, no API calls). When unset (default), the real HTTP adapter is active.
+// Adapter selection happens at RUNTIME, per session:
+//   - If VITE_DEMO_MODE=true (build-time env), mock is forced for everyone.
+//   - Else, if the logged-in account is the demo account (store.isDemo), the
+//     mock adapter is used (seed data, simulated wallet, no API calls).
+//   - Otherwise the real HTTP adapter is used.
 //
-// To test UI with mock data: create .env.demo with VITE_DEMO_MODE=true, run: vite --mode demo
-// The mock adapter code is preserved and fully functional — no deletion, no commenting.
+// The `api` export is a Proxy that delegates every method call to the
+// currently-active adapter, so flipping into demo mode at login time takes
+// effect immediately without a reload.
 
-import { type MockApi } from "./mock/adapter";
+import { useDemo } from "@/store/demoStore";
 import { realApi } from "./api/adapter";
-
-const DEMO_MODE = import.meta.env.VITE_DEMO_MODE === "true";
+import { mockApi, type MockApi } from "./mock/adapter";
 
 export type GatewayApi = MockApi;
-export const api: GatewayApi = (DEMO_MODE ? (await import("./mock/adapter")).mockApi : realApi) as unknown as MockApi;
 
-export const isDemoMode = () => DEMO_MODE;
+const ENV_DEMO = import.meta.env.VITE_DEMO_MODE === "true";
+
+function activeAdapter(): GatewayApi {
+  if (ENV_DEMO) return mockApi;
+  return useDemo.getState().isDemo ? mockApi : (realApi as unknown as GatewayApi);
+}
+
+export const api: GatewayApi = new Proxy({} as GatewayApi, {
+  get(_target, prop) {
+    const adapter = activeAdapter() as unknown as Record<PropertyKey, unknown>;
+    const value = adapter[prop as PropertyKey];
+    return typeof value === "function"
+      ? (value as (...args: unknown[]) => unknown).bind(adapter)
+      : value;
+  },
+}) as GatewayApi;
+
+export const isDemoMode = () => ENV_DEMO || useDemo.getState().isDemo;
 
 export function hostedUrl(fragment: string): string {
   if (typeof window === "undefined") return `https://checkout.ezpayz.example/${fragment}`;

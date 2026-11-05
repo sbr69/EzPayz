@@ -174,4 +174,63 @@ export async function checkoutRoutes(app: FastifyInstance): Promise<void> {
     await prisma.subscriptionCheckoutSession.update({ where: { id: session.id }, data: { status: "completed" } });
     return reply.code(201).send({ id: sub.id, status: sub.status, nextBillingAt: sub.nextBillingAt });
   });
+
+  // POST /v1/checkout/subscription/:slug/activate-by-sig — PUBLIC. Gasless subscription activation
+  // via EIP-712 signatures. The customer signs Permit + createSubscriptionBySig off-chain,
+  // sends the signatures here, and the relayer submits both transactions (paying WBT gas).
+  // The customer never submits a transaction or pays gas. PRD §11.4.1.
+  app.post("/subscription/:slug/activate-by-sig", async (req, reply) => {
+    const slug = (req.params as { slug: string }).slug;
+    const body = req.body as {
+      payerWallet: string;
+      permitSignature: string;
+      permitDeadline: string;
+      permitNonce: string;
+      createSubSignature: string;
+      createSubDeadline: string;
+      createSubNonce: string;
+      subscriptionId: string;
+    };
+    if (!body?.payerWallet || !body?.permitSignature || !body?.createSubSignature || !body?.subscriptionId) {
+      return reply.code(400).send({ error: { code: "validation_error", message: "payerWallet, permitSignature, createSubSignature, and subscriptionId are required" } });
+    }
+    const result = await getSubscriptionCheckoutSession(slug);
+    if (!result) {
+      return reply.code(404).send({ error: { code: "not_found", message: "Subscription checkout session not found or expired" } });
+    }
+    const { session, plan, merchant } = result;
+    if (session.status !== "open") {
+      return reply.code(409).send({ error: { code: "session_closed", message: "Checkout session is no longer active" } });
+    }
+
+    // Enqueue the relayer job to submit permit + createSubscriptionBySig.
+    const { getRelayerQueue } = await import("../../queues");
+    const now = Math.floor(Date.now() / 1000);
+    const intervalSec = plan.interval === "hourly" ? 3600 : plan.interval === "daily" ? 86400 : 2592000;
+    const nextDue = now + intervalSec;
+    const expiry = now + (plan.planExpiryMonths ?? 12) * 2592000;
+
+    await getRelayerQueue().add("activate-subscription-by-sig", {
+      payer: body.payerWallet,
+      subscriptionId: body.subscriptionId,
+      merchant: merchant.payoutWallet,
+      amount: plan.amount,
+      intervalSeconds: intervalSec,
+      maxChargePerCycle: plan.maxChargePerCycle,
+      cumulativeCap: plan.cumulativeLimit,
+      nextDueTime: nextDue,
+      expiry,
+      permitSignature: body.permitSignature,
+      permitDeadline: body.permitDeadline,
+      permitNonce: body.permitNonce,
+      createSubSignature: body.createSubSignature,
+      createSubDeadline: body.createSubDeadline,
+      createSubNonce: body.createSubNonce,
+      merchantId: session.merchantId,
+      planId: plan.id,
+      checkoutSessionId: session.id,
+    }, { jobId: `sig-activate-${session.id}` });
+
+    return reply.code(202).send({ status: "queued", message: "Subscription activation submitted to relayer. The customer will be notified when it's confirmed." });
+  });
 }

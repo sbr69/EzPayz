@@ -1,9 +1,29 @@
 // Minimal SubscriptionContract ABI for the relayer + observer.
-// Full source verified on the explorer (0xc4553963…b5b6).
+// Full source verified on the explorer (0xc0Bc1f…2c40).
+// v2 includes createSubscriptionBySig + cancelBySig for gasless subscription lifecycle.
 export const SUBSCRIPTION_ABI = [
   {
     inputs: [{ type: "bytes32" }, { type: "uint256" }, { type: "uint256" }],
     name: "charge",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [
+      { type: "bytes32" }, { type: "address" }, { type: "address" },
+      { type: "uint256" }, { type: "uint256" }, { type: "uint256" },
+      { type: "uint256" }, { type: "uint256" }, { type: "uint256" },
+      { type: "uint256" }, { type: "bytes" },
+    ],
+    name: "createSubscriptionBySig",
+    outputs: [],
+    stateMutability: "nonpayable",
+    type: "function",
+  },
+  {
+    inputs: [{ type: "bytes32" }, { type: "address" }, { type: "uint256" }, { type: "bytes" }],
+    name: "cancelBySig",
     outputs: [],
     stateMutability: "nonpayable",
     type: "function",
@@ -31,6 +51,13 @@ export const SUBSCRIPTION_ABI = [
     inputs: [{ type: "bytes32" }],
     name: "remainingCumulative",
     outputs: [{ type: "uint256" }],
+    stateMutability: "view",
+    type: "function",
+  },
+  {
+    inputs: [],
+    name: "domainSeparatorV4",
+    outputs: [{ type: "bytes32" }],
     stateMutability: "view",
     type: "function",
   },

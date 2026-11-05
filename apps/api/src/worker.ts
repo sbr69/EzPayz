@@ -5,7 +5,8 @@ import { relayAndSettle } from "./services/relayer";
 import { renewAndSettle } from "./services/renewal";
 import { calculateUsageCharge } from "./services/usageBilling";
 import { relayAndSettleRefund } from "./services/refund";
-import { dispatchWebhookEvent } from "./services/webhook";
+import { activateSubscriptionBySig, cancelSubscriptionBySig } from "./services/subscriptionBySig";
+import { dispatchWebhookEvent, emitEvent } from "./services/webhook";
 import { processEmail } from "./services/email";
 import { getRelayerQueue } from "./queues";
 import type { RelayPaymentJob, RenewalJob, RefundJob } from "./queues";
@@ -36,6 +37,60 @@ const relayerWorker = new Worker(
       const result = await relayAndSettleRefund(data);
       job.log(`refund txHash=${result.txHash} settled=${result.settled}`);
       return result;
+    }
+    if (job.name === "activate-subscription-by-sig") {
+      const data = job.data as {
+        payer: string; subscriptionId: string; merchant: string; amount: string;
+        intervalSeconds: number; maxChargePerCycle: string; cumulativeCap: string;
+        nextDueTime: number; expiry: number;
+        permitSignature: string; permitDeadline: string; permitNonce: string;
+        createSubSignature: string; createSubDeadline: string; createSubNonce: string;
+        merchantId: string; planId: string; checkoutSessionId: string;
+      };
+      const result = await activateSubscriptionBySig({
+        payer: data.payer,
+        subscriptionId: data.subscriptionId,
+        merchant: data.merchant,
+        amount: data.amount,
+        intervalSeconds: data.intervalSeconds,
+        maxChargePerCycle: data.maxChargePerCycle,
+        cumulativeCap: data.cumulativeCap,
+        nextDueTime: data.nextDueTime,
+        expiry: data.expiry,
+        permitSignature: data.permitSignature,
+        permitDeadline: data.permitDeadline,
+        permitNonce: data.permitNonce,
+        createSubSignature: data.createSubSignature,
+        createSubDeadline: data.createSubDeadline,
+        createSubNonce: data.createSubNonce,
+      });
+      job.log(`activated-by-sig permitTx=${result.permitTxHash} createSubTx=${result.createSubTxHash}`);
+
+      // Mirror the subscription to the database.
+      const { recordOnChainSubscription } = await import("./services/subscription");
+      const sub = await recordOnChainSubscription({
+        merchantId: data.merchantId,
+        merchantPayoutWallet: data.merchant,
+        planId: data.planId,
+        onChainSubscriptionId: data.subscriptionId,
+        payerWallet: data.payer,
+      });
+      await prisma.subscriptionCheckoutSession.update({ where: { id: data.checkoutSessionId }, data: { status: "completed" } });
+      await emitEvent({ merchantId: data.merchantId, type: "subscription.created", resourceId: sub.id, payload: { subscriptionId: sub.id, payer: data.payer, permitTx: result.permitTxHash, createSubTx: result.createSubTxHash } });
+      return result;
+    }
+    if (job.name === "cancel-subscription-by-sig") {
+      const data = job.data as { subscriptionId: string; payer: string; deadline: string; signature: string; merchantId: string; subscriptionDbId: string };
+      const txHash = await cancelSubscriptionBySig({
+        subscriptionId: data.subscriptionId,
+        payer: data.payer,
+        deadline: data.deadline,
+        signature: data.signature,
+      });
+      job.log(`cancelled-by-sig txHash=${txHash}`);
+      await prisma.subscription.update({ where: { id: data.subscriptionDbId }, data: { status: "cancelled" } });
+      await emitEvent({ merchantId: data.merchantId, type: "subscription.cancelled", resourceId: data.subscriptionDbId, payload: { subscriptionId: data.subscriptionDbId, txHash } });
+      return { txHash };
     }
     throw new Error(`Unknown relayer job name: ${job.name}`);
   },
