@@ -12,6 +12,8 @@ import { healthRoutes } from "./routes/v1/health";
 import { authRoutes } from "./routes/v1/auth";
 import { merchantRoutes } from "./routes/v1/merchants";
 import { apiKeyRoutes } from "./routes/v1/apiKeys";
+import { paymentIntentRoutes } from "./routes/v1/paymentIntents";
+import { checkoutRoutes } from "./routes/v1/checkout";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -34,6 +36,8 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(authRoutes, { prefix: "/v1/auth" });
   await app.register(merchantRoutes, { prefix: "/v1/merchants" });
   await app.register(apiKeyRoutes, { prefix: "/v1/api-keys" });
+  await app.register(paymentIntentRoutes, { prefix: "/v1/payment-intents" });
+  await app.register(checkoutRoutes, { prefix: "/v1/checkout" });
 
   return app;
 }

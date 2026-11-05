@@ -31,6 +31,11 @@ if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 16) {
   process.env.JWT_SECRET = "dev-insecure-jwt-secret-change-me";
 }
 
+// PAYEESHIELD_SIGNING_KEY: dev default (anvil key #0) if unset/invalid. Testnet-only; prod must set a real key.
+if (!process.env.PAYEESHIELD_SIGNING_KEY || !/^0x[a-fA-F0-9]{64}$/.test(process.env.PAYEESHIELD_SIGNING_KEY)) {
+  process.env.PAYEESHIELD_SIGNING_KEY = "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
+}
+
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   PORT: z.coerce.number().default(3000),
