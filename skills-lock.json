@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "whitechain-dev": {
+      "source": "whitechain-labs/skills",
+      "sourceType": "github",
+      "skillPath": "whitechain-dev/SKILL.md",
+      "computedHash": "898b5ad23df225346936bf113c0b1d73a05a6e26d7345050e53202c9e6dd6550"
+    }
+  }
+}
