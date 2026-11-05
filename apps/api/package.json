@@ -1,0 +1,12 @@
+{
+  "name": "@ezpayz/api",
+  "private": true,
+  "version": "0.0.0",
+  "dependencies": {
+    "viem": "^2.57.13"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.17",
+    "tsx": "^4.23.15"
+  }
+}

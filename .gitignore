@@ -32,3 +32,12 @@ coverage/
 # Operating system files
 .DS_Store
 Thumbs.db
+
+# Foundry (Phase 1)
+packages/contracts/out/
+packages/contracts/cache/
+packages/contracts/broadcast/
+packages/contracts/lib/
+
+# pnpm
+.pnpm-store/
