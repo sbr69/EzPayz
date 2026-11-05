@@ -4,8 +4,20 @@ The SDK for the EzPayz. Accept gasless USDT payments, recurring subscriptions, a
 
 ## Install
 
-See `NPM_PUBLISH.md` for registry setup (Option A: GitHub Packages private / Option B: public npm).
+The SDK is not yet published to npm. To use it locally:
 
+```bash
+# From the monorepo root
+cd packages/sdk && pnpm build
+# → dist/index.js (ESM) + dist/browser-entry.global.js (standalone <script>) + dist/index.d.ts
+```
+
+Then either:
+- **In the monorepo:** import directly from `packages/sdk/src/`
+- **As a local package:** `npm install ../packages/sdk` (after build)
+- **Publish to a private registry:** see `NPM_PUBLISH.md` (Option A: GitHub Packages / Option B: public npm)
+
+Once published, the standard install will work:
 ```bash
 npm install @ezpayz/sdk viem
 ```

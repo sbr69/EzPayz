@@ -40,7 +40,7 @@ EIP-3009 verification: [docs/EIP3009_VERIFICATION.md](docs/EIP3009_VERIFICATION.
 ## Architecture
 
 ```
-apps/web        React dashboard + hosted checkout (existing mock UI + a real checkout route with wagmi/RainbowKit)
+apps/web        React dashboard + hosted checkout. Auth is real (JWT from /v1/auth/login). Real checkout, subscription checkout, refund signing, and onboarding wallet verify are wired to the live API via wagmi/RainbowKit. Dashboard list pages still read from mock seed data (migration in progress).
 apps/api        Fastify REST API + auth + business logic + BullMQ workers (relayer/observer/webhook/email/scheduler)
 packages/contracts   Foundry/Solidity — SubscriptionContract (deployed + verified)
 packages/sdk    @ezpayz/sdk — typed server client + <WhitechainCheckout/> widget + webhook middleware
@@ -117,7 +117,7 @@ pnpm dev:web    # Vite frontend on :5173
 
 ## SDK
 
-The SDK is built (`tsup` → `dist/`) in two formats and ready to publish. See `packages/sdk/NPM_PUBLISH.md` for registry setup.
+The SDK builds via `tsup` to two formats. Run `cd packages/sdk && pnpm build` after cloning (`dist/` is gitignored). Not yet published to npm — see `packages/sdk/NPM_PUBLISH.md` for publishing setup.
 
 **Two integration paths:**
 
