@@ -153,7 +153,7 @@ export function RealCheckout() {
               </button>
             </a>
           )}
-          <a href={`${API_URL}/v1/payment-intents/${checkout.paymentIntentId}/receipt.pdf`} target="_blank" rel="noreferrer">
+          <a href={`${API_URL}/v1/checkout/${slug}/receipt.pdf`} target="_blank" rel="noreferrer">
             <button style={{ padding: "10px 16px", fontSize: 14, cursor: "pointer", borderRadius: 8, border: "1px solid #ddd", background: "#fff" }}>
               Download receipt
             </button>

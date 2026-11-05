@@ -109,7 +109,44 @@ async function pollDueSubscriptions(): Promise<void> {
 setInterval(pollDueSubscriptions, 60_000);
 void pollDueSubscriptions();
 
-console.log("Workers started (queues: relayer, webhook, email) + subscription scheduler poller (60s).");
+// Retry failed webhook deliveries — polls every 30s for events with nextRetryAt in the past.
+// Updates nextRetryAt with exponential backoff (max 5 retries, then stops).
+const MAX_WEBHOOK_RETRIES = 5;
+async function pollFailedWebhooks() {
+  try {
+    const failed = await prisma.webhookEvent.findMany({
+      where: { status: "failed", nextRetryAt: { lte: new Date() } },
+      take: 20,
+    });
+    for (const ev of failed) {
+      const attemptCount = (ev.attempts ?? 0) + 1;
+      if (attemptCount > MAX_WEBHOOK_RETRIES) {
+        // Exceeded max retries — stop retrying (nextRetryAt = null prevents future polls).
+        await prisma.webhookEvent.update({ where: { id: ev.id }, data: { nextRetryAt: null } });
+        continue;
+      }
+      await dispatchWebhookEvent({
+        outboxId: `retry-${ev.id}`,
+        merchantId: ev.merchantId,
+        type: ev.type,
+        resourceId: ev.relatedPaymentId ?? "",
+        payload: ev.payloadJson as Record<string, unknown>,
+      });
+      // Set next retry with exponential backoff: 30s * 2^attempt (30s, 60s, 120s, 240s, 480s).
+      const backoffSec = 30 * Math.pow(2, attemptCount);
+      await prisma.webhookEvent.update({
+        where: { id: ev.id },
+        data: { attempts: attemptCount, nextRetryAt: new Date(Date.now() + backoffSec * 1000) },
+      });
+    }
+    if (failed.length > 0) console.log(`[webhook-retry] processed ${failed.length} failed deliveries`);
+  } catch (e) {
+    console.error("[webhook-retry] poll error:", (e as Error).message);
+  }
+}
+setInterval(pollFailedWebhooks, 30_000);
+
+console.log("Workers started (queues: relayer, webhook, email) + subscription scheduler (60s) + webhook retry (30s).");
 
 async function shutdown(): Promise<void> {
   await relayerWorker.close();

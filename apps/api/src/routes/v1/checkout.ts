@@ -8,6 +8,7 @@ import { getRelayerQueue, type RelayPaymentJob } from "../../queues";
 import { formatBaseUnits } from "../../utils/amount";
 import { getSubscriptionCheckoutSession } from "../../services/subscriptionCheckout";
 import { SUBSCRIPTION_CONTRACT_ADDRESS } from "../../config/contracts";
+import { generatePaymentReceiptPdfBuffer } from "../../services/paymentIntentReceipt";
 
 /**
  * Public checkout endpoint (no auth) — the SDK widget fetches the PayeeShield-signed
@@ -120,5 +121,25 @@ export async function checkoutRoutes(app: FastifyInstance): Promise<void> {
       status: session.status,
       expiresAt: session.expiresAt,
     });
+  });
+
+  // GET /v1/checkout/:slug/receipt.pdf — PUBLIC receipt PDF download.
+  // The customer has the checkout slug (not an API key), so this endpoint is unauthenticated.
+  // Only returns a PDF if the payment has settled (status = succeeded).
+  app.get("/:slug/receipt.pdf", async (req, reply) => {
+    const slug = (req.params as { slug: string }).slug;
+    const result = await getCheckoutSession(slug);
+    if (!result) {
+      return reply.code(404).send({ error: { code: "not_found", message: "Checkout session not found" } });
+    }
+    const { paymentIntent } = result;
+    if (paymentIntent.status !== "succeeded") {
+      return reply.code(409).send({ error: { code: "not_settled", message: "Payment has not settled yet" } });
+    }
+    const pdf = await generatePaymentReceiptPdfBuffer(paymentIntent.id, paymentIntent.merchantId);
+    if (!pdf) return reply.code(404).send({ error: { code: "not_found", message: "Payment intent not found" } });
+    reply.type("application/pdf");
+    reply.header("Content-Disposition", `attachment; filename="receipt-${paymentIntent.id}.pdf"`);
+    return reply.send(pdf);
   });
 }

@@ -31,7 +31,7 @@ export class WhitechainClient {
     create: (opts: { amount: string; description: string; customerEmail?: string; successUrl?: string; cancelUrl?: string; metadata?: Record<string, string>; idempotencyKey?: string }) =>
       this.request("/v1/payment-intents", {
         method: "POST",
-        headers: this.headers(opts.idempotencyKey),
+        headers: this.headers(opts.idempotencyKey ?? `auto-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`),
         body: JSON.stringify({
           amount: opts.amount,
           description: opts.description,

@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import {
   AlertTriangle,
-  Ban,
   ChevronRight,
   Download,
   Eye,
@@ -13,7 +12,6 @@ import {
   Wallet,
 } from "lucide-react";
 import { useDemo } from "@/store/demoStore";
-import { api } from "@/services";
 import { DEFAULT_NETWORK, TOKEN } from "@/config/app";
 import { PAYMENT_STATUS_META, REFUND_STATUS_META } from "@/config/ui";
 import { cmpBase, downloadText, fmtAmount, fmtDateTime, fmtNumber, fromBase, subBase, toBase } from "@/lib/money";
@@ -311,7 +309,6 @@ export function PaymentDetail() {
   const data = useDemo((s) => s.data);
   const pushToast = useDemo((s) => s.pushToast);
   const [refundOpen, setRefundOpen] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
 
   const payment = data.payments.find((p) => p.id === id);
   if (!payment) {
@@ -397,21 +394,6 @@ export function PaymentDetail() {
             {["succeeded", "partially_refunded", "overpaid"].includes(payment.status) ? (
               <Button variant="primary" icon={<RefreshCcw className="h-4 w-4" />} onClick={() => setRefundOpen(true)}>
                 Issue refund
-              </Button>
-            ) : null}
-            {["created", "requires_authorization"].includes(payment.status) ? (
-              <Button
-                variant="danger"
-                icon={<Ban className="h-4 w-4" />}
-                loading={cancelling}
-                onClick={async () => {
-                  setCancelling(true);
-                  await api.cancelPayment(payment.id);
-                  setCancelling(false);
-                  pushToast({ title: "Payment cancelled", body: `${payment.id} was cancelled.`, tone: "info" });
-                }}
-              >
-                Cancel payment
               </Button>
             ) : null}
           </>

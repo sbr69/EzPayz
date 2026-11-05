@@ -32,18 +32,35 @@ export function PaymentLinkResolver() {
   const [error, setError] = useState("");
   const [customAmount, setCustomAmount] = useState("");
 
+  // Fetch the payment link + auto-start checkout for fixed links (all in one useEffect to avoid Rules of Hooks violations).
   useEffect(() => {
+    let cancelled = false;
     void (async () => {
       try {
         const data = await apiFetch<LinkData>(`/v1/payment-links/${slug}`);
+        if (cancelled) return;
         setLink(data);
-        setStatus("ready");
+
+        // Fixed links: auto-create checkout session immediately.
+        if (data.linkType === "fixed") {
+          setStatus("creating");
+          const result = await apiFetch<{ checkoutSlug: string }>(`/v1/payment-links/${slug}/checkout`, {
+            method: "POST",
+            body: JSON.stringify({}),
+          });
+          if (cancelled) return;
+          navigate(`/real-checkout/${result.checkoutSlug}`);
+        } else {
+          setStatus("ready");
+        }
       } catch (e) {
+        if (cancelled) return;
         setError((e as Error).message);
         setStatus("failed");
       }
     })();
-  }, [slug]);
+    return () => { cancelled = true; };
+  }, [slug, navigate]);
 
   const startCheckout = async (amount?: string) => {
     setStatus("creating");
@@ -59,15 +76,9 @@ export function PaymentLinkResolver() {
     }
   };
 
-  if (status === "loading") return <div style={{ padding: "2rem", textAlign: "center", fontFamily: "sans-serif" }}>Loading payment link…</div>;
+  if (status === "loading" || status === "creating") return <div style={{ padding: "2rem", textAlign: "center", fontFamily: "sans-serif" }}>Preparing checkout…</div>;
   if (status === "failed") return <div style={{ padding: "2rem", textAlign: "center", fontFamily: "sans-serif", color: "red" }}>{error}</div>;
-  if (!link) return null;
-
-  if (link.linkType === "fixed") {
-    // Auto-redirect for fixed links.
-    void startCheckout();
-    return <div style={{ padding: "2rem", textAlign: "center", fontFamily: "sans-serif" }}>Preparing checkout…</div>;
-  }
+  if (!link || link.linkType === "fixed") return null;
 
   // Customer-entered amount for customer_amount links.
   return (
@@ -93,10 +104,10 @@ export function PaymentLinkResolver() {
       </div>
       <button
         onClick={() => startCheckout(customAmount)}
-        disabled={!customAmount || status === "creating"}
+        disabled={!customAmount}
         style={{ width: "100%", padding: "12px", fontSize: 15, cursor: "pointer", borderRadius: 8, border: "none", background: "#0ea5e9", color: "#fff", opacity: !customAmount ? 0.5 : 1 }}
       >
-        {status === "creating" ? "Preparing checkout…" : "Pay"}
+        Pay
       </button>
     </div>
   );

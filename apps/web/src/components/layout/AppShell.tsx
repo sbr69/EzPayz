@@ -20,6 +20,7 @@ import { cn } from "@/utils/cn";
 import { MERCHANT_NAV } from "@/config/ui";
 import { DEFAULT_NETWORK } from "@/config/app";
 import { useDemo } from "@/store/demoStore";
+import { useSyncRealData } from "@/hooks/useSyncRealData";
 import { timeAgo } from "@/lib/money";
 import { Button, Callout, Divider } from "@/components/ui/primitives";
 import { Modal } from "@/components/ui/Dialog";
@@ -339,6 +340,7 @@ function ProfileMenu() {
 }
 
 export function AppShell() {
+  useSyncRealData(); // Fetch real API data → populate Zustand store for all dashboard pages
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);

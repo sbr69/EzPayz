@@ -10,8 +10,8 @@ import {
   ShieldCheck,
   Wallet,
 } from "lucide-react";
-import { api } from "@/services";
 import { realApi } from "@/services/api/adapter";
+import { apiFetch } from "@/services/api/http";
 import { useDemo } from "@/store/demoStore";
 import { useWallet } from "@/contexts/WalletContext";
 import { DEFAULT_NETWORK, TOKEN, WALLET_DISCLOSURE } from "@/config/app";
@@ -43,6 +43,20 @@ export default function Onboarding() {
   const navigate = useNavigate();
   const merchant = useDemo((s) => s.data.merchant);
   const patchMerchant = useDemo((s) => s.patchMerchant);
+
+  /** Updates both the real API (PATCH /v1/merchants/me) and the local demo store. */
+  async function updateMerchant(patch: Record<string, unknown>) {
+    patchMerchant(patch); // update local store for immediate UI feedback
+    try {
+      await apiFetch("/v1/merchants/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      });
+    } catch (e) {
+      pushToast({ title: "Failed to save", body: (e as Error).message, tone: "error" });
+    }
+  }
   const setStep = useDemo((s) => s.setOnboardingStep);
   const stepIndex = useDemo((s) => s.onboardingStep);
   const pushToast = useDemo((s) => s.pushToast);
@@ -99,7 +113,7 @@ export default function Onboarding() {
   async function next() {
     if (stepIndex === 0) {
       if (!validateProfile()) return;
-      await patchMerchant({
+      await updateMerchant({
         businessName: form.businessName.trim(),
         displayName: form.displayName.trim(),
         website: form.website.trim(),
@@ -121,7 +135,7 @@ export default function Onboarding() {
     await new Promise((r) => setTimeout(r, 350));
     setBusy(false);
     if (stepIndex === STEPS.length - 1) {
-      patchMerchant({ onboardingComplete: true });
+      await updateMerchant({ onboardingComplete: true });
       navigate("/dashboard");
       return;
     }
@@ -131,22 +145,31 @@ export default function Onboarding() {
 
   async function generateCredentials() {
     setBusy(true);
-    const key = await api.createApiKey({
-      name: "Onboarding key",
-      environment: "testnet",
-      permissions: ["payment_intents:write", "invoices:write", "webhooks:read"],
-    });
-    const endpoint = await api.createWebhookEndpoint({
-      url: "https://api.example-integration.dev/hooks/whitepay",
-      description: "Created during onboarding",
-      events: ["payment.succeeded", "payment.failed", "refund.succeeded"],
-    });
-    setBusy(false);
-    setCreds({
-      publishable: key.publishable,
-      secret: key.secret,
-      webhookSecret: endpoint.secret,
-    });
+    try {
+      const key = await apiFetch<{ id: string; publishable: string; secret: string }>("/v1/api-keys", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: "Onboarding key", environment: "testnet" }),
+      });
+      const endpoint = await apiFetch<{ id: string; signingSecret: string }>("/v1/webhooks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Idempotency-Key": `onboarding-webhook-${Date.now()}` },
+        body: JSON.stringify({
+          url: "https://api.example-integration.dev/hooks/whitepay",
+          description: "Created during onboarding",
+          eventTypes: ["payment.succeeded", "payment.failed", "refund.succeeded"],
+        }),
+      });
+      setCreds({
+        publishable: key.publishable,
+        secret: key.secret,
+        webhookSecret: endpoint.signingSecret,
+      });
+    } catch (e) {
+      pushToast({ title: "Failed to generate credentials", body: (e as Error).message, tone: "error" });
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
@@ -391,7 +414,7 @@ export default function Onboarding() {
                               challenge: challenge.challenge,
                               verificationToken: challenge.verificationToken,
                             });
-                            patchMerchant({ payoutWallet: wagmiAddress, walletVerified: true });
+                            await updateMerchant({ payoutWallet: wagmiAddress, walletVerified: true });
                             pushToast({ title: "Wallet verified", body: `${wagmiAddress.slice(0, 10)}… is now your payout wallet.`, tone: "success" });
                           } catch (e) {
                             pushToast({ title: "Verification failed", body: (e as Error).message, tone: "error" });

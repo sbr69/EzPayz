@@ -28,6 +28,7 @@ interface DemoState {
   dismissToast: (id: string) => void;
   patchMerchant: (patch: Partial<DemoData["merchant"]>) => void;
   patchGasGuard: (patch: Partial<DemoData["gasGuard"]>) => void;
+  replaceData: (data: Partial<DemoData>) => void;
   add: <K extends ListKey>(key: K, item: DemoData[K][number]) => void;
   patch: <K extends ListKey>(key: K, id: string, patch: Partial<DemoData[K][number]>) => void;
   remove: (key: ListKey, id: string) => void;
@@ -63,6 +64,8 @@ export const useDemo = create<DemoState>()(
         set((s) => ({ data: { ...s.data, merchant: { ...s.data.merchant, ...patch } } })),
       patchGasGuard: (patch) =>
         set((s) => ({ data: { ...s.data, gasGuard: { ...s.data.gasGuard, ...patch } } })),
+      replaceData: (partial) =>
+        set((s) => ({ data: { ...s.data, ...partial } as DemoData })),
       add: (key, item) =>
         set((s) => {
           const list = s.data[key] as unknown[];

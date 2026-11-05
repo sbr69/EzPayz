@@ -18,6 +18,10 @@ export interface WhitechainCheckoutProps {
    *  on the checkout fetch + authorize requests. When provided, the checkout is scoped to this
    *  session only. When omitted, the public checkout endpoint is used (backward-compatible). */
   clientSecret?: string;
+  /** The payer's wallet address (required). The merchant's app gets this from wagmi's useAccount().
+   *  This is the `from` field in the EIP-3009 TransferWithAuthorization — it must match the
+   *  address that signs the typed data. */
+  payerAddress: string;
   signTypedData: (args: {
     domain: Record<string, unknown>;
     types: Record<string, { name: string; type: string }[]>;
@@ -31,7 +35,7 @@ export interface WhitechainCheckoutProps {
 type WidgetStatus = "loading" | "ready" | "authorizing" | "submitted" | "succeeded" | "failed";
 
 export function WhitechainCheckout(props: WhitechainCheckoutProps): React.ReactElement {
-  const { checkoutSlug, apiUrl, clientSecret, signTypedData, onSuccess, onError } = props;
+  const { checkoutSlug, apiUrl, clientSecret, payerAddress, signTypedData, onSuccess, onError } = props;
   const [status, setStatus] = useState<WidgetStatus>("loading");
   const [checkout, setCheckout] = useState<{
     paymentIntentId: string;
@@ -84,17 +88,12 @@ export function WhitechainCheckout(props: WhitechainCheckoutProps): React.ReactE
           { name: "nonce", type: "bytes32" },
         ],
       };
-      // The `from` is the connected wallet — the merchant's app must pass it (the widget
-      // receives the signer's address via signTypedData's context). For simplicity, the
-      // merchant's app should set `from` to the connected account before calling handlePay,
-      // OR the widget can accept a `payerAddress` prop. (Here we rely on the wallet to sign
-      // with its own address; the backend recovers it from the signature.)
       const message = {
-        from: "0x0000000000000000000000000000000000000000", // placeholder — replaced by the wallet's address on sign
+        from: payerAddress as `0x${string}`,
         to: checkout.merchant.payoutWallet,
-        value: checkout.amount,
-        validAfter: String(now - 60),
-        validBefore: String(now + 600),
+        value: BigInt(checkout.amount),
+        validAfter: BigInt(now - 60),
+        validBefore: BigInt(now + 600),
         nonce,
       };
       const signature = await signTypedData({ domain, types, primaryType: "TransferWithAuthorization", message });
@@ -102,7 +101,15 @@ export function WhitechainCheckout(props: WhitechainCheckoutProps): React.ReactE
       const authRes = await fetch(`${apiUrl}/v1/checkout/${checkoutSlug}/authorize`, {
         method: "POST",
         headers: { "Content-Type": "application/json", ...(clientSecret ? { Authorization: `Bearer ${clientSecret}` } : {}) },
-        body: JSON.stringify({ ...message, signature }),
+        body: JSON.stringify({
+          from: payerAddress,
+          to: checkout.merchant.payoutWallet,
+          value: checkout.amount,
+          validAfter: String(now - 60),
+          validBefore: String(now + 600),
+          nonce,
+          signature,
+        }),
       });
       const authBody = await authRes.json();
       if (!authRes.ok) throw new Error(authBody?.error?.message ?? "Authorization failed");

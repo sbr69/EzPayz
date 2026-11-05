@@ -74,7 +74,7 @@ export function open(opts: BrowserCheckoutOptions): () => void {
           <p style="font-size:24px;font-weight:600;margin:4px 0 0">${amount} ${data.token.symbol}</p>
         </div>
         <p style="font-size:12px;color:#666;margin:0 0 16px">To: ${data.merchant.payoutWallet.slice(0,10)}…${data.merchant.payoutWallet.slice(-4)}</p>
-        <button id="wcp-pay" style="width:100%;padding:12px;font-size:15px;cursor:pointer;border-radius:8pxborder:none;background:#0ea5e9;color:#fff">Pay ${amount} USDT (gasless)</button>
+        <button id="wcp-pay" style="width:100%;padding:12px;font-size:15px;cursor:pointer;border-radius:8px;border:none;background:#0ea5e9;color:#fff">Pay ${amount} USDT (gasless)</button>
         <p style="font-size:11px;color:#999;margin:12px 0 0;text-align:center">Gasless: the relayer pays WBT gas. You only sign the authorization.</p>
       `;
       const payBtn = modal.querySelector("#wcp-pay") as HTMLButtonElement;
@@ -138,10 +138,10 @@ export function open(opts: BrowserCheckoutOptions): () => void {
                   window.location.href = `${data.successUrl}${data.successUrl.includes("?") ? "&" : "?"}paymentIntentId=${data.paymentIntentId}&status=succeeded`;
                 });
               }
-              opts.onSuccess?.({ paymentIntentId: data.paymentIntentId, txRef: sr.paymentIntent.txRef });
+              opts.onSuccess?.({ paymentIntentId: data.paymentIntentId, txRef: sr.txRef });
               return;
             }
-            if (sr.paymentIntent?.status === "failed") throw new Error("Payment failed on-chain");
+            if (sr.status === "failed") throw new Error("Payment failed on-chain");
           }
           throw new Error("Payment timed out");
         } catch (e) {
