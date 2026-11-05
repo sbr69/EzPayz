@@ -47,15 +47,17 @@ const intent = await client.paymentIntents.create({
 ### Client-side — mount the checkout widget (clientSecret only)
 
 ```tsx
-import { useSignTypedData } from "wagmi";
+import { useAccount, useSignTypedData } from "wagmi";
 import { WhitechainCheckout } from "@ezpayz/sdk";
 
 function Checkout({ checkoutSlug }: { checkoutSlug: string }) {
+  const { address } = useAccount();
   const { signTypedDataAsync } = useSignTypedData();
   return (
     <WhitechainCheckout
       checkoutSlug={checkoutSlug}
       apiUrl="http://localhost:3000"
+      payerAddress={address!}            // required — the connected wallet address
       signTypedData={signTypedDataAsync}
       onSuccess={(r) => console.log("Paid!", r.paymentIntentId, r.txRef)}
       onError={(e) => console.error(e.message)}

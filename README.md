@@ -40,7 +40,7 @@ EIP-3009 verification: [docs/EIP3009_VERIFICATION.md](docs/EIP3009_VERIFICATION.
 ## Architecture
 
 ```
-apps/web        React dashboard + hosted checkout. Auth is real (JWT from /v1/auth/login). Real checkout, subscription checkout, refund signing, and onboarding wallet verify are wired to the live API via wagmi/RainbowKit. Dashboard list pages still read from mock seed data (migration in progress).
+apps/web        React dashboard + hosted checkout. Auth is real (JWT from /v1/auth/login, auto-attached by apiFetch). Dashboard syncs real data from the API via useSyncRealData hook. Real checkout, subscription checkout, refund signing, onboarding wallet verify — all wired to the live API via wagmi/RainbowKit.
 apps/api        Fastify REST API + auth + business logic + BullMQ workers (relayer/observer/webhook/email/scheduler)
 packages/contracts   Foundry/Solidity — SubscriptionContract (deployed + verified)
 packages/sdk    @ezpayz/sdk — typed server client + <WhitechainCheckout/> widget + webhook middleware
@@ -163,8 +163,8 @@ const valid = verifyWebhookSignature(secret, rawBody, signature);
 
 - `POST /v1/auth/register` · `POST /v1/auth/login` (JWT)
 - `POST /v1/api-keys` (publishable + secret, shown once) · `GET /v1/api-keys` (list, includes `lastUsedAt`)
-- `POST /v1/payment-intents` (auth + idempotency, accepts `amount`/`successUrl`/`cancelUrl`/`metadata`) · `GET /v1/payment-intents` (list + cursor pagination + status/date filters) · `GET /v1/payment-intents/:id` · `GET /v1/payment-intents/:id/receipt.pdf`
-- `GET /v1/checkout/:slug` (public, PayeeShield-signed) · `POST /v1/checkout/:slug/authorize` (EIP-3009)
+- `POST /v1/payment-intents` (auth + idempotency, accepts `amount`/`successUrl`/`cancelUrl`/`metadata`) · `GET /v1/payment-intents` (list + cursor pagination + status/date filters) · `GET /v1/payment-intents/:id` · `GET /v1/payment-intents/:id/receipt.pdf` (auth)
+- `GET /v1/checkout/:slug` (public, PayeeShield-signed) · `POST /v1/checkout/:slug/authorize` (EIP-3009) · `GET /v1/checkout/:slug/receipt.pdf` (public, no auth — customer downloads receipt)
 - `GET /v1/checkout/subscription/:slug` (public, plan details for subscription widget)
 - `GET /v1/payment-links/:slug` (public resolve) · `POST /v1/payment-links/:slug/checkout` (public, creates intent from link)
 - `POST /v1/payment-links` · `GET /v1/payment-links` (paginated) · `POST /v1/invoices` · `GET /v1/invoices` (paginated) · `GET /v1/invoices/:id/pdf`
@@ -185,14 +185,14 @@ Auth: `Authorization: Bearer <JWT>` (dashboard), `Bearer <secret key>` (full wri
 
 ## Current limitations (hackathon MVP)
 
-- Email is stubbed (logged, no SMTP). The downloadable PDF receipt (`GET /v1/payment-intents/:id/receipt.pdf`) is the primary receipt mechanism. Email will be wired in a later phase.
+- Email is stubbed (logged, no SMTP). The downloadable PDF receipt is the primary receipt mechanism — public `GET /v1/checkout/:slug/receipt.pdf` (no auth required). Email will be wired in a later phase.
 - PayeeShield uses a single gateway signing key (per-merchant keys deferred — confirmed for MVP).
 - Relayer key in `.env` (not a KMS/HSM).
-- Dashboard write operations are wired to the real API (mock adapter commented out). Dashboard list pages still read from the mock Zustand store for data display — these need to be updated to fetch from the real API. The real checkout, real subscription checkout, real refund signing, and onboarding wallet verify are fully wired.
-- Webhook signing secret stored as plaintext (MVP; encrypt at rest for production).
+- Dashboard fully wired to the live API: auth is real (JWT stored in localStorage), `apiFetch` auto-attaches the JWT, `useSyncRealData` hook syncs all list data from the API on dashboard mount. The real checkout, real subscription checkout, real refund signing, onboarding wallet verify, and dashboard data are all fully wired.
+- Webhook signing secret stored as plaintext (MVP; encrypt at rest for production). Webhook retries with exponential backoff (max 5).
 - Monthly interval = 30-day approximation on-chain (backend scheduler handles real calendar timing).
 - Refund backend-signing deferred (browser Wagmi signing for MVP; backend-signing documented as the production path).
-- SDK published to private registry (Option A); public npm (Option B) documented in `packages/sdk/NPM_PUBLISH.md` for later. Standalone browser bundle built but not yet served via a CDN URL.
+- SDK built locally (`pnpm build` → `dist/`); gitignored — run build after cloning. Not yet published to npm. Standalone browser bundle built but not yet served via a CDN URL.
 
 ---
 

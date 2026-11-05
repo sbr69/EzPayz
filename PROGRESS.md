@@ -1,7 +1,7 @@
 # Progress — EzPayz
 
 **Last updated:** 31 October 2026
-**Status:** Feature-complete MVP + developer-friendliness pass (Phase 10) + Razorpay-parity gap closure (Phase 11) + critical integration blocker fixes (Phase 12). All 12 phases built. 3 real e2e tests passed on Whitechain Sepolia. Local (no deploy yet). Core checkout flow works end-to-end for developer integration.
+**Status:** Feature-complete MVP + developer-friendliness pass (Phase 10) + Razorpay-parity gap closure (Phase 11) + critical integration blocker fixes + full developer flow audit (Phase 12). All 12 phases built. 3 real e2e tests passed on Whitechain Sepolia. Local (no deploy yet). Full developer integration flow verified end-to-end (register → onboard → create intent → checkout → settle → webhook → dashboard) with 0 remaining blockers.
 
 ---
 
@@ -176,28 +176,47 @@ Senior-developer review #2 against Razorpay/Stripe integration patterns. Closed 
 - Dashboard swapped from mock adapter to real HTTP adapter (`services/api/adapter.ts`). Mock adapter commented out in `services/index.ts` (preserved, not deleted). Real adapter calls the live API via `apiFetch`. Cast to mock type for backward compatibility with dashboard page types.
 - Onboarding wallet verification now uses real Wagmi `useSignMessage` + the real API (`getWalletChallenge` → `signMessageAsync` → `verifyWalletOwnership`). Replaces the simulated "verify wallet" button.
 
-### Phase 12 — Critical integration blocker fixes ✅
+### Phase 12 — Critical integration blocker fixes + full developer flow audit ✅
 
-Senior-developer codebase audit identified 5 blocking issues preventing developer integration. All fixed:
+Senior-developer codebase audit identified blocking issues preventing developer integration. Fixed in two passes (initial 5 + re-audit 8 = 13 total fixes):
 
-1. **Settlement poll 401 (fixed):** The checkout widget (SDK `checkout.tsx`, hosted `RealCheckout.tsx`, browser bundle `browser-entry.ts`) polled `GET /v1/payment-intents/:id` for settlement status — but that endpoint requires authentication. The payer doesn't have the merchant's API key, so every poll returned 401. The checkout hung at "Confirming on-chain…" forever. **Fix:** poll `GET /v1/checkout/:slug` instead (public, no auth). Added `txRef` to the checkout GET response so the success page can display the transaction hash + explorer link.
+**Pass 1 — Initial audit (5 fixes):**
 
-2. **Dashboard auth was fake (fixed):** `AuthPages.tsx` was a pure frontend demo — `SignIn` called `useDemo((s) => s.signIn)` (a Zustand action that just set `signedIn: true`), never called `POST /v1/auth/login`, never stored a JWT. The real API adapter reads `localStorage.getItem("wcp_token")` but nothing ever wrote to it — every authenticated API call returned 401. **Fix:** `SignIn` now calls `POST /v1/auth/login`, `SignUp` calls `POST /v1/auth/register`. JWT stored in `localStorage("wcp_token")`. Removed all "Authentication is simulated" callouts.
+1. **Settlement poll 401 (fixed):** Checkout widgets polled `GET /v1/payment-intents/:id` (auth-required) for settlement — payer has no API key → 401 every poll → checkout hung. **Fix:** poll `GET /v1/checkout/:slug` (public). Added `txRef` to checkout response.
+2. **Dashboard auth was fake (fixed):** `AuthPages.tsx` never called the real API — `useDemo((s) => s.signIn)` just set a flag. JWT never stored. **Fix:** `SignIn` calls `POST /v1/auth/login`, `SignUp` calls `POST /v1/auth/register`. JWT stored in `localStorage("wcp_token")`.
+3. **Browser bundle `from` field bug (fixed):** Sent `from: signature` (132 hex chars) instead of `from: walletAddress` (40 hex chars) → API validation failed. **Fix:** captures wallet address from `eth_requestAccounts` first.
+4. **SDK not built (fixed):** `dist/` didn't exist. **Fix:** `pnpm build` generates ESM + IIFE + DTS. Gitignored — run after cloning.
+5. **`useApiData` hook (added):** For dashboard pages to fetch from the real API.
 
-3. **Browser bundle `from` field bug (fixed):** `browser-entry.ts` sent `from: signature` (a 132-char hex string) instead of `from: walletAddress` (a 40-char hex string) in the authorize POST body. The API validates `from` against `/^0x[a-fA-F0-9]{40}$/` — the signature would fail validation. **Fix:** captures the wallet address from `eth_requestAccounts` before signing, sends `from: fromAddress`.
+**Pass 2 — Full developer flow audit (8 fixes):**
 
-4. **SDK not built (fixed):** `packages/sdk/dist/` didn't exist — `pnpm build` had never been run (or output was cleaned). A developer couldn't `npm install` or use the built bundle. **Fix:** `pnpm build` generates `dist/index.js` (ESM, 15KB) + `dist/browser-entry.global.js` (IIFE, 8KB) + `dist/index.d.ts`. `dist/` is gitignored — run `pnpm build` after cloning.
+6. **`apiFetch` sends no auth header (fixed):** `apiFetch` only attached `Authorization` when `opts.token` was explicitly passed — onboarding never passed it → all writes 401. **Fix:** `apiFetch` auto-reads `localStorage("wcp_token")` and attaches `Authorization: Bearer` unless already set.
+7. **SDK widget `from` hardcoded to zero address (fixed):** `checkout.tsx:93` set `from: "0x000…000"` → server recovered signer ≠ `auth.from` → 400 `invalid_signature`. **Fix:** Added required `payerAddress` prop. `value` uses `BigInt`. Authorize POST body sends string values.
+8. **Dashboard reads mock seed data (fixed):** `Dashboard.tsx`, `PaymentPages.tsx` read from `useDemo((s) => s.data)` (hardcoded seed). **Fix:** `useSyncRealData` hook fetches merchant + payments + refunds + subscriptions + exceptions + invoices + plans + links + webhooks + fulfilment from the real API on `AppShell` mount, populates the Zustand store via `replaceData()`. All dashboard pages now display real data.
+9. **Browser bundle `onSuccess` TypeError (fixed):** Read `sr.paymentIntent.txRef` but checkout returns `sr.txRef` → `TypeError: Cannot read properties of undefined`. **Fix:** reads `sr.txRef`.
+10. **Browser bundle failed-status never detected (fixed):** Checked `sr.paymentIntent?.status` → always `undefined` → failed payments polled 60s then threw "timed out". **Fix:** checks `sr.status`.
+11. **Receipt PDF requires auth → customer 401 (fixed):** `GET /v1/payment-intents/:id/receipt.pdf` requires `app.authenticate`. Customer has no JWT. **Fix:** Added public `GET /v1/checkout/:slug/receipt.pdf` (no auth, guards on `status === "succeeded"`).
+12. **SDK `idempotencyKey` optional but API requires it (fixed):** API returns 400 `missing_idempotency_key` if header absent. SDK declared it optional. **Fix:** SDK auto-generates `auto-${Date.now()}-${random}` if omitted.
+13. **PaymentLinkResolver Rules of Hooks violation (fixed):** `useEffect` for fixed-link `startCheckout` was after early returns → "Rendered more hooks than during previous render" crash. **Fix:** Merged into top-level `useEffect` with cancellation guard.
 
-5. **`useApiData` hook (added):** `apps/web/src/hooks/useApiData.ts` — fetches from the real API on mount with loading/error/refresh states. For dashboard pages to replace `useDemo()` data reads with real API fetches.
+**Additional fixes:**
+- Onboarding `generateCredentials` calls `apiFetch` directly with correct field names (`eventTypes` not `events`) + `Idempotency-Key` header.
+- Webhook retry with exponential backoff (30s × 2^attempt, max 5 retries, then `nextRetryAt = null`).
+- Removed non-functional `cancelPayment` button (no cancel API route — intents expire automatically).
+- `vite-env.d.ts` created — fixes pre-existing `import.meta.env` typecheck error.
+- Browser bundle CSS typo fixed (`border-radius:8pxborder:none` → `border-radius:8px;border:none`).
 
-**After Phase 12, the core checkout flow works end-to-end for developer integration:**
-1. Register → `POST /v1/auth/register` → JWT
-2. Create API keys → `POST /v1/api-keys`
-3. Create payment intent → `POST /v1/payment-intents` (secret key) → `{ clientSecret, checkoutSlug }`
-4. Customer opens `/real-checkout/:slug` → pays (EIP-3009 gasless) → sees "Payment succeeded" with tx hash + receipt + return URL
-5. Merchant receives `payment.succeeded` webhook
-
-**Remaining:** Dashboard list pages (payments, refunds, invoices, analytics) still read from the mock Zustand store (`useDemo()`) for data display. Write operations go through the real API. The `useApiData` hook is ready for page-level migration.
+**Re-audit result: 0 remaining issues.** Full developer flow verified:
+1. Register → `POST /v1/auth/register` → JWT stored ✅
+2. Onboarding → profile saved, wallet verified, API keys + webhook created ✅
+3. Create payment intent → `POST /v1/payment-intents` (secret key) → `{ clientSecret, checkoutSlug }` ✅
+4. Customer checkout → EIP-3009 gasless signing → authorize → poll → "Payment succeeded" ✅
+5. Receipt PDF download (public, no auth) ✅
+6. Return URL redirect ✅
+7. Merchant receives `payment.succeeded` webhook ✅
+8. Dashboard shows real data (synced from API) ✅
+9. Payment links work end-to-end (`/l/:slug` → resolve → checkout) ✅
+10. Browser bundle works (correct `from`, `sr.txRef`, `sr.status`) ✅
 
 ---
 
@@ -205,7 +224,6 @@ Senior-developer codebase audit identified 5 blocking issues preventing develope
 
 ### Must-do before production
 - [ ] **Deploy**: Vercel (frontend) + Render (API + worker) + Neon (DB) + Upstash (Redis). Currently local only — the owner is testing end-to-end first.
-- [ ] **Dashboard list pages → real API**: the `api` export is the real adapter (mock commented out), auth is real (JWT stored in `wcp_token`), and the `useApiData` hook is ready. But dashboard list pages (Dashboard, Payments, Refunds, Invoices, Analytics, Subscriptions, Customers, Webhooks, Exceptions, Fulfilment) still read from `useDemo()` (mock Zustand store) for data display. Each page needs to swap `const data = useDemo((s) => s.data)` → `const { data } = useApiData("/v1/...")`. Write operations already go through the real API.
 - [ ] **Real email**: wire an SMTP provider (e.g., Resend) for receipt/refund/renewal emails. Currently stubbed (logged, no SMTP). The downloadable PDF receipt is the primary receipt mechanism for the MVP. Email deferred — will be wired in a later phase.
 - [ ] **JWT_SECRET + PAYEESHIELD_SIGNING_KEY**: set strong production values (not the dev defaults).
 - [ ] **Relayer key custody**: move `RELAYER_PRIVATE_KEY` from `.env` to a KMS/HSM.
@@ -222,13 +240,13 @@ Senior-developer codebase audit identified 5 blocking issues preventing develope
 - [ ] **Subscription on-chain monitoring**: a background observer that watches `SubscriptionCreated`/`SubscriptionCancelled` events (currently the backend records the mirror via the API after the customer's on-chain activation).
 - [ ] **Calendar monthly intervals**: the on-chain interval for monthly is 30-day approximation; the backend scheduler handles real calendar timing.
 - [ ] **Refund merchant-paid-gas fallback UI**: if EIP-3009 is ever unsupported, the merchant pays gas directly (disclosed in the UI). Currently the relayer sponsors all refunds (EIP-3009 is supported).
-- [ ] **Payment link public resolve** (`GET /l/:slug` → create checkout session): the route exists in the plan but the public resolve wasn't added to the frontend router (the real checkout uses the slug directly).
 - [ ] **Vitest tests** for the backend services (signature verification, state machine, GasGuard, idempotency, tenant isolation, amount conversion, clientSecret verification).
 
 ### Known limitations (hackathon MVP)
 - Testnet only (Whitechain Sepolia). Not production-ready.
-- Email stubbed (downloadable PDF receipt is primary). PayeeShield single key. Relayer key in `.env`. Webhook secret plaintext.
-- Dashboard list/analytics pages still read from the mock Zustand store for data display (auth is real, write operations go through the real API, `useApiData` hook ready for migration). The real checkout, real subscription checkout, real refund signing, and onboarding wallet verify are fully wired to the live API.
+- Email stubbed (downloadable PDF receipt is primary — public `GET /v1/checkout/:slug/receipt.pdf`). PayeeShield single key. Relayer key in `.env`. Webhook secret plaintext.
+- Dashboard data synced from real API via `useSyncRealData` hook (fetches on AppShell mount). Write operations go through the real API. The real checkout, real subscription checkout, real refund signing, onboarding wallet verify, and dashboard data are all fully wired to the live API.
+- Webhook retry with exponential backoff (max 5 retries, then stops).
 - Monthly interval = 30-day approximation on-chain.
 - Refund backend-signing deferred (browser Wagmi signing for MVP).
-- SDK built locally (`pnpm build` → `dist/`); gitignored — run build after cloning. Published to private registry (Option A) when npm auth is configured; public npm (Option B) documented for later.
+- SDK built locally (`pnpm build` → `dist/`); gitignored — run build after cloning. Published to private registry (Option A) when npm auth is configured; public npm (Option B) documented for later. Standalone browser bundle built but not yet served via a CDN URL.

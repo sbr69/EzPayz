@@ -82,7 +82,8 @@ const invoice = await client.invoices.create({
   title: "Consulting — January",
   lineItems: [{ description: "10 hours dev", quantity: 10, unitPrice: "5.00" }],
 });
-// Download the paid receipt PDF: GET /v1/invoices/{invoiceId}/pdf
+// Download the paid receipt PDF: GET /v1/checkout/{checkoutSlug}/receipt.pdf (public, no auth required)
+// Or for invoices: GET /v1/invoices/{invoiceId}/pdf (requires auth)
 
 // Refunds (full or partial — human-readable amount)
 const refund = await client.refunds.create({ paymentId: intent.id, amount: "5.00", reason: "partial refund" });
@@ -391,14 +392,14 @@ The integration has three parts: server creates the intent (secret key) → fron
 - **Non-custodial**: USDT moves directly payer → merchant wallet. The gateway never holds funds. No custodial risk.
 - **Publishable + secret key model**: the browser gets a publishable key (read-only) + a short-lived `clientSecret` per checkout session — never the secret key. Mirrors Stripe/Razorpay.
 - **Return URLs**: `successUrl`/`cancelUrl` on payment intents — the checkout redirects the customer back to the merchant's site after settlement (UX-only; the webhook is the source of truth).
-- **Downloadable receipt PDF**: server-rendered invoice/receipt PDF available on the checkout success page + dashboard (`GET /v1/invoices/:id/pdf`).
+- **Downloadable receipt PDF**: server-rendered receipt PDF available on the checkout success page + dashboard. Public endpoint `GET /v1/checkout/:slug/receipt.pdf` (no auth — the customer has the checkout slug, not an API key). Also `GET /v1/invoices/:id/pdf` for merchant-created invoices (requires auth).
 - **Hosted subscription checkout**: developers can offer subscriptions on their own site via the `<WhitechainSubscriptionCheckout/>` widget — same integration shape as one-time payments.
 - **Refund signing via Wagmi**: merchants sign refund EIP-3009 authorizations in the dashboard via RainbowKit — no merchant backend needed for refunds.
 - **Recurring on-chain**: subscriptions are enforced by a deployed, source-verified smart contract with per-cycle + cumulative caps — not just an off-chain schedule. The customer's exposure is bounded.
 - **PayeeShield**: every payment request is signed by the gateway (EIP-712). The checkout widget verifies the signature before asking the customer to sign — protecting against tampered amounts/recipients.
 - **GasGuard**: the relayer's pre-submission policy checks (chain/token allowlist, budgets, pause) prevent abuse of the sponsored-gas flow.
 - **Typed SDK + React widgets**: a developer can integrate with a server client + `<WhitechainCheckout/>` + webhook verify.
-- **Signed webhooks with retries**: HMAC-SHA256 signed delivery + BullMQ retries + a replay endpoint.
+- **Signed webhooks with retries**: HMAC-SHA256 signed delivery + BullMQ retries + exponential backoff (max 5 retries: 30s, 60s, 120s, 240s, 480s) + a replay endpoint.
 - **Tenant isolation**: every merchant's data is scoped by `merchantId` — one merchant cannot read another's payments/customers.
 - **Idempotency**: all write endpoints accept an `Idempotency-Key` — safe retries, no duplicate charges.
 - **Configurable finality**: `confirmed` = 1 block (~1–2s), `finalized` = 5 blocks (~5s), configurable in `apps/api/src/config/settlement.ts`.
@@ -411,7 +412,7 @@ The integration has three parts: server creates the intent (secret key) → fron
 - **Single PayeeShield key**: one gateway-wide signing key (per-merchant keys deferred). If compromised, all requests are forgeable until rotated.
 - **Relayer key in `.env`**: the relayer's private key is stored in an environment variable (not a KMS/HSM). Acceptable for a hackathon, not for production.
 - **Webhook signing secret stored as plaintext** in the database (MVP; should be encrypted at rest).
-- **Dashboard UI is partially mock**: the real checkout (`/real-checkout/:slug`), real subscription checkout (`/real-subscription-checkout/:slug`), real refund signing (`RealRefundSign`), and onboarding wallet verification are wired to the live API. Dashboard login/signup is real (calls `POST /v1/auth/login` + `POST /v1/auth/register`, stores JWT in `localStorage`). However, dashboard **list/analytics pages** (payments list, refunds list, invoices, analytics, subscriptions, customers) still read from the mock Zustand store for data display — write operations go through the real API, but the list views show seed data until each page is migrated to use the `useApiData` hook. Full dashboard wiring is incremental.
+- **Dashboard fully wired to live API**: auth is real (JWT from `POST /v1/auth/login` stored in `localStorage("wcp_token")`). `apiFetch` auto-attaches the JWT as a Bearer header on every request. The `useSyncRealData` hook fetches merchant profile + all list data (payments, refunds, subscriptions, exceptions, invoices, plans, links, webhooks, fulfilment) from the real API on dashboard mount and populates the Zustand store. All dashboard pages display real data. The real checkout, real subscription checkout, real refund signing, and onboarding wallet verification are fully wired to the live API.
 - **No deploy yet**: the gateway runs locally. Vercel/Render deploy is pending (the owner is testing locally first).
 - **Monthly interval = 30-day approximation on-chain**: the contract uses 2592000s for monthly; the backend scheduler handles real calendar timing, but the on-chain `nextDueTime` advances by 30 days.
 - **WalletConnect not configured**: the RainbowKit config uses a placeholder projectId — MetaMask/injected works, but WalletConnect connections don't (until a real projectId is set).
