@@ -42,3 +42,6 @@ packages/contracts/broadcast/
 
 # pnpm
 .pnpm-store/
+
+# Prisma generated client (regenerable via `prisma generate` / @prisma/client postinstall)
+apps/api/src/db/generated/
