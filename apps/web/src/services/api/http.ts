@@ -22,13 +22,19 @@ export async function apiFetch<T = unknown>(path: string, opts?: RequestInit & {
   if (token && !headers.Authorization) {
     headers.Authorization = `Bearer ${token}`;
   }
+  // Auto-generate Idempotency-Key for POST requests if not already set.
+  // The gateway requires this header on all write endpoints — without it, the API
+  // returns 400 missing_idempotency_key. This matches the SDK client's behavior.
+  const method = (opts?.method ?? "GET").toUpperCase();
+  if (method === "POST" && !headers["Idempotency-Key"]) {
+    headers["Idempotency-Key"] = `auto-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  }
   const res = await fetch(`${API_URL}${path}`, { ...opts, headers });
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error((body as { error?: { message?: string } })?.error?.message ?? `HTTP ${res.status}`);
   }
   // Notify the mutation callback on successful write operations (POST/PATCH/DELETE/PUT).
-  const method = (opts?.method ?? "GET").toUpperCase();
   if (method !== "GET" && _onMutation) _onMutation();
   return body as T;
 }

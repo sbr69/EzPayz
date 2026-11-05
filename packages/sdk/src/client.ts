@@ -48,7 +48,7 @@ export class WhitechainClient {
     create: (opts: { title: string; linkType?: "fixed" | "customer_amount" | "reusable"; amount?: string }) =>
       this.request("/v1/payment-links", {
         method: "POST",
-        headers: this.headers(),
+        headers: this.headers(`pl-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
         body: JSON.stringify({ title: opts.title, linkType: opts.linkType ?? "fixed", amount: opts.amount }),
       }),
     list: () => this.request("/v1/payment-links", { headers: this.headers() }),
@@ -56,7 +56,7 @@ export class WhitechainClient {
 
   invoices = {
     create: (opts: { customerEmail: string; title: string; lineItems: { description: string; quantity: number; unitPrice: string }[] }) =>
-      this.request("/v1/invoices", { method: "POST", headers: this.headers(), body: JSON.stringify(opts) }),
+      this.request("/v1/invoices", { method: "POST", headers: this.headers(`inv-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`), body: JSON.stringify(opts) }),
     get: (id: string) => this.request(`/v1/invoices/${id}`, { headers: this.headers() }),
   };
 
@@ -64,7 +64,7 @@ export class WhitechainClient {
     create: (opts: { paymentId: string; amount: string; reason?: string; idempotencyKey?: string }) =>
       this.request("/v1/refunds", {
         method: "POST",
-        headers: this.headers(opts.idempotencyKey),
+        headers: this.headers(opts.idempotencyKey ?? `rf-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`),
         body: JSON.stringify({ paymentId: opts.paymentId, amount: opts.amount, reason: opts.reason ?? "" }),
       }),
     get: (id: string) => this.request(`/v1/refunds/${id}`, { headers: this.headers() }),
@@ -72,10 +72,10 @@ export class WhitechainClient {
 
   subscriptions = {
     create: (opts: { onChainSubscriptionId: string; planId: string; payerWallet: string }) =>
-      this.request("/v1/subscriptions", { method: "POST", headers: this.headers(), body: JSON.stringify(opts) }),
+      this.request("/v1/subscriptions", { method: "POST", headers: this.headers(`sub-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`), body: JSON.stringify(opts) }),
     get: (id: string) => this.request(`/v1/subscriptions/${id}`, { headers: this.headers() }),
     checkout: (opts: { planId: string }) =>
-      this.request("/v1/subscriptions/checkout", { method: "POST", headers: this.headers(), body: JSON.stringify({ planId: opts.planId }) }),
+      this.request("/v1/subscriptions/checkout", { method: "POST", headers: this.headers(`sc-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`), body: JSON.stringify({ planId: opts.planId }) }),
   };
 
   analytics = {

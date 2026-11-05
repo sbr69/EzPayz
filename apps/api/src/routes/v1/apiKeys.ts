@@ -31,7 +31,7 @@ export async function apiKeyRoutes(app: FastifyInstance): Promise<void> {
   app.get("/", { preHandler: [app.authenticate] }, async (req) => {
     const keys = await listApiKeys(req.merchantId!);
     return {
-      keys: keys.map((k) => ({
+      apiKeys: keys.map((k) => ({
         id: k.id,
         name: k.name,
         publishable: k.publishable,
