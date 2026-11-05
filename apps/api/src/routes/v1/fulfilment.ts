@@ -1,6 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma } from "../../db/client";
+import { parsePagination, cursorPrismaArgs, paginate } from "../../utils/pagination";
 
 const eventSchema = z.object({
   status: z.enum(["not_started", "processing", "fulfilled", "cancelled", "return_requested", "refund_initiated", "refunded"]),
@@ -10,13 +11,14 @@ const eventSchema = z.object({
 
 export async function fulfilmentRoutes(app: FastifyInstance): Promise<void> {
   app.get("/", { preHandler: [app.authenticate] }, async (req) => {
+    const { limit, cursor } = parsePagination(req.query as Record<string, unknown>);
     const orders = await prisma.fulfilmentOrder.findMany({
       where: { merchantId: req.merchantId! },
-      orderBy: { updatedAt: "desc" },
-      take: 50,
+      ...cursorPrismaArgs({ limit, cursor }, "updatedAt"),
       include: { events: { orderBy: { at: "desc" } } },
     });
-    return { orders };
+    const result = paginate(orders, limit);
+    return { orders: result.data, hasMore: result.hasMore, nextCursor: result.nextCursor };
   });
 
   app.post("/:id/events", { preHandler: [app.authenticate, app.requireSecretKey] }, async (req, reply) => {

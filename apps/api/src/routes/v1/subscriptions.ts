@@ -4,6 +4,8 @@ import { prisma } from "../../db/client";
 import { recordOnChainSubscription } from "../../services/subscription";
 import { createSubscriptionCheckout, getSubscriptionCheckoutSession } from "../../services/subscriptionCheckout";
 import { getRelayerQueue } from "../../queues";
+import { recordIdempotency } from "../../plugins/idempotency";
+import { parsePagination, cursorPrismaArgs, paginate } from "../../utils/pagination";
 
 const createSchema = z.object({
   onChainSubscriptionId: z.string().regex(/^0x[a-fA-F0-9]{64}$/),
@@ -19,13 +21,15 @@ export async function subscriptionRoutes(app: FastifyInstance): Promise<void> {
   // POST /v1/subscriptions/checkout — create a hosted subscription checkout session.
   // Returns a clientSecret + checkoutSlug for the <WhitechainSubscriptionCheckout/> widget.
   // PRD §11.4.1, FLOW §10.2.1.
-  app.post("/checkout", { preHandler: [app.authenticate, app.requireSecretKey] }, async (req, reply) => {
+  app.post("/checkout", { preHandler: [app.authenticate, app.requireSecretKey, app.idempotency] }, async (req, reply) => {
     const parsed = checkoutSchema.safeParse(req.body);
     if (!parsed.success) {
       return reply.code(400).send({ error: { code: "validation_error", message: parsed.error.issues.map((i) => i.message).join("; ") } });
     }
     try {
       const result = await createSubscriptionCheckout({ merchantId: req.merchantId!, planId: parsed.data.planId });
+      const key = (req.headers["idempotency-key"] as string).trim();
+      await recordIdempotency(req.merchantId!, key, "subscription_checkout", result.sessionId);
       return reply.code(201).send(result);
     } catch (e) {
       const err = e as { statusCode?: number; code?: string; message?: string };
@@ -35,7 +39,7 @@ export async function subscriptionRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /v1/subscriptions — record a mirror of an on-chain subscription (customer activated it via their wallet).
-  app.post("/", { preHandler: [app.authenticate, app.requireSecretKey] }, async (req, reply) => {
+  app.post("/", { preHandler: [app.authenticate, app.requireSecretKey, app.idempotency] }, async (req, reply) => {
     const parsed = createSchema.safeParse(req.body);
     if (!parsed.success) {
       return reply.code(400).send({ error: { code: "validation_error", message: parsed.error.issues.map((i) => i.message).join("; ") } });
@@ -52,6 +56,8 @@ export async function subscriptionRoutes(app: FastifyInstance): Promise<void> {
         onChainSubscriptionId: parsed.data.onChainSubscriptionId,
         payerWallet: parsed.data.payerWallet,
       });
+      const key = (req.headers["idempotency-key"] as string).trim();
+      await recordIdempotency(req.merchantId!, key, "subscription", sub.id);
       return reply.code(201).send({ id: sub.id, status: sub.status, nextBillingAt: sub.nextBillingAt });
     } catch (e) {
       const err = e as { statusCode?: number; code?: string; message?: string };
@@ -61,12 +67,13 @@ export async function subscriptionRoutes(app: FastifyInstance): Promise<void> {
   });
 
   app.get("/", { preHandler: [app.authenticate] }, async (req) => {
+    const { limit, cursor } = parsePagination(req.query as Record<string, unknown>);
     const subs = await prisma.subscription.findMany({
       where: { merchantId: req.merchantId! },
-      orderBy: { createdAt: "desc" },
-      take: 50,
+      ...cursorPrismaArgs({ limit, cursor }),
     });
-    return { subscriptions: subs };
+    const result = paginate(subs, limit);
+    return { subscriptions: result.data, hasMore: result.hasMore, nextCursor: result.nextCursor };
   });
 
   app.get("/:id", { preHandler: [app.authenticate] }, async (req, reply) => {

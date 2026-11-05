@@ -117,7 +117,14 @@ pnpm dev:web    # Vite frontend on :5173
 
 ## SDK
 
-The SDK is built (`tsup` → `dist/`) and ready to publish. See `packages/sdk/NPM_PUBLISH.md` for registry setup (Option A: GitHub Packages private / Option B: public npm).
+The SDK is built (`tsup` → `dist/`) in two formats and ready to publish. See `packages/sdk/NPM_PUBLISH.md` for registry setup.
+
+**Two integration paths:**
+
+| Format | File | Who uses it |
+|---|---|---|
+| npm package (ESM) | `dist/index.js` + `dist/index.d.ts` | React/Next.js/Vue developers |
+| Standalone `<script>` (IIFE) | `dist/browser-entry.global.js` (8KB) | WordPress, Shopify, plain HTML — no build tool |
 
 ```ts
 import { WhitechainClient, formatBaseUnits } from "@ezpayz/sdk";
@@ -155,30 +162,37 @@ const valid = verifyWebhookSignature(secret, rawBody, signature);
 ## REST API (key endpoints)
 
 - `POST /v1/auth/register` · `POST /v1/auth/login` (JWT)
-- `POST /v1/api-keys` (publishable + secret, shown once)
-- `POST /v1/payment-intents` (auth + idempotency, accepts `amount`/`successUrl`/`cancelUrl`/`metadata`) · `GET /v1/payment-intents/:id`
+- `POST /v1/api-keys` (publishable + secret, shown once) · `GET /v1/api-keys` (list, includes `lastUsedAt`)
+- `POST /v1/payment-intents` (auth + idempotency, accepts `amount`/`successUrl`/`cancelUrl`/`metadata`) · `GET /v1/payment-intents` (list + cursor pagination + status/date filters) · `GET /v1/payment-intents/:id` · `GET /v1/payment-intents/:id/receipt.pdf`
 - `GET /v1/checkout/:slug` (public, PayeeShield-signed) · `POST /v1/checkout/:slug/authorize` (EIP-3009)
 - `GET /v1/checkout/subscription/:slug` (public, plan details for subscription widget)
-- `POST /v1/payment-links` · `POST /v1/invoices` · `GET /v1/invoices/:id/pdf` (downloadable receipt PDF)
-- `POST /v1/refunds` · `POST /v1/refunds/:id/authorize` (merchant-signed EIP-3009)
-- `POST /v1/plans` · `POST /v1/subscriptions/checkout` (hosted checkout session) · `POST /v1/subscriptions` · `POST /v1/subscriptions/:id/renew-now` · `POST /v1/usage`
-- `GET /v1/analytics/overview` · `GET /v1/webhooks` · `GET /v1/exceptions` · `GET /v1/fulfilment`
+- `GET /v1/payment-links/:slug` (public resolve) · `POST /v1/payment-links/:slug/checkout` (public, creates intent from link)
+- `POST /v1/payment-links` · `GET /v1/payment-links` (paginated) · `POST /v1/invoices` · `GET /v1/invoices` (paginated) · `GET /v1/invoices/:id/pdf`
+- `POST /v1/refunds` (idempotent) · `GET /v1/refunds` (paginated) · `POST /v1/refunds/:id/authorize` (merchant-signed EIP-3009)
+- `POST /v1/plans` (idempotent) · `GET /v1/plans` (paginated)
+- `POST /v1/subscriptions/checkout` (idempotent, hosted checkout session) · `POST /v1/subscriptions` (idempotent) · `GET /v1/subscriptions` (paginated) · `POST /v1/subscriptions/:id/renew-now` · `POST /v1/usage`
+- `POST /v1/customers` · `GET /v1/customers` (paginated + email search) · `GET /v1/customers/:id`
+- `GET /v1/merchants/me` · `PATCH /v1/merchants/me` (profile update) · `GET /v1/merchants/wallet/challenge` · `POST /v1/merchants/wallet/verify` (personal_sign verification)
+- `GET /v1/analytics/overview` · `GET /v1/webhooks` (paginated) · `GET /v1/webhooks/events` (paginated) · `GET /v1/exceptions` (paginated) · `GET /v1/fulfilment` (paginated)
 - `GET /health` · `GET /v1/status`
 
-Auth: `Authorization: Bearer <JWT>` (dashboard), `Bearer <secret key>` (full write, server-only), or `Bearer <publishable key>` (read-only, browser-safe). Write routes require a secret key or JWT — publishable keys are blocked by `requireSecretKey`. Payment intent creation returns a short-lived `clientSecret` (15 min, signed) for the browser widget.
+All list endpoints support cursor pagination: `?limit=20&cursor=<lastItemId>` → `{ data, hasMore, nextCursor }`.
+All POST routes support `Idempotency-Key` header (prevents duplicates on network retry).
+
+Auth: `Authorization: Bearer <JWT>` (dashboard), `Bearer <secret key>` (full write, server-only), or `Bearer <publishable key>` (read-only, browser-safe). Write routes require a secret key or JWT. Payment intent creation returns a short-lived `clientSecret` (15 min) for the browser widget.
 
 ---
 
 ## Current limitations (hackathon MVP)
 
-- Email is stubbed (logged, no SMTP). The downloadable PDF receipt (`GET /v1/invoices/:id/pdf`) is the primary receipt mechanism. Email will be wired in a later phase.
+- Email is stubbed (logged, no SMTP). The downloadable PDF receipt (`GET /v1/payment-intents/:id/receipt.pdf`) is the primary receipt mechanism. Email will be wired in a later phase.
 - PayeeShield uses a single gateway signing key (per-merchant keys deferred — confirmed for MVP).
 - Relayer key in `.env` (not a KMS/HSM).
-- The dashboard list/analytics pages run on the mock adapter. The **real checkout** (`/real-checkout/:slug`), **real subscription checkout** (`/real-subscription-checkout/:slug`), and **real refund signing** (`RealRefundSign`) are wired to the live API. Full dashboard wiring is incremental.
+- Dashboard write operations are wired to the real API (mock adapter commented out). Dashboard list pages still read from the mock Zustand store for data display — these need to be updated to fetch from the real API. The real checkout, real subscription checkout, real refund signing, and onboarding wallet verify are fully wired.
 - Webhook signing secret stored as plaintext (MVP; encrypt at rest for production).
 - Monthly interval = 30-day approximation on-chain (backend scheduler handles real calendar timing).
 - Refund backend-signing deferred (browser Wagmi signing for MVP; backend-signing documented as the production path).
-- SDK published to private registry (Option A: GitHub Packages). Public npm (Option B) documented in `packages/sdk/NPM_PUBLISH.md` for later.
+- SDK published to private registry (Option A); public npm (Option B) documented in `packages/sdk/NPM_PUBLISH.md` for later. Standalone browser bundle built but not yet served via a CDN URL.
 
 ---
 

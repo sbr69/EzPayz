@@ -1,14 +1,16 @@
 import type { FastifyInstance } from "fastify";
 import { prisma } from "../../db/client";
+import { parsePagination, cursorPrismaArgs, paginate } from "../../utils/pagination";
 
 export async function exceptionRoutes(app: FastifyInstance): Promise<void> {
   app.get("/", { preHandler: [app.authenticate] }, async (req) => {
+    const { limit, cursor } = parsePagination(req.query as Record<string, unknown>);
     const exceptions = await prisma.paymentException.findMany({
       where: { merchantId: req.merchantId! },
-      orderBy: { detectedAt: "desc" },
-      take: 50,
+      ...cursorPrismaArgs({ limit, cursor }, "detectedAt"),
     });
-    return { exceptions };
+    const result = paginate(exceptions, limit);
+    return { exceptions: result.data, hasMore: result.hasMore, nextCursor: result.nextCursor };
   });
 
   app.get("/:id", { preHandler: [app.authenticate] }, async (req, reply) => {

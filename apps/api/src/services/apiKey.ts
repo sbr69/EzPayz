@@ -54,11 +54,13 @@ export async function resolveApiKey(
 ): Promise<{ merchantId: string; environment: Environment; keyType: "publishable" | "secret" } | null> {
   const byPub = await prisma.merchantApiKey.findUnique({ where: { publishable: provided } });
   if (byPub && byPub.status === "active") {
+    await prisma.merchantApiKey.update({ where: { id: byPub.id }, data: { lastUsedAt: new Date() } }).catch(() => {});
     return { merchantId: byPub.merchantId, environment: byPub.environment, keyType: "publishable" };
   }
   const hash = createHash("sha256").update(provided).digest("hex");
   const bySecret = await prisma.merchantApiKey.findFirst({ where: { secretHash: hash, status: "active" } });
   if (bySecret) {
+    await prisma.merchantApiKey.update({ where: { id: bySecret.id }, data: { lastUsedAt: new Date() } }).catch(() => {});
     return { merchantId: bySecret.merchantId, environment: bySecret.environment, keyType: "secret" };
   }
   return null;

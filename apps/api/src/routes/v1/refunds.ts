@@ -4,6 +4,8 @@ import { prisma } from "../../db/client";
 import { createRefund, validateRefundAuthorization, type RefundAuth } from "../../services/refund";
 import { getRelayerQueue } from "../../queues";
 import { parseHumanAmount } from "../../utils/amount";
+import { recordIdempotency } from "../../plugins/idempotency";
+import { parsePagination, cursorPrismaArgs, paginate } from "../../utils/pagination";
 
 const createSchema = z.object({
   paymentId: z.string().min(1),
@@ -23,7 +25,7 @@ const authorizeSchema = z.object({
 
 export async function refundRoutes(app: FastifyInstance): Promise<void> {
   // POST /v1/refunds — create a refund (eligibility checked against the settled payment).
-  app.post("/", { preHandler: [app.authenticate, app.requireSecretKey] }, async (req, reply) => {
+  app.post("/", { preHandler: [app.authenticate, app.requireSecretKey, app.idempotency] }, async (req, reply) => {
     const parsed = createSchema.safeParse(req.body);
     if (!parsed.success) {
       return reply.code(400).send({ error: { code: "validation_error", message: parsed.error.issues.map((i) => i.message).join("; ") } });
@@ -31,6 +33,8 @@ export async function refundRoutes(app: FastifyInstance): Promise<void> {
     try {
       const amountBaseUnits = parseHumanAmount(parsed.data.amount);
       const refund = await createRefund({ merchantId: req.merchantId!, paymentId: parsed.data.paymentId, amount: amountBaseUnits, reason: parsed.data.reason });
+      const key = (req.headers["idempotency-key"] as string).trim();
+      await recordIdempotency(req.merchantId!, key, "refund", refund.id);
       return reply.code(201).send({ id: refund.id, status: refund.status, amount: refund.amount });
     } catch (e) {
       const err = e as { statusCode?: number; code?: string; message?: string };
@@ -40,8 +44,14 @@ export async function refundRoutes(app: FastifyInstance): Promise<void> {
   });
 
   app.get("/", { preHandler: [app.authenticate] }, async (req) => {
-    const refunds = await prisma.refund.findMany({ where: { merchantId: req.merchantId! }, orderBy: { createdAt: "desc" }, take: 50 });
-    return { refunds };
+    const { limit, cursor } = parsePagination(req.query as Record<string, unknown>);
+    const refunds = await prisma.refund.findMany({
+      where: { merchantId: req.merchantId! },
+      ...cursorPrismaArgs({ limit, cursor }),
+      include: { timeline: true },
+    });
+    const result = paginate(refunds, limit);
+    return { refunds: result.data, hasMore: result.hasMore, nextCursor: result.nextCursor };
   });
 
   app.get("/:id", { preHandler: [app.authenticate] }, async (req, reply) => {

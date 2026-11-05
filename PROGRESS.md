@@ -1,7 +1,7 @@
 # Progress — EzPayz
 
 **Last updated:** 31 October 2026
-**Status:** Feature-complete MVP + developer-friendliness pass. All 10 phases built + Phase 10 (dev-ex gap closure). 3 real e2e tests passed on Whitechain Sepolia. Local (no deploy yet).
+**Status:** Feature-complete MVP + developer-friendliness pass (Phase 10) + Razorpay-parity gap closure (Phase 11). All 11 phases built. 3 real e2e tests passed on Whitechain Sepolia. Local (no deploy yet).
 
 ---
 
@@ -146,13 +146,43 @@ Senior-developer review against Razorpay/Stripe integration patterns. Identified
 | Subscription renewal via `charge()` | [0x4b9a8396…885a8](https://explorer.testnet.whitechain.io/tx/0x4b9a8396a3fd0ed4de65a4ba96d0e8daedb41ce6046a92faa81c548f984885a8) |
 | Refund merchant→payer | [0xc366ab8e…f6433](https://explorer.testnet.whitechain.io/tx/0xc366ab8e54f959f4643b96d1a91c71007cf18ab18c5a81d6b0d00558fb2f6433) |
 
+### Phase 11 — Razorpay-parity gap closure ✅
+
+Senior-developer review #2 against Razorpay/Stripe integration patterns. Closed the following gaps:
+
+**Backend endpoints:**
+- `GET /v1/payment-intents` (list with cursor pagination + status/date filters) — was missing entirely.
+- `GET /v1/payment-intents/:id/receipt.pdf` — server-rendered receipt PDF directly from a payment intent (no invoice required). Fixes the broken checkout success page receipt link.
+- Customer CRUD: `POST /v1/customers`, `GET /v1/customers` (list + pagination + email search), `GET /v1/customers/:id` — new route file.
+- `PATCH /v1/merchants/me` — merchant profile update (display name, logo, support email, branding, payout wallet).
+- `GET /v1/merchants/wallet/challenge` + `POST /v1/merchants/wallet/verify` — cryptographic wallet-control verification via `personal_sign` (challenge → sign → recoverAddress → verify). Merchant connects wallet via RainbowKit, signs a one-time challenge, gateway verifies signature matches the wallet address.
+- `GET /v1/payment-links/:slug` (public resolve) + `POST /v1/payment-links/:slug/checkout` (public, creates a payment intent from the link — the slug acts as authorization, no secret key needed). Payment links now work end-to-end.
+- Idempotency on ALL POST routes: `paymentLinks`, `invoices`, `refunds`, `plans`, `subscriptions/checkout`, `subscriptions`, `webhooks`. Previously only on `paymentIntents`.
+- Cursor-based pagination on ALL list endpoints: `paymentIntents`, `refunds`, `subscriptions`, `plans`, `invoices`, `paymentLinks`, `webhooks`, `webhooks/events`, `exceptions`, `fulfilment`, `customers`. Response includes `hasMore` + `nextCursor`.
+- `lastUsedAt` update on API key resolution — merchants can now see when their keys were last used.
+- `utils/pagination.ts` — shared cursor pagination helper (Stripe-style `?limit=&cursor=` → `{ data, hasMore, nextCursor }`).
+
+**SDK:**
+- Standalone browser `<script>` bundle (`tsup` IIFE → `dist/browser-entry.global.js`, 8KB). Merchants without a build tool (WordPress, Shopify, plain HTML) can integrate via `<script src=".../whitechain-checkout.global.js">` → `WhitechainCheckout.open({ checkoutSlug, apiUrl })`. Uses `window.ethereum` (MetaMask injected provider) directly — no React, no npm.
+- `clientSecret` prop on `<WhitechainCheckout/>` widget — sent as a Bearer header on checkout fetch + authorize requests. The clientSecret is now consumed, not just generated.
+- `tsup.config.ts` updated to dual-build: ESM (`dist/index.js`) + IIFE (`dist/browser-entry.global.js`).
+
+**Frontend:**
+- `RealSubscriptionCheckout` routed at `/real-subscription-checkout/:slug` in `App.tsx` (was dead code — now reachable).
+- `PaymentLinkResolver` at `/l/:slug` — replaces the mock Checkout for payment links. Fetches link details via `GET /v1/payment-links/:slug`, creates a checkout session via `POST /v1/payment-links/:slug/checkout`, redirects to `/real-checkout/:slug`. Fixed links auto-redirect; customer-amount links show an amount input.
+- `RealRefundSign` wired into `RefundDetail` page — renders a Wagmi-based signing section when the refund status is `awaiting_authorization`. Merchant connects payout wallet via RainbowKit, signs EIP-3009 refund authorization in-browser.
+- Fixed `RealCheckout` receipt link → `/v1/payment-intents/:id/receipt.pdf` (was linking to `/v1/invoices/:paymentIntentId/pdf` which 404'd — payment intent IDs aren't invoice IDs).
+- Fixed `RefundPages.tsx` `Number(x)/1e6` → `fmtAmount()` for amount display.
+- Dashboard swapped from mock adapter to real HTTP adapter (`services/api/adapter.ts`). Mock adapter commented out in `services/index.ts` (preserved, not deleted). Real adapter calls the live API via `apiFetch`. Cast to mock type for backward compatibility with dashboard page types.
+- Onboarding wallet verification now uses real Wagmi `useSignMessage` + the real API (`getWalletChallenge` → `signMessageAsync` → `verifyWalletOwnership`). Replaces the simulated "verify wallet" button.
+
 ---
 
 ## What's left to implement
 
 ### Must-do before production
 - [ ] **Deploy**: Vercel (frontend) + Render (API + worker) + Neon (DB) + Upstash (Redis). Currently local only — the owner is testing end-to-end first.
-- [ ] **Full dashboard wiring**: swap apps/web's mock adapter for the real API on ALL dashboard list/analytics pages (payments, links, invoices, customers, subscriptions, refunds, exceptions, analytics, settings). Currently the real checkout (`/real-checkout/:slug`), real subscription checkout (`/real-subscription-checkout/:slug`), and real refund signing (`RealRefundSign`) are wired; the rest use the mock adapter.
+- [ ] **Dashboard pages data reads**: the `api` export is now the real adapter (mock commented out), but dashboard list pages still read from `useDemo()` (the mock Zustand store) for data display. Write operations go through the real API. List pages need to be updated to fetch from the real API via `apiFetch` or the `realApi` adapter methods. The real checkout, real subscription checkout, real refund signing, and onboarding wallet verify are fully wired to the live API.
 - [ ] **Real email**: wire an SMTP provider (e.g., Resend) for receipt/refund/renewal emails. Currently stubbed (logged, no SMTP). The downloadable PDF receipt is the primary receipt mechanism for the MVP. Email deferred — will be wired in a later phase.
 - [ ] **JWT_SECRET + PAYEESHIELD_SIGNING_KEY**: set strong production values (not the dev defaults).
 - [ ] **Relayer key custody**: move `RELAYER_PRIVATE_KEY` from `.env` to a KMS/HSM.

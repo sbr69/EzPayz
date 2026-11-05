@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { AlertTriangle, RefreshCcw } from "lucide-react";
 import { useDemo } from "@/store/demoStore";
 import { REFUND_STATUS_META } from "@/config/ui";
-import { fmtDateTime, timeAgo } from "@/lib/money";
+import { fmtAmount, fmtDateTime, timeAgo } from "@/lib/money";
 import { TOKEN } from "@/config/app";
 import { Button, Callout, Card, CardHeader, EmptyState, KeyValue, PageHeader, StatusBadge } from "@/components/ui";
 import { DataTable, type Column } from "@/components/ui/DataTable";
@@ -14,6 +14,7 @@ import { RefundDialog } from "@/components/common/dialogs";
 import { useState } from "react";
 import type { Payment, Refund } from "@/types";
 import { useSimulatedLoading } from "@/hooks/useSimulatedLoading";
+import { RealRefundSign } from "./RealRefundSign";
 
 export function RefundsList() {
   const data = useDemo((s) => s.data);
@@ -304,17 +305,14 @@ export function RefundDetail() {
           <Card>
             <CardHeader title="Refund limits" />
             <div className="grid grid-cols-2 gap-2.5 p-4">
-              <MiniStat label="Original" value={payment ? `${(Number(payment.amount) / 1e6).toFixed(2)} ${TOKEN.symbol}` : "—"} />
-              <MiniStat label="Already refunded" value={payment ? `${(Number(payment.refundedAmount) / 1e6).toFixed(2)} ${TOKEN.symbol}` : "—"} />
-              <MiniStat label="This refund" value={`${(Number(refund.amount) / 1e6).toFixed(2)} ${TOKEN.symbol}`} />
+              <MiniStat label="Original" value={payment ? `${fmtAmount(payment.amount)} ${TOKEN.symbol}` : "—"} />
+              <MiniStat label="Already refunded" value={payment ? `${fmtAmount(payment.refundedAmount)} ${TOKEN.symbol}` : "—"} />
+              <MiniStat label="This refund" value={`${fmtAmount(refund.amount)} ${TOKEN.symbol}`} />
               <MiniStat
                 label="Remaining after"
                 value={
                   payment
-                    ? `${(
-                        (Number(payment.amount) - Number(payment.refundedAmount) - Number(refund.amount)) /
-                        1e6
-                      ).toFixed(2)} ${TOKEN.symbol}`
+                    ? `${fmtAmount((BigInt(payment.amount) - BigInt(payment.refundedAmount) - BigInt(refund.amount)).toString())} ${TOKEN.symbol}`
                     : "—"
                 }
               />
@@ -328,6 +326,20 @@ export function RefundDetail() {
           </Card>
         </div>
       </div>
+
+      {(refund.status === "awaiting_authorization" || refund.status === "created") && payment?.payerWallet && (
+        <Card>
+          <CardHeader title="Authorize refund (real on-chain signing)" description="Connect your payout wallet and sign the EIP-3009 authorization. The relayer sponsors gas." />
+          <div className="px-5 py-4">
+            <RealRefundSign
+              refundId={refund.id}
+              amount={refund.amount}
+              payerWallet={payment.payerWallet}
+              merchantPayoutWallet={data.merchant.payoutWallet}
+            />
+          </div>
+        </Card>
+      )}
 
       <Card>
         <CardHeader title="Refund timeline" description="Simulated steps in demo mode" />

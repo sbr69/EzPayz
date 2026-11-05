@@ -24,6 +24,7 @@ import { planRoutes } from "./routes/v1/plans";
 import { subscriptionRoutes } from "./routes/v1/subscriptions";
 import { usageRoutes } from "./routes/v1/usage";
 import { refundRoutes } from "./routes/v1/refunds";
+import { customerRoutes } from "./routes/v1/customers";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -59,6 +60,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(subscriptionRoutes, { prefix: "/v1/subscriptions" });
   await app.register(usageRoutes, { prefix: "/v1/usage" });
   await app.register(refundRoutes, { prefix: "/v1/refunds" });
+  await app.register(customerRoutes, { prefix: "/v1/customers" });
 
   return app;
 }

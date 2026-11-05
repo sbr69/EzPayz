@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAccount, useSignMessage } from "wagmi";
 import {
   ArrowLeft,
   ArrowRight,
@@ -10,6 +11,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { api } from "@/services";
+import { realApi } from "@/services/api/adapter";
 import { useDemo } from "@/store/demoStore";
 import { useWallet } from "@/contexts/WalletContext";
 import { DEFAULT_NETWORK, TOKEN, WALLET_DISCLOSURE } from "@/config/app";
@@ -67,6 +69,9 @@ export default function Onboarding() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   const wallet = useWallet();
+  const { address: wagmiAddress } = useAccount();
+  const { signMessageAsync } = useSignMessage();
+  const [verifying, setVerifying] = useState(false);
 
   const initials = useMemo(
     () =>
@@ -368,19 +373,40 @@ export default function Onboarding() {
                   <div className="space-y-3 rounded-md border border-line p-4">
                     <p className="text-[13px] font-semibold text-ink">Verify wallet ownership</p>
                     <p className="text-[12.5px] leading-relaxed text-ink-3">
-                      The gateway asks the connected wallet to sign a one-time challenge. In demo mode the
-                      challenge is simulated and no signature is requested from your wallet.
+                      The gateway asks the connected wallet to sign a one-time challenge. This proves you control
+                      the payout wallet — required before accepting payments.
                     </p>
-                    <Button
-                      variant="primary"
-                      loading={busy}
-                      onClick={async () => {
-                        await api.verifyWalletOwnership(wallet.address!);
-                        pushToast({ title: "Wallet verified (simulated)", tone: "success" });
-                      }}
-                    >
-                      Sign verification challenge
-                    </Button>
+                    {wagmiAddress ? (
+                      <Button
+                        variant="primary"
+                        loading={verifying}
+                        onClick={async () => {
+                          setVerifying(true);
+                          try {
+                            const challenge = await realApi.getWalletChallenge();
+                            const signature = await signMessageAsync({ message: challenge.message });
+                            await realApi.verifyWalletOwnership({
+                              wallet: wagmiAddress,
+                              signature,
+                              challenge: challenge.challenge,
+                              verificationToken: challenge.verificationToken,
+                            });
+                            patchMerchant({ payoutWallet: wagmiAddress, walletVerified: true });
+                            pushToast({ title: "Wallet verified", body: `${wagmiAddress.slice(0, 10)}… is now your payout wallet.`, tone: "success" });
+                          } catch (e) {
+                            pushToast({ title: "Verification failed", body: (e as Error).message, tone: "error" });
+                          } finally {
+                            setVerifying(false);
+                          }
+                        }}
+                      >
+                        Sign verification challenge
+                      </Button>
+                    ) : (
+                      <Callout tone="warn" title="Connect a wallet first">
+                        Connect your payout wallet via the RainbowKit "Connect Wallet" button to verify ownership.
+                      </Callout>
+                    )}
                   </div>
                 )
               ) : null}

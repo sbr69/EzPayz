@@ -3,6 +3,8 @@ import { z } from "zod";
 import { randomBytes } from "node:crypto";
 import { prisma } from "../../db/client";
 import { dispatchWebhookEvent } from "../../services/webhook";
+import { recordIdempotency } from "../../plugins/idempotency";
+import { parsePagination, cursorPrismaArgs, paginate } from "../../utils/pagination";
 
 const createSchema = z.object({
   url: z.string().url(),
@@ -12,7 +14,7 @@ const createSchema = z.object({
 
 export async function webhookRoutes(app: FastifyInstance): Promise<void> {
   // POST /v1/webhooks — register an endpoint. The signing secret is generated + shown once.
-  app.post("/", { preHandler: [app.authenticate, app.requireSecretKey] }, async (req, reply) => {
+  app.post("/", { preHandler: [app.authenticate, app.requireSecretKey, app.idempotency] }, async (req, reply) => {
     const parsed = createSchema.safeParse(req.body);
     if (!parsed.success) {
       return reply.code(400).send({ error: { code: "validation_error", message: parsed.error.issues.map((i) => i.message).join("; ") } });
@@ -31,28 +33,38 @@ export async function webhookRoutes(app: FastifyInstance): Promise<void> {
         health: "untested",
       },
     });
+    const key = (req.headers["idempotency-key"] as string).trim();
+    await recordIdempotency(req.merchantId!, key, "webhook_endpoint", ep.id);
     return reply.code(201).send({ id: ep.id, url: ep.url, eventTypes: ep.eventTypes, signingSecret, signingSecretLast4 });
   });
 
-  // GET /v1/webhooks — list endpoints (secrets never returned).
+  // GET /v1/webhooks — list endpoints with cursor pagination (secrets never returned).
   app.get("/", { preHandler: [app.authenticate] }, async (req) => {
-    const endpoints = await prisma.webhookEndpoint.findMany({ where: { merchantId: req.merchantId! }, orderBy: { createdAt: "desc" } });
+    const { limit, cursor } = parsePagination(req.query as Record<string, unknown>);
+    const endpoints = await prisma.webhookEndpoint.findMany({
+      where: { merchantId: req.merchantId! },
+      ...cursorPrismaArgs({ limit, cursor }),
+    });
+    const result = paginate(endpoints, limit);
     return {
-      endpoints: endpoints.map((e) => ({
+      endpoints: result.data.map((e) => ({
         id: e.id, url: e.url, description: e.description, eventTypes: e.eventTypes, active: e.active,
         signingSecretLast4: e.signingSecretLast4, health: e.health, createdAt: e.createdAt, lastDeliveryAt: e.lastDeliveryAt,
       })),
+      hasMore: result.hasMore,
+      nextCursor: result.nextCursor,
     };
   });
 
-  // GET /v1/webhooks/events — delivery history.
+  // GET /v1/webhooks/events — delivery history with cursor pagination.
   app.get("/events", { preHandler: [app.authenticate] }, async (req) => {
+    const { limit, cursor } = parsePagination(req.query as Record<string, unknown>);
     const events = await prisma.webhookEvent.findMany({
       where: { merchantId: req.merchantId! },
-      orderBy: { createdAt: "desc" },
-      take: 50,
+      ...cursorPrismaArgs({ limit, cursor }),
     });
-    return { events };
+    const result = paginate(events, limit);
+    return { events: result.data, hasMore: result.hasMore, nextCursor: result.nextCursor };
   });
 
   // POST /v1/webhooks/events/:id/replay — re-dispatch an event.

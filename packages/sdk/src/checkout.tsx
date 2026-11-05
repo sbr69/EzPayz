@@ -14,6 +14,10 @@ import { formatBaseUnits } from "./amount";
 export interface WhitechainCheckoutProps {
   checkoutSlug: string;
   apiUrl: string;
+  /** Short-lived session token returned from POST /v1/payment-intents. Sent as a Bearer header
+   *  on the checkout fetch + authorize requests. When provided, the checkout is scoped to this
+   *  session only. When omitted, the public checkout endpoint is used (backward-compatible). */
+  clientSecret?: string;
   signTypedData: (args: {
     domain: Record<string, unknown>;
     types: Record<string, { name: string; type: string }[]>;
@@ -27,7 +31,7 @@ export interface WhitechainCheckoutProps {
 type WidgetStatus = "loading" | "ready" | "authorizing" | "submitted" | "succeeded" | "failed";
 
 export function WhitechainCheckout(props: WhitechainCheckoutProps): React.ReactElement {
-  const { checkoutSlug, apiUrl, signTypedData, onSuccess, onError } = props;
+  const { checkoutSlug, apiUrl, clientSecret, signTypedData, onSuccess, onError } = props;
   const [status, setStatus] = useState<WidgetStatus>("loading");
   const [checkout, setCheckout] = useState<{
     paymentIntentId: string;
@@ -42,7 +46,9 @@ export function WhitechainCheckout(props: WhitechainCheckoutProps): React.ReactE
   useEffect(() => {
     void (async () => {
       try {
-        const res = await fetch(`${apiUrl}/v1/checkout/${checkoutSlug}`);
+        const headers: Record<string, string> = {};
+        if (clientSecret) headers.Authorization = `Bearer ${clientSecret}`;
+        const res = await fetch(`${apiUrl}/v1/checkout/${checkoutSlug}`, { headers });
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error?.message ?? "Checkout not found");
         setCheckout(data);
@@ -95,7 +101,7 @@ export function WhitechainCheckout(props: WhitechainCheckoutProps): React.ReactE
       // Submit the authorization.
       const authRes = await fetch(`${apiUrl}/v1/checkout/${checkoutSlug}/authorize`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", ...(clientSecret ? { Authorization: `Bearer ${clientSecret}` } : {}) },
         body: JSON.stringify({ ...message, signature }),
       });
       const authBody = await authRes.json();

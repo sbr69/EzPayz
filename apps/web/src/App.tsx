@@ -2,6 +2,8 @@ import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 import { WalletProvider } from "@/contexts/WalletContext";
 import { Providers } from "@/providers";
 import { RealCheckout } from "@/features/checkout/RealCheckout";
+import { RealSubscriptionCheckout } from "@/features/checkout/RealSubscriptionCheckout";
+import { PaymentLinkResolver } from "@/features/checkout/PaymentLinkResolver";
 import { AppShell } from "@/components/layout/AppShell";
 import { ToastHost } from "@/components/ui/Feedback";
 import Landing from "@/features/marketing/Landing";
@@ -92,8 +94,9 @@ export function App() {
 
           {/* Customer-facing experiences (standalone layout) */}
           <Route path="/checkout/:sessionId" element={<Checkout />} />
-          <Route path="/l/:slug" element={<Checkout />} />
+          <Route path="/l/:slug" element={<PaymentLinkResolver />} />
           <Route path="/real-checkout/:slug" element={<RealCheckout />} />
+          <Route path="/real-subscription-checkout/:slug" element={<RealSubscriptionCheckout />} />
           <Route path="/subscribe/:planId" element={<SubscriptionCheckout />} />
           <Route path="/receipt/:id" element={<ReceiptPage />} />
           <Route path="/customer/subscriptions/:id" element={<CustomerSubscriptionPage />} />

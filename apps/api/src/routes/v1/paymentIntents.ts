@@ -4,6 +4,8 @@ import { prisma } from "../../db/client";
 import { createPaymentIntent, getPaymentIntentForMerchant } from "../../services/paymentIntent";
 import { recordIdempotency } from "../../plugins/idempotency";
 import { parseHumanAmount, formatBaseUnits } from "../../utils/amount";
+import { parsePagination, cursorPrismaArgs, paginate } from "../../utils/pagination";
+import { generatePaymentReceiptPdfBuffer } from "../../services/paymentIntentReceipt";
 
 const createSchema = z.object({
   amount: z.string().regex(/^\d+(\.\d{1,6})?$/, "amount must be a decimal string like \"10.00\" (max 6 decimal places)"),
@@ -64,6 +66,26 @@ export async function paymentIntentRoutes(app: FastifyInstance): Promise<void> {
     }
   );
 
+  // GET /v1/payment-intents — list with cursor pagination + optional status/date filters.
+  app.get("/", { preHandler: [app.authenticate] }, async (req) => {
+    const query = req.query as Record<string, unknown>;
+    const { limit, cursor } = parsePagination(query);
+    const where: Record<string, unknown> = { merchantId: req.merchantId! };
+    if (typeof query.status === "string" && query.status.length > 0) where.status = query.status;
+    if (typeof query.from === "string") where.createdAt = { gte: new Date(query.from) };
+    if (typeof query.to === "string") where.createdAt = { ...((where.createdAt as Record<string, unknown>) ?? {}), lte: new Date(query.to) };
+    const intents = await prisma.paymentIntent.findMany({
+      where: where as never,
+      ...cursorPrismaArgs({ limit, cursor }),
+    });
+    const result = paginate(intents, limit);
+    return {
+      paymentIntents: result.data.map((i) => ({ ...i, displayAmount: formatBaseUnits(i.amount) })),
+      hasMore: result.hasMore,
+      nextCursor: result.nextCursor,
+    };
+  });
+
   // GET /v1/payment-intents/:id — tenant-isolated fetch.
   app.get("/:id", { preHandler: [app.authenticate] }, async (req, reply) => {
     const id = (req.params as { id: string }).id;
@@ -74,5 +96,15 @@ export async function paymentIntentRoutes(app: FastifyInstance): Promise<void> {
       displayAmount: formatBaseUnits(intent.amount),
       displayRefundedAmount: formatBaseUnits(intent.refundedAmount || "0"),
     });
+  });
+
+  // GET /v1/payment-intents/:id/receipt.pdf — downloadable receipt PDF (no invoice required).
+  app.get("/:id/receipt.pdf", { preHandler: [app.authenticate] }, async (req, reply) => {
+    const id = (req.params as { id: string }).id;
+    const pdf = await generatePaymentReceiptPdfBuffer(id, req.merchantId!);
+    if (!pdf) return reply.code(404).send({ error: { code: "not_found", message: "Payment intent not found" } });
+    reply.type("application/pdf");
+    reply.header("Content-Disposition", `attachment; filename="receipt-${id}.pdf"`);
+    return reply.send(pdf);
   });
 }
