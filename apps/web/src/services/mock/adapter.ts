@@ -138,7 +138,7 @@ export interface CreateRefundInput {
   paymentId: string;
   amount: BaseAmount;
   reason: string;
-  gasSponsored: boolean;
+  gasSponsored?: boolean;
 }
 
 export interface CreatePlanInput {
@@ -527,7 +527,7 @@ export const mockApi = {
       amount: input.amount,
       reason: input.reason,
       status: "awaiting_authorization",
-      gasSponsored: input.gasSponsored,
+      gasSponsored: input.gasSponsored ?? true,
       authorizationRef: null,
       txRef: null,
       createdAt: nowIso(),

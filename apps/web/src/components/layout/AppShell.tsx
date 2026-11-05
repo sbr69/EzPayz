@@ -395,6 +395,8 @@ function ProfileMenu() {
                 onClick={() => {
                   setOpen(false);
                   signOut();
+                  localStorage.removeItem("wcp_token");
+                  localStorage.removeItem("wcp_merchant_id");
                   navigate("/sign-in");
                 }}
                 className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-[16px] text-ink-2 hover:bg-canvas"

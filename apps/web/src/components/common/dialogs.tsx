@@ -161,7 +161,6 @@ export function RefundDialog({
   const [mode, setMode] = useState<"full" | "partial">("full");
   const [amount, setAmount] = useState(fromDisplayRemaining(payment));
   const [reason, setReason] = useState("");
-  const [gas, setGas] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [stage, setStage] = useState<"form" | "authorizing">("form");
 
@@ -191,7 +190,6 @@ export function RefundDialog({
         paymentId: payment.id,
         amount: target,
         reason: reason.trim(),
-        gasSponsored: gas,
       });
       pushToast({
         title: "Refund created",
@@ -301,37 +299,6 @@ export function RefundDialog({
             placeholder="Duplicate line item on the Q1 statement."
             onChange={(e) => setReason(e.target.value)}
           />
-        </Field>
-
-        <Field label="Gas for the refund transfer">
-          <div className="space-y-2">
-            <label className="flex cursor-pointer items-start gap-2.5 rounded-md border border-line p-3">
-              <input
-                type="radio"
-                checked={gas}
-                onChange={() => setGas(true)}
-                className="mt-0.5 accent-[#0d7a6f]"
-              />
-              <span>
-                <span className="block text-[18px] font-medium text-ink">Sponsored (gasless) refund</span>
-                <span className="block text-[16px] leading-relaxed text-ink-3">
-                  You sign a delegated transfer authorization and the GasGuard relayer submits the
-                  transaction and pays gas. Availability depends on the token contract supporting
-                  delegated transfers — unverified for this contract.
-                </span>
-              </span>
-            </label>
-            <label className="flex cursor-pointer items-start gap-2.5 rounded-md border border-line p-3">
-              <input type="radio" checked={!gas} onChange={() => setGas(false)} className="mt-0.5 accent-[#0d7a6f]" />
-              <span>
-                <span className="block text-[18px] font-medium text-ink">Merchant-paid gas</span>
-                <span className="block text-[16px] leading-relaxed text-ink-3">
-                  You submit the transfer directly from your wallet and pay network gas in WBT. Always
-                  available.
-                </span>
-              </span>
-            </label>
-          </div>
         </Field>
 
         {error && mode === "full" ? (

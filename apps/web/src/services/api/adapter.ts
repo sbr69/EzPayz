@@ -255,11 +255,21 @@ export const realApi = {
   async approveAllowance() { throw new Error("Allowance approval is performed by the customer on-chain via the subscription checkout widget."); },
   async activateSubscription() { throw new Error("Subscription activation is performed by the customer via the subscription checkout widget."); },
   async revokeAllowance() { throw new Error("Allowance revocation is performed by the customer on-chain (approve(contract, 0))."); },
-  async createInvoicePayment() { throw new Error("Invoice payment is initiated by sharing the checkout URL with the customer."); },
-  async createProduct() { throw new Error("Products CRUD is not yet implemented in the live API."); },
-  async updateProduct() { throw new Error("Products CRUD is not yet implemented in the live API."); },
-  async addCustomerNote() { throw new Error("Customer notes are not yet implemented in the live API."); },
-  async billUsage() { throw new Error("Usage billing is not yet implemented in the live API."); },
+  async createInvoicePayment(id: string) {
+    return apiFetch(`/v1/invoices/${id}/checkout`, { method: "POST" });
+  },
+  async createProduct(input: { name: string; description?: string; price: string; billingMode?: string; unitLabel?: string; unitPrice?: string }) {
+    return apiFetch("/v1/products", { method: "POST", body: JSON.stringify(input) });
+  },
+  async updateProduct(id: string, input: Record<string, unknown>) {
+    return apiFetch(`/v1/products/${id}`, { method: "PATCH", body: JSON.stringify(input) });
+  },
+  async addCustomerNote(customerId: string, text: string) {
+    return apiFetch(`/v1/customers/${customerId}/notes`, { method: "POST", body: JSON.stringify({ text }) });
+  },
+  async billUsage(subscriptionId: string) {
+    return apiFetch(`/v1/subscriptions/${subscriptionId}/renew-now`, { method: "POST" });
+  },
   async runExceptionAction() { throw new Error("Exception actions are not yet implemented in the live API."); },
   async sendTestEvent() { throw new Error("Test webhook events are not yet implemented. Create a payment to trigger real events."); },
   async updateGasGuard() { throw new Error("GasGuard configuration is not yet exposed via the API."); },

@@ -109,6 +109,21 @@ export class WhitechainClient {
       this.request("/v1/plans", { method: "POST", headers: { ...this.headers("pl-" + Date.now()), "Content-Type": "application/json" }, body: JSON.stringify({ ...opts, interval: opts.interval ?? "monthly" }) }),
     list: () => this.request("/v1/plans?limit=100", { headers: this.headers() }),
   };
+
+  products = {
+    create: (opts: { name: string; description?: string; price: string; billingMode?: string; unitLabel?: string; unitPrice?: string }) =>
+      this.request("/v1/products", { method: "POST", headers: { ...this.headers("prd-" + Date.now()), "Content-Type": "application/json" }, body: JSON.stringify(opts) }),
+    list: () => this.request("/v1/products?limit=100", { headers: this.headers() }),
+    get: (id: string) => this.request(`/v1/products/${id}`, { headers: this.headers() }),
+    update: (id: string, opts: Record<string, unknown>) =>
+      this.request(`/v1/products/${id}`, { method: "PATCH", headers: { ...this.headers(), "Content-Type": "application/json" }, body: JSON.stringify(opts) }),
+    delete: (id: string) => this.request(`/v1/products/${id}`, { method: "DELETE", headers: this.headers() }),
+  };
+
+  usage = {
+    record: (opts: { subscriptionId: string; units: number; reference: string }) =>
+      this.request("/v1/usage", { method: "POST", headers: { ...this.headers("usg-" + Date.now()), "Content-Type": "application/json" }, body: JSON.stringify(opts) }),
+  };
 }
 
 export class WhitechainError extends Error {

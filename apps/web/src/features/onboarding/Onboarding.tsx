@@ -414,10 +414,10 @@ export default function Onboarding() {
                               challenge: challenge.challenge,
                               verificationToken: challenge.verificationToken,
                             });
-                            // Only update the local store — the verify endpoint already set
-                            // payoutWallet + walletVerified in the DB. DO NOT PATCH payoutWallet
-                            // here — the backend PATCH resets walletVerified=false when payoutWallet changes.
-                            patchMerchant({ payoutWallet: wagmiAddress, walletVerified: true });
+                            // Only update walletVerified in the local store — the verify endpoint
+                            // already set payoutWallet + walletVerified in the DB. Do NOT patch
+                            // payoutWallet here (the backend PATCH resets walletVerified when it changes).
+                            patchMerchant({ walletVerified: true, payoutWallet: wagmiAddress });
                             pushToast({ title: "Wallet verified", body: `${wagmiAddress.slice(0, 10)}… is now your payout wallet.`, tone: "success" });
                           } catch (e) {
                             pushToast({ title: "Verification failed", body: (e as Error).message, tone: "error" });
