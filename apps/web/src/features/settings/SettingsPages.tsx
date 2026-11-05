@@ -541,9 +541,17 @@ export function NotificationSettings() {
                 }
                 setError(null);
                 setSaving(true);
-                await new Promise((r) => setTimeout(r, 600));
-                setSaving(false);
-                pushToast({ title: "Notification preferences saved", tone: "success" });
+                try {
+                  await apiFetch("/v1/merchants/me", {
+                    method: "PATCH",
+                    body: JSON.stringify({ notificationPrefs: prefs }),
+                  });
+                  pushToast({ title: "Notification preferences saved", tone: "success" });
+                } catch (e) {
+                  pushToast({ title: "Save failed", body: (e as Error).message, tone: "error" });
+                } finally {
+                  setSaving(false);
+                }
               }}
             >
               Save preferences
@@ -680,22 +688,37 @@ export function SecuritySettings() {
         confirmLabel="Rotate secret"
         body="The current secret stops working immediately for new deliveries. Update your verification code before rotating. The new secret is shown once."
         onConfirm={async () => {
-          await new Promise((r) => setTimeout(r, 700));
-          setRevokeOpen(false);
-          pushToast({ title: "Signing secret rotated", body: "Copy the new secret from the webhooks page.", tone: "success" });
+          try {
+            const ep = data.webhookEndpoints[0];
+            if (!ep) { pushToast({ title: "No webhook endpoint", body: "Create a webhook endpoint first.", tone: "warn" }); return; }
+            const res = await apiFetch<{ signingSecret: string }>(`/v1/webhooks/${ep.id}/rotate-secret`, { method: "POST" });
+            setRevokeOpen(false);
+            pushToast({ title: "Signing secret rotated", body: `New secret: ${res.signingSecret.slice(0, 12)}… (full secret in webhooks page)`, tone: "success" });
+          } catch (e) {
+            pushToast({ title: "Rotation failed", body: (e as Error).message, tone: "error" });
+          }
         }}
       />
 
       <ConfirmDialog
         open={rotateOpen}
         onClose={() => setRotateOpen(false)}
-        title="Request PayeeShield key rotation"
-        confirmLabel="Request rotation"
-        body="Key rotation is performed by the gateway operator. Requests signed with the current key continue to verify during the overlap window, then fail once the old key is retired."
+        title="Rotate API key"
+        confirmLabel="Rotate key"
+        body="This revokes your current secret key and creates a new one. The new key is shown once — update your server configuration immediately."
         onConfirm={async () => {
-          await new Promise((r) => setTimeout(r, 700));
-          setRotateOpen(false);
-          pushToast({ title: "Rotation requested", body: "The gateway operator will schedule the rotation.", tone: "info" });
+          try {
+            const oldKey = data.apiKeys.find(k => k.status === "active");
+            if (oldKey) await apiFetch(`/v1/api-keys/${oldKey.id}/revoke`, { method: "POST" });
+            const newKey = await apiFetch<{ secret: string; publishable: string }>("/v1/api-keys", {
+              method: "POST",
+              body: JSON.stringify({ name: `rotated-${Date.now()}`, environment: "testnet" }),
+            });
+            setRotateOpen(false);
+            pushToast({ title: "API key rotated", body: `New secret: ${newKey.secret.slice(0, 12)}… (shown once — copy now!)`, tone: "success" });
+          } catch (e) {
+            pushToast({ title: "Rotation failed", body: (e as Error).message, tone: "error" });
+          }
         }}
       />
     </SettingsShell>
@@ -831,9 +854,20 @@ export function GasSponsorshipSettings() {
             setErrors(next);
             if (Object.values(next).some(Boolean)) return;
             setSaving(true);
-            await api.updateGasGuard({ merchantBudgetWbt: Number(budget), dailyLimitWbt: Number(daily) });
-            setSaving(false);
-            pushToast({ title: "Sponsorship settings saved", tone: "success" });
+            try {
+              await apiFetch("/v1/gas-guard", {
+                method: "PATCH",
+                body: JSON.stringify({
+                  merchantBudgetWbt: (BigInt(Math.floor(Number(budget) * 1e18))).toString(),
+                  dailyLimitWbt: (BigInt(Math.floor(Number(daily) * 1e18))).toString(),
+                }),
+              });
+              pushToast({ title: "Sponsorship settings saved", tone: "success" });
+            } catch (e) {
+              pushToast({ title: "Save failed", body: (e as Error).message, tone: "error" });
+            } finally {
+              setSaving(false);
+            }
           }}
         >
           Save sponsorship settings

@@ -17,6 +17,7 @@ const profileUpdateSchema = z.object({
   accentColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   payoutWallet: z.string().regex(/^0x[a-fA-F0-9]{40}$/).optional(),
   walletVerified: z.boolean().optional(),
+  notificationPrefs: z.record(z.string(), z.unknown()).optional(),
 });
 
 const verifySchema = z.object({

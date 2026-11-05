@@ -260,6 +260,7 @@ model Merchant {
   payoutWallet      String
   walletVerified    Boolean     @default(false)
   walletVerifiedAt  DateTime?
+  notificationPrefs Json?
   environment       Environment @default(testnet)
   onboardingComplete Boolean    @default(false)
   country           String      @default("")

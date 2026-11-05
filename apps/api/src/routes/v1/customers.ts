@@ -48,6 +48,22 @@ export async function customerRoutes(app: FastifyInstance): Promise<void> {
     const id = (req.params as { id: string }).id;
     const customer = await prisma.customer.findFirst({ where: { id, merchantId: req.merchantId! } });
     if (!customer) return reply.code(404).send({ error: { code: "not_found", message: "Customer not found" } });
-    return { customer };
+    const notes = await prisma.customerNote.findMany({ where: { customerId: id, merchantId: req.merchantId! }, orderBy: { createdAt: "desc" } });
+    return { customer, notes };
+  });
+
+  // POST /v1/customers/:id/notes — add an internal note to a customer.
+  app.post("/:id/notes", { preHandler: [app.authenticate, app.requireSecretKey] }, async (req, reply) => {
+    const id = (req.params as { id: string }).id;
+    const body = req.body as { text: string };
+    if (!body?.text || body.text.trim().length < 1) {
+      return reply.code(400).send({ error: { code: "validation_error", message: "Note text is required" } });
+    }
+    const customer = await prisma.customer.findFirst({ where: { id, merchantId: req.merchantId! } });
+    if (!customer) return reply.code(404).send({ error: { code: "not_found", message: "Customer not found" } });
+    const note = await prisma.customerNote.create({
+      data: { customerId: id, merchantId: req.merchantId!, text: body.text.trim() },
+    });
+    return reply.code(201).send({ id: note.id, text: note.text, createdAt: note.createdAt });
   });
 }
