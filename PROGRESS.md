@@ -318,9 +318,10 @@ Senior-developer codebase audit identified 16 remaining gaps. Fixed in two batch
 
 ### Known limitations (hackathon MVP)
 - Testnet only (Whitechain Sepolia). Not production-ready.
-- Email stubbed (downloadable PDF receipt is primary — public `GET /v1/checkout/:slug/receipt.pdf`). PayeeShield single key. Relayer key in `.env`. Webhook secret plaintext.
-- Dashboard data synced from real API via `useSyncRealData` hook (fetches on AppShell mount). Write operations go through the real API. The real checkout, real subscription checkout, real refund signing, onboarding wallet verify, and dashboard data are all fully wired to the live API.
+- Email stubbed (downloadable PDF receipt is primary — public `GET /v1/checkout/:slug/receipt.pdf`). PayeeShield single key. Relayer key in `.env`. Webhook secret encrypted at rest (AES-256-GCM).
+- Dashboard data synced from real API via `useSyncRealData` hook (fetches on AppShell mount). Write operations go through the real API + auto-refresh on mutations.
 - Webhook retry with exponential backoff (max 5 retries, then stops).
 - Monthly interval = 30-day approximation on-chain.
+- **Subscriptions are FULLY GASLESS** via EIP-712 BySig + EIP-2612 Permit (v2 contract deployed at `0xc0Bc1f…2c40`). Customer signs 2 messages at signup, 1 at cancel. Zero WBT needed. Relayer pays all gas.
 - Refund backend-signing deferred (browser Wagmi signing for MVP).
-- SDK built locally (`pnpm build` → `dist/`); gitignored — run build after cloning. Published to private registry (Option A) when npm auth is configured; public npm (Option B) documented for later. Standalone browser bundle built but not yet served via a CDN URL.
+- SDK built locally (`pnpm build` → `dist/`); gitignored — run build after cloning. Not yet published to npm.
