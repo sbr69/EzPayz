@@ -63,8 +63,8 @@ export function RealCheckout() {
         },
         primaryType: "TransferWithAuthorization",
         message: {
-          from: address,
-          to: checkout.merchant.payoutWallet,
+          from: address as `0x${string}`,
+          to: checkout.merchant.payoutWallet as `0x${string}`,
           value: BigInt(checkout.amount),
           validAfter: BigInt(now - 60),
           validBefore: BigInt(now + 600),
