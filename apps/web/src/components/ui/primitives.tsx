@@ -1,10 +1,5 @@
-import type {
-  ButtonHTMLAttributes,
-  InputHTMLAttributes,
-  ReactNode,
-  SelectHTMLAttributes,
-  TextareaHTMLAttributes,
-} from "react";
+import { useId, type ButtonHTMLAttributes, type InputHTMLAttributes, type ReactNode, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
+import { motion } from "motion/react";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/utils/cn";
 
@@ -15,19 +10,22 @@ type Size = "sm" | "md" | "lg";
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-accent text-white border border-accent hover:bg-accent-hover hover:border-accent-hover disabled:bg-accent/50 disabled:border-accent/50",
+    "bg-gradient-to-b from-[#118a7e] to-accent text-white border border-accent shadow-xs " +
+    "hover:from-[#0f7d72] hover:to-accent-hover hover:border-accent-hover hover:shadow-md " +
+    "disabled:from-accent/50 disabled:to-accent/50 disabled:border-accent/50 disabled:shadow-none",
   secondary:
-    "bg-surface text-ink border border-line-strong hover:bg-canvas-alt disabled:text-ink-4",
-  outline: "bg-transparent text-ink border border-line-strong hover:bg-surface",
+    "bg-surface text-ink border border-line-strong shadow-xs hover:bg-canvas-alt hover:border-line-strong hover:shadow-sm disabled:text-ink-4",
+  outline: "bg-transparent text-ink border border-line-strong hover:bg-surface hover:shadow-xs",
   ghost: "bg-transparent text-ink-2 border border-transparent hover:bg-canvas-alt hover:text-ink",
-  danger: "bg-danger text-white border border-danger hover:brightness-95",
+  danger:
+    "bg-danger text-white border border-danger shadow-xs hover:brightness-105 hover:shadow-md",
   subtle: "bg-accent-soft text-accent border border-accent-line hover:bg-accent-soft/70",
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-12 px-5 text-[17px] gap-2 rounded-lg",
-  md: "h-12 px-5 text-[17px] gap-2.5 rounded-lg",
-  lg: "h-14 px-7 text-[18px] gap-2.5 rounded-lg",
+  sm: "h-11 px-4 text-[16px] gap-2 rounded-[10px]",
+  md: "h-12 px-5 text-[18px] gap-2 rounded-[11px]",
+  lg: "h-[52px] px-6 text-[18px] gap-2 rounded-[12px]",
 };
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -54,14 +52,16 @@ export function Button({
       {...rest}
       disabled={disabled || loading}
       className={cn(
-        "inline-flex items-center justify-center font-medium whitespace-nowrap transition-colors select-none",
-        "disabled:cursor-not-allowed disabled:opacity-70",
+        "inline-flex items-center justify-center font-medium whitespace-nowrap select-none",
+        "transition-[background-color,border-color,box-shadow,transform,color] duration-200 ease-out",
+        "active:scale-[0.97] active:duration-75",
+        "disabled:cursor-not-allowed disabled:opacity-70 disabled:active:scale-100",
         variants[variant],
         sizes[size],
         className,
       )}
     >
-      {loading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : icon}
+      {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : icon}
       {children}
       {iconRight}
     </button>
@@ -80,8 +80,9 @@ export function IconButton({
       aria-label={label}
       title={label}
       className={cn(
-        "inline-flex h-10 w-10 items-center justify-center rounded-lg border border-transparent text-ink-3 transition-colors",
-        "hover:border-line hover:bg-surface hover:text-ink disabled:opacity-50",
+        "inline-flex h-11 w-11 items-center justify-center rounded-[11px] border border-transparent text-ink-3",
+        "transition-all duration-200 hover:border-line hover:bg-surface hover:text-ink hover:shadow-xs",
+        "active:scale-95 disabled:opacity-50",
         className,
       )}
     >
@@ -104,7 +105,7 @@ export function Card({
   return (
     <As
       className={cn(
-        "rounded-[10px] border border-line bg-surface shadow-[0_1px_2px_rgba(27,31,30,0.04)]",
+        "rounded-xl border border-line bg-surface shadow-sm",
         className,
       )}
     >
@@ -127,13 +128,13 @@ export function CardHeader({
   return (
     <div
       className={cn(
-        "flex flex-wrap items-start justify-between gap-4 border-b border-line px-6 py-5",
+        "flex flex-wrap items-start justify-between gap-4 border-b border-line px-6 py-4",
         className,
       )}
     >
       <div className="min-w-0">
-        <h3 className="text-[18px] font-semibold tracking-[-0.01em] text-ink">{title}</h3>
-        {description ? <p className="mt-1 text-[16px] text-ink-3">{description}</p> : null}
+        <h3 className="text-[20px] font-semibold tracking-[-0.01em] text-ink">{title}</h3>
+        {description ? <p className="mt-0.5 text-[16px] leading-relaxed text-ink-3">{description}</p> : null}
       </div>
       {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
     </div>
@@ -166,24 +167,27 @@ export function Field({
   return (
     <div className={cn("space-y-1.5", className)}>
       {label ? (
-        <label htmlFor={htmlFor} className="block text-[15px] font-medium text-ink-2">
+        <label htmlFor={htmlFor} className="block text-[16px] font-medium text-ink-2">
           {label}
           {required ? <span className="ml-0.5 text-danger">*</span> : null}
         </label>
       ) : null}
       {children}
       {error ? (
-        <p className="text-[15px] font-medium text-danger">{error}</p>
+        <p className="text-[16px] font-medium text-danger">{error}</p>
       ) : hint ? (
-        <p className="text-[15px] leading-relaxed text-ink-3">{hint}</p>
+        <p className="text-[16px] leading-relaxed text-ink-3">{hint}</p>
       ) : null}
     </div>
   );
 }
 
 const controlBase =
-  "w-full rounded-lg border bg-surface px-4 text-[17px] text-ink placeholder:text-ink-4 transition-colors " +
-  "focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/15 disabled:bg-canvas-alt disabled:text-ink-4";
+  "w-full rounded-[10px] border bg-surface px-4 text-[18px] text-ink shadow-xs " +
+  "placeholder:text-ink-4 transition-[border-color,box-shadow] duration-200 " +
+  "hover:border-ink-4/40 " +
+  "focus:border-accent focus:outline-none focus:ring-4 focus:ring-accent/12 " +
+  "disabled:bg-canvas-alt disabled:text-ink-4 disabled:shadow-none";
 
 export function Input({
   invalid,
@@ -194,7 +198,7 @@ export function Input({
     <input
       {...rest}
       aria-invalid={invalid || undefined}
-      className={cn(controlBase, "h-12", invalid ? "border-danger" : "border-line-strong", className)}
+      className={cn(controlBase, "h-12", invalid ? "border-danger focus:ring-danger/12" : "border-line", className)}
     />
   );
 }
@@ -208,7 +212,12 @@ export function Textarea({
     <textarea
       {...rest}
       aria-invalid={invalid || undefined}
-      className={cn(controlBase, "min-h-[84px] py-2 leading-relaxed", invalid ? "border-danger" : "border-line-strong", className)}
+      className={cn(
+        controlBase,
+        "min-h-[84px] py-2.5 leading-relaxed",
+        invalid ? "border-danger focus:ring-danger/12" : "border-line",
+        className,
+      )}
     />
   );
 }
@@ -221,7 +230,11 @@ export function Select({
   return (
     <select
       {...rest}
-      className={cn(controlBase, "h-12 cursor-pointer appearance-none border-line-strong bg-[right_0.75rem_center] bg-no-repeat pr-10", className)}
+      className={cn(
+        controlBase,
+        "h-12 cursor-pointer appearance-none border-line bg-[right_0.75rem_center] bg-no-repeat pr-10",
+        className,
+      )}
       style={{
         backgroundImage:
           "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7470' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")",
@@ -254,10 +267,10 @@ export function Checkbox({
         checked={checked}
         disabled={disabled}
         onChange={(e) => onChange(e.target.checked)}
-        className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-line-strong text-accent accent-[#0d7a6f]"
+        className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-line-strong accent-[#0d7a6f] transition-transform duration-150 active:scale-90"
       />
       <span className="min-w-0">
-        <span className="block text-[17px] font-medium text-ink">{label}</span>
+        <span className="block text-[18px] font-medium text-ink">{label}</span>
         {description ? <span className="block text-[16px] leading-relaxed text-ink-3">{description}</span> : null}
       </span>
     </label>
@@ -284,14 +297,16 @@ export function Switch({
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={cn(
-        "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full border transition-colors disabled:opacity-50",
-        checked ? "border-accent bg-accent" : "border-line-strong bg-canvas-alt",
+        "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full border transition-colors duration-200 disabled:opacity-50",
+        checked ? "border-accent bg-accent shadow-xs" : "border-line-strong bg-canvas-alt",
       )}
     >
-      <span
+      <motion.span
+        layout
+        transition={{ type: "spring", stiffness: 500, damping: 32 }}
         className={cn(
-          "absolute h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform",
-          checked ? "translate-x-[19px]" : "translate-x-[3px]",
+          "absolute h-[18px] w-[18px] rounded-full bg-white shadow-sm",
+          checked ? "left-[24px]" : "left-[3px]",
         )}
       />
     </button>
@@ -314,13 +329,16 @@ export function PageHeader({
   meta?: ReactNode;
 }) {
   return (
-    <div className="mb-5">
+    <div className="mb-8">
       {breadcrumbs?.length ? (
-        <nav className="mb-2 flex items-center gap-1.5 text-[15px] text-ink-3">
+        <nav className="mb-2 flex items-center gap-1.5 text-[16px] text-ink-3">
           {breadcrumbs.map((b, i) => (
             <span key={b.label} className="flex items-center gap-1.5">
               {b.to ? (
-                <a href={`#${b.to}`} className="hover:text-ink hover:underline">
+                <a
+                  href={`#${b.to}`}
+                  className="rounded transition-colors hover:text-ink hover:underline"
+                >
                   {b.label}
                 </a>
               ) : (
@@ -333,8 +351,8 @@ export function PageHeader({
       ) : null}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-[32px] font-semibold leading-tight tracking-[-0.02em] text-ink">{title}</h1>
-          {description ? <p className="mt-1.5 max-w-2xl text-[17px] leading-relaxed text-ink-3">{description}</p> : null}
+          <h1 className="text-[32px] font-bold leading-tight tracking-[-0.02em] text-ink">{title}</h1>
+          {description ? <p className="mt-1 max-w-2xl text-[18px] leading-relaxed text-ink-3">{description}</p> : null}
           {meta ? <div className="mt-2.5 flex flex-wrap items-center gap-2">{meta}</div> : null}
         </div>
         {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
@@ -352,6 +370,7 @@ export function Tabs({
   value: string;
   onChange: (id: string) => void;
 }) {
+  const layoutId = useId();
   return (
     <div className="flex gap-1 overflow-x-auto border-b border-line scroll-thin">
       {tabs.map((t) => (
@@ -359,15 +378,20 @@ export function Tabs({
           key={t.id}
           onClick={() => onChange(t.id)}
           className={cn(
-            "-mb-px whitespace-nowrap border-b-2 px-4 py-3 text-[17px] font-medium transition-colors",
-            value === t.id
-              ? "border-accent text-ink"
-              : "border-transparent text-ink-3 hover:border-line-strong hover:text-ink",
+            "relative -mb-px whitespace-nowrap border-b-2 px-4 py-2.5 text-[18px] font-medium transition-colors",
+            value === t.id ? "border-accent text-ink" : "border-transparent text-ink-3 hover:text-ink",
           )}
         >
+          {value === t.id ? (
+            <motion.span
+              layoutId={`tab-underline-${layoutId}`}
+              className="absolute inset-x-0 -bottom-px h-0.5 bg-accent"
+              transition={{ type: "spring", stiffness: 500, damping: 40 }}
+            />
+          ) : null}
           {t.label}
           {typeof t.count === "number" ? (
-            <span className="ml-1.5 rounded bg-canvas-alt px-1.5 py-0.5 text-[13px] text-ink-3 tnum">{t.count}</span>
+            <span className="ml-1.5 rounded bg-canvas-alt px-1.5 py-0.5 text-[14px] text-ink-3 tnum">{t.count}</span>
           ) : null}
         </button>
       ))}
@@ -395,7 +419,7 @@ export function Pill({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[15px] font-medium leading-5",
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[14px] font-medium leading-5",
         tones[tone],
         className,
       )}
@@ -426,12 +450,12 @@ export function Callout({
     neutral: "bg-canvas-alt border-line text-ink-3",
   } as const;
   return (
-    <div className={cn("rounded-md border px-3.5 py-3", tones[tone], className)}>
+    <div className={cn("rounded-[10px] border px-3.5 py-3", tones[tone], className)}>
       <div className="flex gap-2.5">
         {icon ? <span className="mt-0.5 shrink-0">{icon}</span> : null}
         <div className="min-w-0 space-y-1">
-          {title ? <p className="text-[16px] font-semibold">{title}</p> : null}
-          {children ? <div className="text-[15px] leading-relaxed opacity-90">{children}</div> : null}
+          {title ? <p className="text-[18px] font-semibold">{title}</p> : null}
+          {children ? <div className="text-[16px] leading-relaxed opacity-90">{children}</div> : null}
         </div>
       </div>
     </div>
@@ -454,7 +478,7 @@ export function KeyValue({
   copy?: ReactNode;
 }) {
   return (
-    <div className={cn("flex items-start justify-between gap-4 py-2", className)}>
+    <div className={cn("flex items-start justify-between gap-4 py-2.5", className)}>
       <dt className="shrink-0 text-[16px] text-ink-3">{label}</dt>
       <dd className="flex min-w-0 items-center gap-1.5 text-right text-[16px] font-medium text-ink">
         <span className="min-w-0 break-words">{children}</span>
@@ -478,8 +502,8 @@ export function SectionTitle({
   return (
     <div className={cn("mb-3 flex flex-wrap items-end justify-between gap-3", className)}>
       <div>
-        <h2 className="text-[22px] font-semibold tracking-[-0.01em] text-ink">{children}</h2>
-        {description ? <p className="mt-1 text-[16px] text-ink-3">{description}</p> : null}
+        <h2 className="text-[26px] font-semibold tracking-[-0.01em] text-ink">{children}</h2>
+        {description ? <p className="mt-0.5 text-[16px] text-ink-3">{description}</p> : null}
       </div>
       {actions}
     </div>
@@ -489,8 +513,8 @@ export function SectionTitle({
 export function Stat({ label, value, sub }: { label: string; value: ReactNode; sub?: ReactNode }) {
   return (
     <div>
-      <p className="text-[15px] font-medium uppercase tracking-wide text-ink-4">{label}</p>
-      <p className="mt-1.5 text-[22px] font-semibold text-ink tnum">{value}</p>
+      <p className="text-[14px] font-medium uppercase tracking-wide text-ink-4">{label}</p>
+      <p className="mt-1 text-[26px] font-semibold text-ink tnum">{value}</p>
       {sub ? <p className="text-[16px] text-ink-3">{sub}</p> : null}
     </div>
   );

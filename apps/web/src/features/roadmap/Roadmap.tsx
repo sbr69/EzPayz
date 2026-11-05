@@ -7,12 +7,12 @@ export default function Roadmap() {
   return (
     <div className="min-h-screen bg-canvas">
       <header className="border-b border-line bg-surface">
-        <div className="mx-auto flex h-16 max-w-5xl items-center gap-3 px-5">
+        <div className="mx-auto flex h-16 max-w-4xl items-center gap-3 px-6">
           <Link to="/" className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-[15px] font-bold text-white">
+            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-[18px] font-bold text-white">
               W
             </span>
-            <span className="text-[17px] font-semibold tracking-[-0.01em] text-ink">EzPayz</span>
+            <span className="text-[20px] font-semibold tracking-[-0.01em] text-ink">EzPayz</span>
           </Link>
           <div className="ml-auto flex gap-2">
             <Link to="/developers/quickstart">
@@ -29,7 +29,7 @@ export default function Roadmap() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-5xl space-y-5 px-5 py-10">
+      <main className="mx-auto max-w-4xl space-y-6 px-6 py-10">
         <PageHeader
           title="Roadmap and future integrations"
           description="Capabilities that are planned but not built. Nothing on this page is a working product feature, and no integration below is live."
@@ -42,15 +42,15 @@ export default function Roadmap() {
           shipped in this build.
         </Callout>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-5 sm:grid-cols-2">
           {ROADMAP.map((item) => (
-            <Card key={item.title} className="p-4">
+            <Card key={item.title} className="p-5">
               <div className="flex items-start justify-between gap-3">
-                <h2 className="text-[15px] font-semibold text-ink">{item.title}</h2>
+                <h2 className="text-[18px] font-semibold text-ink">{item.title}</h2>
                 <Pill tone="neutral">{item.status}</Pill>
               </div>
-              <p className="mt-2 text-[14px] leading-relaxed text-ink-3">{item.detail}</p>
-              <div className="mt-3 flex items-center gap-1.5 text-[13px] text-ink-4">
+              <p className="mt-2 text-[18px] leading-relaxed text-ink-3">{item.detail}</p>
+              <div className="mt-3 flex items-center gap-1.5 text-[16px] text-ink-4">
                 <Clock className="h-3.5 w-3.5" />
                 Not implemented in this build
               </div>
@@ -60,7 +60,7 @@ export default function Roadmap() {
 
         <Card>
           <CardHeader title="What is implemented today" description="The scope you can test in this demo" />
-          <div className="grid gap-3 p-4 sm:grid-cols-2">
+          <div className="grid gap-4 p-5 sm:grid-cols-2">
             {[
               ["Hosted USDT checkout", "Gasless one-time payment flow with wallet states and simulated authorization."],
               ["Payment links and QR codes", "Fixed, customer-entered and reusable links."],
@@ -72,11 +72,11 @@ export default function Roadmap() {
               ["Analytics and settings", "Reconciled reporting and workspace configuration."],
             ].map(([title, detail]) => (
               <div key={title} className="rounded-md border border-line bg-canvas/60 p-3.5">
-                <p className="flex items-center gap-1.5 text-[14px] font-semibold text-ink">
+                <p className="flex items-center gap-1.5 text-[18px] font-semibold text-ink">
                   <Sparkles className="h-3.5 w-3.5 text-accent" />
                   {title}
                 </p>
-                <p className="mt-1 text-[14px] leading-relaxed text-ink-3">{detail}</p>
+                <p className="mt-1 text-[18px] leading-relaxed text-ink-3">{detail}</p>
               </div>
             ))}
           </div>

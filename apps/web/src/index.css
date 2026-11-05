@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap");
 @import "tailwindcss";
 
 @theme {
@@ -40,33 +40,78 @@
   --color-info-soft: #eaf2f8;
   --color-info-line: #c3d9e9;
 
-  --radius-card: 10px;
+  /* Elevation — layered, warm-tinted shadows */
+  --shadow-xs: 0 1px 2px rgba(27, 31, 30, 0.05);
+  --shadow-sm: 0 1px 2px rgba(27, 31, 30, 0.05), 0 2px 8px rgba(27, 31, 30, 0.05);
+  --shadow-md: 0 2px 4px rgba(27, 31, 30, 0.05), 0 8px 24px rgba(27, 31, 30, 0.08);
+  --shadow-lg: 0 4px 8px rgba(27, 31, 30, 0.06), 0 16px 48px rgba(27, 31, 30, 0.12);
+  --shadow-xl: 0 8px 16px rgba(27, 31, 30, 0.08), 0 32px 80px rgba(27, 31, 30, 0.16);
+
+  /* Radii */
+  --radius-card: 12px;
+  --radius-control: 10px;
+
+  /* Motion tokens */
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 @layer base {
   html {
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+    scroll-behavior: smooth;
   }
   body {
     background-color: var(--color-canvas);
     color: var(--color-ink);
     font-family: var(--font-sans);
-    font-size: 17px;
+    font-size: 19px;
   }
   *:focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
     border-radius: 4px;
   }
-
-  @media (min-width: 1024px) {
-    #root {
-      font-size: 1.0625rem;
-    }
-  }
   ::selection {
     background: #cfe8e3;
+  }
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes pulse-soft {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.55;
+    }
+  }
+  @keyframes drift {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0) scale(1);
+    }
+    33% {
+      transform: translate3d(24px, -16px, 0) scale(1.05);
+    }
+    66% {
+      transform: translate3d(-16px, 12px, 0) scale(0.97);
+    }
   }
 }
 
@@ -91,15 +136,38 @@
       linear-gradient(to bottom, rgba(27, 31, 30, 0.045) 1px, transparent 1px);
     background-size: 44px 44px;
   }
+  /* Skeleton shimmer overlay — apply over a bg-canvas-alt element */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+  .shimmer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+    animation: shimmer 1.6s infinite;
+  }
+  .anim-fade-up {
+    animation: fade-up 0.5s var(--ease-out-quart) both;
+  }
+  .anim-pulse-soft {
+    animation: pulse-soft 2s ease-in-out infinite;
+  }
+  /* Readable line length for long-form prose/docs on ultra-wide screens */
+  .readable {
+    max-width: 78ch;
+  }
 }
 
 /* Recharts polish */
 .recharts-cartesian-axis-tick text {
   fill: var(--color-ink-3);
-  font-size: 14px;
+  font-size: 15px;
 }
 .recharts-default-tooltip {
-  border-radius: 8px !important;
+  border-radius: 10px !important;
   border: 1px solid var(--color-line) !important;
-  box-shadow: 0 6px 20px rgba(27, 31, 30, 0.08) !important;
+  box-shadow: var(--shadow-md) !important;
 }

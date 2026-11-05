@@ -24,6 +24,7 @@ import { DonutChart, StackedBarChart, VolumeChart } from "@/components/ui/charts
 import { MetricCard, MiniStat } from "@/components/common/MetricCard";
 import { CreatePaymentDialog } from "@/components/common/dialogs";
 import { AmountDisplay, TxRefDisplay } from "@/components/ui/display";
+import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion";
 
 export default function Dashboard() {
   const data = useDemo((s) => s.data);
@@ -84,7 +85,7 @@ export default function Dashboard() {
               tone={data.merchant.walletVerified ? "positive" : "warn"}
             />
             {data.merchant.walletVerified ? (
-              <span className="inline-flex items-center gap-1 text-[13px] text-ink-4">
+              <span className="inline-flex items-center gap-1 text-[16px] text-ink-4">
                 <ShieldCheck className="h-3.5 w-3.5 text-positive" />
                 Verified (simulated)
               </span>
@@ -96,7 +97,7 @@ export default function Dashboard() {
             <Select
               value={range}
               onChange={(e) => setRange(e.target.value as RangeKey)}
-              className="h-9 w-[150px]"
+              className="h-10 w-[160px]"
               aria-label="Date range"
             >
               {RANGE_OPTIONS.map((o) => (
@@ -112,75 +113,89 @@ export default function Dashboard() {
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <MetricCard
-          label="Total received"
-          value={<AmountDisplay base={metrics.grossVolume} symbol={TOKEN.symbol} />}
-          sub={`net ${fmtAmount(metrics.netVolume)} ${TOKEN.symbol}`}
-          icon={<TrendingUp className="h-4 w-4" />}
-          to="/analytics"
-        />
-        <MetricCard
-          label="Successful payments"
-          value={fmtNumber(metrics.settled.length)}
-          sub={`${metrics.attempts} attempts`}
-          tone="positive"
-          to="/payments?status=succeeded"
-        />
-        <MetricCard
-          label="Pending payments"
-          value={fmtNumber(metrics.pending.length)}
-          sub="awaiting settlement"
-          tone="warn"
-          to="/payments?status=pending"
-        />
-        <MetricCard
-          label="Total refunded"
-          value={<AmountDisplay base={metrics.refundedTotal} symbol={TOKEN.symbol} />}
-          sub={`${metrics.refunds.length} refunds`}
-          to="/refunds"
-        />
-        <MetricCard
-          label="Active subscriptions"
-          value={fmtNumber(metrics.activeSubs)}
-          sub={`${metrics.renewalSuccess}% renewal success`}
-          icon={<Repeat className="h-4 w-4" />}
-          to="/subscriptions"
-        />
-        <MetricCard
-          label="Payment success rate"
-          value={`${metrics.successRate}%`}
-          sub={`${metrics.failed.length} failed or expired`}
-          tone={metrics.successRate >= 85 ? "positive" : metrics.successRate >= 60 ? "warn" : "danger"}
-          to="/analytics"
-        />
-      </div>
+      <Stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6" gap={0.05}>
+        <StaggerItem>
+          <MetricCard
+            label="Total received"
+            value={<AmountDisplay base={metrics.grossVolume} symbol={TOKEN.symbol} />}
+            sub={`net ${fmtAmount(metrics.netVolume)} ${TOKEN.symbol}`}
+            icon={<TrendingUp className="h-4 w-4" />}
+            to="/analytics"
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <MetricCard
+            label="Successful payments"
+            value={fmtNumber(metrics.settled.length)}
+            sub={`${metrics.attempts} attempts`}
+            tone="positive"
+            to="/payments?status=succeeded"
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <MetricCard
+            label="Pending payments"
+            value={fmtNumber(metrics.pending.length)}
+            sub="awaiting settlement"
+            tone="warn"
+            to="/payments?status=pending"
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <MetricCard
+            label="Total refunded"
+            value={<AmountDisplay base={metrics.refundedTotal} symbol={TOKEN.symbol} />}
+            sub={`${metrics.refunds.length} refunds`}
+            to="/refunds"
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <MetricCard
+            label="Active subscriptions"
+            value={fmtNumber(metrics.activeSubs)}
+            sub={`${metrics.renewalSuccess}% renewal success`}
+            icon={<Repeat className="h-4 w-4" />}
+            to="/subscriptions"
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <MetricCard
+            label="Payment success rate"
+            value={`${metrics.successRate}%`}
+            sub={`${metrics.failed.length} failed or expired`}
+            tone={metrics.successRate >= 85 ? "positive" : metrics.successRate >= 60 ? "warn" : "danger"}
+            to="/analytics"
+          />
+        </StaggerItem>
+      </Stagger>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <FadeIn delay={0.15}>
+      <div className="grid gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader
             title="Payment volume"
             description={`Settled ${TOKEN.symbol} volume and payment count over time`}
-            actions={<Link to="/analytics" className="text-[14px] font-medium text-accent hover:underline">View analytics</Link>}
+            actions={<Link to="/analytics" className="text-[18px] font-medium text-accent hover:underline">View analytics</Link>}
           />
-          <div className="p-4">
+          <div className="p-5">
             <VolumeChart data={metrics.series} />
           </div>
         </Card>
         <Card>
           <CardHeader title="Payment method" description="How customers paid" />
-          <div className="p-4">
+          <div className="p-5">
             <DonutChart
               data={metrics.byKind.map((k) => ({ name: kindLabels[k.kind] ?? k.kind, value: k.count }))}
             />
           </div>
         </Card>
       </div>
+      </FadeIn>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader title="Successful vs failed payments" description="Outcome distribution per period" />
-          <div className="p-4">
+          <div className="p-5">
             <StackedBarChart
               data={metrics.series}
               keys={["succeeded", "failed"]}
@@ -190,27 +205,27 @@ export default function Dashboard() {
         </Card>
         <Card>
           <CardHeader title="Subscription renewals" description="Attempted renewals and outcome" />
-          <div className="space-y-3 p-4">
+          <div className="space-y-3 p-5">
             {upcoming.length === 0 ? (
-              <p className="px-1 py-6 text-center text-[14px] text-ink-4">No upcoming renewals</p>
+              <p className="px-1 py-6 text-center text-[18px] text-ink-4">No upcoming renewals</p>
             ) : (
               upcoming.map((s) => (
                 <Link
                   key={s.id}
                   to={`/subscriptions/${s.id}`}
-                  className="flex items-center justify-between gap-3 rounded-md border border-line px-3 py-2.5 transition-colors hover:border-line-strong hover:bg-canvas"
+                  className="flex items-center justify-between gap-3 rounded-[10px] border border-line px-4 py-3 transition-colors hover:border-line-strong hover:bg-canvas"
                 >
                   <div className="min-w-0">
-                    <p className="truncate text-[14px] font-medium text-ink">
+                    <p className="truncate text-[18px] font-medium text-ink">
                       {data.customers.find((c) => c.id === s.customerId)?.name ?? s.customerId}
                     </p>
-                    <p className="text-[13px] text-ink-3">
+                    <p className="text-[16px] text-ink-3">
                       {data.plans.find((p) => p.id === s.planId)?.name} · {s.interval}
                     </p>
                   </div>
                   <div className="text-right">
-                    <AmountDisplay base={s.amount} className="text-[14px]" />
-                    <p className="text-[13px] text-ink-4">{untilFuture(s.nextBillingAt)}</p>
+                    <AmountDisplay base={s.amount} className="text-[18px]" />
+                    <p className="text-[16px] text-ink-4">{untilFuture(s.nextBillingAt)}</p>
                   </div>
                 </Link>
               ))
@@ -232,17 +247,17 @@ export default function Dashboard() {
           }
         />
         <div className="overflow-x-auto scroll-thin">
-          <table className="w-full min-w-[860px] text-left text-[15px]">
+          <table className="w-full min-w-[860px] text-left text-[18px]">
             <thead>
-              <tr className="border-b border-line bg-canvas/60 text-[13px] uppercase tracking-wide text-ink-4">
-                <th className="px-4 py-2.5 font-semibold">Payment</th>
-                <th className="px-4 py-2.5 font-semibold">Customer</th>
-                <th className="px-4 py-2.5 text-right font-semibold">Amount</th>
-                <th className="px-4 py-2.5 font-semibold">Type</th>
-                <th className="px-4 py-2.5 font-semibold">Status</th>
-                <th className="px-4 py-2.5 font-semibold">Date</th>
-                <th className="px-4 py-2.5 font-semibold">Transaction</th>
-                <th className="px-4 py-2.5" />
+              <tr className="border-b border-line bg-canvas/60 text-[14px] uppercase tracking-wider text-ink-4">
+                <th className="px-6 py-3 font-semibold">Payment</th>
+                <th className="px-6 py-3 font-semibold">Customer</th>
+                <th className="px-6 py-3 text-right font-semibold">Amount</th>
+                <th className="px-6 py-3 font-semibold">Type</th>
+                <th className="px-6 py-3 font-semibold">Status</th>
+                <th className="px-6 py-3 font-semibold">Date</th>
+                <th className="px-6 py-3 font-semibold">Transaction</th>
+                <th className="px-6 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
@@ -252,29 +267,29 @@ export default function Dashboard() {
                   onClick={() => navigate(`/payments/${p.id}`)}
                   className="cursor-pointer transition-colors hover:bg-canvas/70"
                 >
-                  <td className="px-4 py-2.5 font-mono text-[14px] text-ink">{p.id}</td>
-                  <td className="px-4 py-2.5">
+                  <td className="px-6 py-3 font-mono text-[18px] text-ink">{p.id}</td>
+                  <td className="px-6 py-3">
                     {p.customerId ? (
                       data.customers.find((c) => c.id === p.customerId)?.name ?? "—"
                     ) : (
                       <span className="text-ink-4">{p.customerEmail ?? "Guest"}</span>
                     )}
                   </td>
-                  <td className="px-4 py-2.5 text-right">
-                    <AmountDisplay base={p.receivedAmount ?? p.amount} className="text-[14px]" />
+                  <td className="px-6 py-3 text-right">
+                    <AmountDisplay base={p.receivedAmount ?? p.amount} className="text-[18px]" />
                   </td>
-                  <td className="px-4 py-2.5 text-ink-3">{kindLabels[p.kind]}</td>
-                  <td className="px-4 py-2.5">
+                  <td className="px-6 py-3 text-ink-3">{kindLabels[p.kind]}</td>
+                  <td className="px-6 py-3">
                     <StatusBadge
                       label={PAYMENT_STATUS_META[p.status].label}
                       tone={PAYMENT_STATUS_META[p.status].tone}
                     />
                   </td>
-                  <td className="px-4 py-2.5 text-[14px] text-ink-3 tnum">{timeAgo(p.createdAt)}</td>
-                  <td className="px-4 py-2.5">
+                  <td className="px-6 py-3 text-[18px] text-ink-3 tnum">{timeAgo(p.createdAt)}</td>
+                  <td className="px-6 py-3">
                     <TxRefDisplay value={p.txRef} size="xs" />
                   </td>
-                  <td className="px-4 py-2.5 text-right">
+                  <td className="px-6 py-3 text-right">
                     <ArrowUpRight className="ml-auto h-3.5 w-3.5 text-ink-4" />
                   </td>
                 </tr>
@@ -284,20 +299,20 @@ export default function Dashboard() {
         </div>
       </Card>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-3">
         <Card>
-          <CardHeader title="Recent refunds" actions={<Link to="/refunds" className="text-[14px] font-medium text-accent hover:underline">All refunds</Link>} />
+          <CardHeader title="Recent refunds" actions={<Link to="/refunds" className="text-[18px] font-medium text-accent hover:underline">All refunds</Link>} />
           <ul className="divide-y divide-line">
             {recentRefunds.map((r) => (
               <li key={r.id}>
-                <Link to={`/refunds/${r.id}`} className="flex items-center justify-between gap-3 px-4 py-2.5 hover:bg-canvas">
+                <Link to={`/refunds/${r.id}`} className="flex items-center justify-between gap-3 px-6 py-3 hover:bg-canvas">
                   <div className="min-w-0">
-                    <p className="text-[14px] font-medium text-ink">{r.id}</p>
-                    <p className="truncate text-[13px] text-ink-3">{r.reason}</p>
+                    <p className="text-[18px] font-medium text-ink">{r.id}</p>
+                    <p className="truncate text-[16px] text-ink-3">{r.reason}</p>
                   </div>
                   <div className="text-right">
-                    <AmountDisplay base={r.amount} className="text-[14px]" />
-                    <p className="text-[13px] text-ink-4">{timeAgo(r.createdAt)}</p>
+                    <AmountDisplay base={r.amount} className="text-[18px]" />
+                    <p className="text-[16px] text-ink-4">{timeAgo(r.createdAt)}</p>
                   </div>
                 </Link>
               </li>
@@ -306,24 +321,24 @@ export default function Dashboard() {
         </Card>
 
         <Card>
-          <CardHeader title="Payment exceptions" actions={<Link to="/exceptions" className="text-[14px] font-medium text-accent hover:underline">Open centre</Link>} />
+          <CardHeader title="Payment exceptions" actions={<Link to="/exceptions" className="text-[18px] font-medium text-accent hover:underline">Open centre</Link>} />
           <ul className="divide-y divide-line">
             {openExceptions.length === 0 ? (
-              <li className="px-4 py-6 text-center text-[14px] text-ink-4">No open exceptions</li>
+              <li className="px-6 py-8 text-center text-[18px] text-ink-4">No open exceptions</li>
             ) : (
               openExceptions.map((e) => (
                 <li key={e.id}>
-                  <Link to={`/exceptions/${e.id}`} className="flex items-start gap-2.5 px-4 py-2.5 hover:bg-canvas">
+                  <Link to={`/exceptions/${e.id}`} className="flex items-start gap-2.5 px-6 py-3 hover:bg-canvas">
                     <AlertTriangle
                       className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${
                         e.severity === "critical" || e.severity === "high" ? "text-danger" : "text-warn"
                       }`}
                     />
                     <div className="min-w-0">
-                      <p className="text-[14px] font-medium text-ink">{e.type.replace(/_/g, " ")}</p>
-                      <p className="truncate text-[13px] text-ink-3">{e.whatHappened}</p>
+                      <p className="text-[18px] font-medium text-ink">{e.type.replace(/_/g, " ")}</p>
+                      <p className="truncate text-[16px] text-ink-3">{e.whatHappened}</p>
                     </div>
-                    <span className="ml-auto shrink-0 text-[13px] text-ink-4">{timeAgo(e.detectedAt)}</span>
+                    <span className="ml-auto shrink-0 text-[16px] text-ink-4">{timeAgo(e.detectedAt)}</span>
                   </Link>
                 </li>
               ))
@@ -332,15 +347,15 @@ export default function Dashboard() {
         </Card>
 
         <Card>
-          <CardHeader title="Relayer sponsorship" description="GasGuard usage for your workspace" actions={<Link to="/gasguard" className="text-[14px] font-medium text-accent hover:underline">GasGuard</Link>} />
-          <div className="grid grid-cols-2 gap-2.5 p-4">
+          <CardHeader title="Relayer sponsorship" description="GasGuard usage for your workspace" actions={<Link to="/gasguard" className="text-[18px] font-medium text-accent hover:underline">GasGuard</Link>} />
+          <div className="grid grid-cols-2 gap-3 p-5">
             <MiniStat label="Sponsored tx" value={fmtNumber(sponsorship.sponsored)} />
             <MiniStat label="WBT consumed" value={sponsorship.cost} />
             <MiniStat label="Budget used" value={`${Math.round((data.gasGuard.merchantSpentWbt / data.gasGuard.merchantBudgetWbt) * 100)}%`} tone="warn" />
             <MiniStat label="Rejected" value={fmtNumber(sponsorship.rejected)} tone={sponsorship.rejected ? "danger" : undefined} />
           </div>
-          <div className="border-t border-line px-4 py-3">
-            <div className="flex items-center justify-between text-[13px] text-ink-3">
+          <div className="border-t border-line px-6 py-4">
+            <div className="flex items-center justify-between text-[16px] text-ink-3">
               <span>Daily limit</span>
               <span className="tnum">
                 {data.gasGuard.dailySpentWbt} / {data.gasGuard.dailyLimitWbt} WBT
@@ -358,7 +373,7 @@ export default function Dashboard() {
 
       <Card>
         <CardHeader title="Quick actions" description="Start a new payment flow or jump into a module" />
-        <div className="grid gap-2.5 p-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-5">
           {[
             { label: "Create payment", icon: CreditCard, action: () => setCreateOpen(true) },
             { label: "Create payment link", icon: Link2, action: () => navigate("/payment-links/new") },
@@ -369,9 +384,11 @@ export default function Dashboard() {
             <button
               key={a.label}
               onClick={a.action}
-              className="flex items-center gap-2.5 rounded-md border border-line bg-surface px-3.5 py-3 text-left text-[15px] font-medium text-ink transition-colors hover:border-line-strong hover:bg-canvas"
+              className="group flex items-center gap-2.5 rounded-[10px] border border-line bg-surface px-3.5 py-3 text-left text-[18px] font-medium text-ink shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-line-strong hover:shadow-sm"
             >
-              <a.icon className="h-4 w-4 shrink-0 text-accent" strokeWidth={1.9} />
+              <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent-soft text-accent transition-colors duration-200 group-hover:bg-accent group-hover:text-white">
+                <a.icon className="h-3.5 w-3.5" strokeWidth={1.9} />
+              </span>
               {a.label}
             </button>
           ))}
@@ -379,7 +396,7 @@ export default function Dashboard() {
       </Card>
 
       <Card className="bg-canvas/40">
-        <div className="flex flex-wrap items-center gap-3 px-4 py-3 text-[14px] text-ink-3">
+        <div className="flex flex-wrap items-center gap-3 px-6 py-4 text-[18px] text-ink-3">
           <Gauge className="h-3.5 w-3.5 text-accent" />
           <span>
             Gross volume for this period is {fmtAmount(metrics.grossVolume)} {TOKEN.symbol} across{" "}

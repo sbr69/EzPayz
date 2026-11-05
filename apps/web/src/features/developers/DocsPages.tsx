@@ -160,7 +160,7 @@ export function Quickstart() {
         integration until those dependencies are confirmed.
       </Callout>
 
-      <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
+      <div className="grid gap-5 lg:grid-cols-[220px_1fr] 2xl:grid-cols-[260px_1fr]">
         <Card className="h-fit">
           <CardHeader title="Steps" />
           <nav className="p-2">
@@ -168,7 +168,7 @@ export function Quickstart() {
               <button
                 key={s.id}
                 onClick={() => setActive(s.id)}
-                className={`block w-full rounded-md px-3 py-2 text-left text-[14px] transition-colors ${
+                className={`block w-full rounded-md px-3 py-2 text-left text-[18px] transition-colors ${
                   active === s.id ? "bg-accent-soft font-medium text-accent" : "text-ink-2 hover:bg-canvas-alt"
                 }`}
               >
@@ -184,7 +184,7 @@ export function Quickstart() {
             .map((s) => (
               <Card key={s.id}>
                 <CardHeader title={s.title} />
-                <div className="space-y-3 px-5 py-4">
+                <div className="space-y-3 px-6 py-5">
                   <CodeBlock language="ts" filename={`${s.id}.ts`} code={s.code} caption={s.caption} />
                 </div>
               </Card>
@@ -194,7 +194,7 @@ export function Quickstart() {
 
       <Card>
         <CardHeader title="Environment variables" description="Secrets stay server-side" />
-        <div className="space-y-3 px-5 py-4">
+        <div className="space-y-3 px-6 py-5">
           <CodeBlock
             language="bash"
             filename=".env"
@@ -217,7 +217,7 @@ WHITEPAY_TOKEN_CONTRACT=${TOKEN.contract}`}
 
       <Card>
         <CardHeader title="Error handling" />
-        <div className="space-y-3 px-5 py-4">
+        <div className="space-y-3 px-6 py-5">
           <CodeBlock
             language="ts"
             code={`try {
@@ -455,7 +455,7 @@ export function ApiReference() {
         will change when the backend contract is finalised.
       </Callout>
 
-      <div className="grid gap-4 lg:grid-cols-[220px_1fr]">
+      <div className="grid gap-5 lg:grid-cols-[220px_1fr] 2xl:grid-cols-[260px_1fr]">
         <Card className="h-fit">
           <div className="border-b border-line p-3">
             <div className="relative">
@@ -464,7 +464,7 @@ export function ApiReference() {
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search endpoints…"
-                className="h-8 pl-8 text-[15px]"
+                className="h-8 pl-8 text-[18px]"
                 aria-label="Search API reference"
               />
             </div>
@@ -474,12 +474,12 @@ export function ApiReference() {
               <button
                 key={r.name}
                 onClick={() => setActive(r.name)}
-                className={`block w-full rounded-md px-3 py-2 text-left text-[14px] transition-colors ${
+                className={`block w-full rounded-md px-3 py-2 text-left text-[18px] transition-colors ${
                   current?.name === r.name ? "bg-accent-soft font-medium text-accent" : "text-ink-2 hover:bg-canvas-alt"
                 }`}
               >
                 {r.name}
-                <span className="ml-1.5 text-[13px] text-ink-4">{r.endpoints.length}</span>
+                <span className="ml-1.5 text-[16px] text-ink-4">{r.endpoints.length}</span>
               </button>
             ))}
           </nav>
@@ -492,19 +492,19 @@ export function ApiReference() {
                 <CardHeader title={current.name} description={current.description} />
                 <div className="divide-y divide-line">
                   {current.endpoints.map((e) => (
-                    <div key={`${e.method}${e.path}`} className="space-y-3 px-5 py-4">
+                    <div key={`${e.method}${e.path}`} className="space-y-3 px-6 py-5">
                       <div className="flex flex-wrap items-center gap-2">
-                        <span className={`rounded border px-1.5 py-0.5 font-mono text-[13px] font-semibold ${methodTone[e.method]}`}>
+                        <span className={`rounded border px-1.5 py-0.5 font-mono text-[16px] font-semibold ${methodTone[e.method]}`}>
                           {e.method}
                         </span>
-                        <code className="font-mono text-[14px] text-ink">{e.path}</code>
+                        <code className="font-mono text-[18px] text-ink">{e.path}</code>
                       </div>
-                      <p className="text-[14px] leading-relaxed text-ink-3">{e.summary}</p>
+                      <p className="text-[18px] leading-relaxed text-ink-3">{e.summary}</p>
                       {e.params?.length ? (
                         <div className="overflow-x-auto rounded-md border border-line">
-                          <table className="w-full min-w-[420px] text-left text-[14px]">
+                          <table className="w-full min-w-[420px] text-left text-[18px]">
                             <thead>
-                              <tr className="border-b border-line bg-canvas/60 text-[13px] uppercase tracking-wide text-ink-4">
+                              <tr className="border-b border-line bg-canvas/60 text-[16px] uppercase tracking-wide text-ink-4">
                                 <th className="px-3 py-2 font-semibold">Parameter</th>
                                 <th className="px-3 py-2 font-semibold">Type</th>
                                 <th className="px-3 py-2 font-semibold">Description</th>
@@ -513,7 +513,7 @@ export function ApiReference() {
                             <tbody className="divide-y divide-line">
                               {e.params.map((p) => (
                                 <tr key={p.name}>
-                                  <td className="px-3 py-2 font-mono text-[13px] text-ink">{p.name}</td>
+                                  <td className="px-3 py-2 font-mono text-[16px] text-ink">{p.name}</td>
                                   <td className="px-3 py-2 text-ink-3">{p.type}</td>
                                   <td className="px-3 py-2 text-ink-3">{p.description}</td>
                                 </tr>
@@ -531,7 +531,7 @@ export function ApiReference() {
 
               <Card>
                 <CardHeader title="Authentication" />
-                <div className="space-y-3 px-5 py-4">
+                <div className="space-y-3 px-6 py-5">
                   <CodeBlock
                     language="bash"
                     filename="curl"
@@ -540,7 +540,7 @@ export function ApiReference() {
   -H "Content-Type: application/json" \\
   -d '{"amount":"1600.00","description":"Audit sprint"}'`}
                   />
-                  <p className="text-[14px] leading-relaxed text-ink-3">
+                  <p className="text-[18px] leading-relaxed text-ink-3">
                     Secret keys authenticate server-to-server requests. Publishable keys are only accepted by
                     the hosted checkout widget. Amounts are always transmitted as base-unit integers in
                     responses.
@@ -550,7 +550,7 @@ export function ApiReference() {
             </>
           ) : (
             <Card>
-              <div className="px-5 py-10 text-center text-[15px] text-ink-4">
+              <div className="px-5 py-10 text-center text-[18px] text-ink-4">
                 No endpoints match “{query}”.
               </div>
             </Card>

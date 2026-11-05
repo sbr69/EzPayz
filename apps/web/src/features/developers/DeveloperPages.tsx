@@ -47,6 +47,15 @@ export function DeveloperOverview() {
     { label: "Create a payment link", done: data.paymentLinks.length > 0, to: "/payment-links" },
     { label: "Set up a subscription plan", done: data.plans.length > 0, to: "/subscriptions/plans" },
   ];
+  const doneCount = checklist.filter((c) => c.done).length;
+  const progress = Math.round((doneCount / checklist.length) * 100);
+
+  const resources = [
+    { label: "SDK quickstart", description: "Install, configure and take a payment", to: "/developers/quickstart", icon: Terminal },
+    { label: "API reference", description: "Searchable endpoint documentation", to: "/developers/api-reference", icon: BookOpen },
+    { label: "API keys", description: `${activeKeys.length} active key${activeKeys.length === 1 ? "" : "s"}`, to: "/developers/api-keys", icon: Code2 },
+    { label: "Event logs", description: "Delivery attempts and response codes", to: "/developers/events", icon: ListTree },
+  ];
 
   return (
     <>
@@ -75,9 +84,9 @@ export function DeveloperOverview() {
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard label="Active API keys" value={activeKeys.length} />
-        <MetricCard label="Webhook endpoints" value={data.webhookEndpoints.length} sub={`${data.webhookEndpoints.filter((e) => e.active).length} active`} />
+        <MetricCard label="Webhook endpoints" value={data.webhookEndpoints.length} />
         <MetricCard label="Events delivered" value={data.webhookEvents.filter((e) => e.status === "delivered").length} tone="positive" />
         <MetricCard
           label="Failed deliveries"
@@ -86,10 +95,58 @@ export function DeveloperOverview() {
         />
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader title="Quickstart" description="Install, configure and take a payment" />
-          <div className="space-y-4 px-5 py-4">
+      <Card>
+        <CardHeader
+          title="Integration checklist"
+          description={`${doneCount} of ${checklist.length} steps complete`}
+          actions={
+            <span className="text-[14px] font-semibold text-accent tnum">{progress}%</span>
+          }
+        />
+        <div className="px-6 py-5">
+          <div className="h-1.5 overflow-hidden rounded-full bg-canvas-alt">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-[#118a7e] to-accent transition-[width] duration-500"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <ul className="mt-4 grid gap-x-6 gap-y-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
+            {checklist.map((c, i) => (
+              <li key={c.label}>
+                <Link
+                  to={c.to}
+                  className="group flex h-full items-center gap-3 rounded-[10px] border border-line px-3 py-4 transition-all duration-200 hover:border-accent-line hover:bg-canvas"
+                >
+                  <span
+                    className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[12px] font-semibold tnum transition-colors ${
+                      c.done
+                        ? "border-accent bg-accent text-white"
+                        : "border-line-strong text-ink-4 group-hover:border-accent-line group-hover:text-accent"
+                    }`}
+                  >
+                    {c.done ? <Check className="h-3 w-3" /> : i + 1}
+                  </span>
+                  <span className={`text-[14px] leading-snug ${c.done ? "text-ink" : "text-ink-2"}`}>{c.label}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </Card>
+
+      <Card>
+        <CardHeader
+          title="Quickstart"
+            description="Install, configure and take a payment"
+            actions={
+              <Link to="/developers/quickstart">
+                <Button size="sm" variant="secondary" iconRight={<BookOpen className="h-3.5 w-3.5" />}>
+                  Full guide
+                </Button>
+              </Link>
+            }
+          />
+          <div className="space-y-4 px-6 py-5">
             <CodeBlock
               language="bash"
               filename="terminal"
@@ -133,23 +190,55 @@ export default function Pay({ sessionId }: { sessionId: string }) {
 }`}
             />
           </div>
+      </Card>
+
+      <div className="grid gap-5 lg:grid-cols-3">
+        <Card className="lg:col-span-2">
+          <CardHeader
+            title="Recent API activity"
+            description="Recent webhook events emitted for this workspace"
+            actions={
+              <Link to="/developers/events">
+                <Button size="sm" variant="secondary" icon={<ListTree className="h-3.5 w-3.5" />}>
+                  Event logs
+                </Button>
+              </Link>
+            }
+          />
+          {recentEvents.length === 0 ? (
+            <EmptyState title="No recent activity" description="Events appear here once your integration starts creating payments." />
+          ) : (
+            <ul className="divide-y divide-line">
+              {recentEvents.map((e) => (
+                <li key={e.id} className="flex flex-wrap items-center justify-between gap-3 px-6 py-3.5">
+                  <div className="flex items-center gap-2.5">
+                    <code className="font-mono text-[18px] text-ink">{e.type}</code>
+                    <StatusBadge
+                      label={`HTTP ${e.responseStatus ?? "—"} · ${e.attempts} attempt${e.attempts > 1 ? "s" : ""}`}
+                      tone={e.status === "delivered" ? "positive" : "danger"}
+                    />
+                  </div>
+                  <span className="text-[16px] text-ink-4">{timeAgo(e.createdAt)}</span>
+                </li>
+              ))}
+            </ul>
+          )}
         </Card>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           <Card>
-            <CardHeader title="Integration checklist" />
+            <CardHeader title="Resources" />
             <ul className="divide-y divide-line">
-              {checklist.map((c) => (
-                <li key={c.label}>
-                  <Link to={c.to} className="flex items-center gap-2.5 px-5 py-2.5 hover:bg-canvas">
-                    <span
-                      className={`flex h-4.5 w-4.5 items-center justify-center rounded-full border ${
-                        c.done ? "border-accent bg-accent text-white" : "border-line-strong text-transparent"
-                      }`}
-                    >
-                      <Check className="h-3 w-3" />
+              {resources.map((r) => (
+                <li key={r.label}>
+                  <Link to={r.to} className="group flex items-center gap-3 px-6 py-3.5 transition-colors hover:bg-canvas">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-accent-soft text-accent transition-colors duration-200 group-hover:bg-accent group-hover:text-white">
+                      <r.icon className="h-4 w-4" strokeWidth={1.9} />
                     </span>
-                    <span className={`text-[14px] ${c.done ? "text-ink" : "text-ink-3"}`}>{c.label}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-[16px] font-medium text-ink">{r.label}</span>
+                      <span className="block truncate text-[14px] text-ink-3">{r.description}</span>
+                    </span>
                   </Link>
                 </li>
               ))}
@@ -157,18 +246,18 @@ export default function Pay({ sessionId }: { sessionId: string }) {
           </Card>
 
           <Card>
-            <CardHeader title="Webhook health" actions={<Link to="/developers/webhooks" className="text-[14px] text-accent hover:underline">Configure</Link>} />
-            <div className="space-y-3 px-5 py-4">
+            <CardHeader title="Webhook health" actions={<Link to="/developers/webhooks" className="text-[16px] text-accent hover:underline">Configure</Link>} />
+            <div className="space-y-3 px-6 py-5">
               {data.webhookEndpoints.map((e) => (
-                <div key={e.id} className="rounded-md border border-line px-3 py-2.5">
+                <div key={e.id} className="rounded-[10px] border border-line px-4 py-3">
                   <div className="flex items-center justify-between gap-2">
-                    <code className="min-w-0 truncate font-mono text-[13px] text-ink-2">{e.url}</code>
+                    <code className="min-w-0 truncate font-mono text-[16px] text-ink-2">{e.url}</code>
                     <StatusBadge
                       label={e.health}
                       tone={e.health === "healthy" ? "positive" : e.health === "untested" ? "neutral" : "warn"}
                     />
                   </div>
-                  <p className="mt-1 text-[13px] text-ink-4">
+                  <p className="mt-1 text-[16px] text-ink-4">
                     {e.events.length} events · last delivery {timeAgo(e.lastDeliveryAt)}
                   </p>
                 </div>
@@ -182,38 +271,6 @@ export default function Pay({ sessionId }: { sessionId: string }) {
           </Card>
         </div>
       </div>
-
-      <Card>
-        <CardHeader
-          title="Recent API activity"
-          description="Recent webhook events emitted for this workspace"
-          actions={
-            <Link to="/developers/events">
-              <Button size="sm" variant="secondary" icon={<ListTree className="h-3.5 w-3.5" />}>
-                Event logs
-              </Button>
-            </Link>
-          }
-        />
-        {recentEvents.length === 0 ? (
-          <EmptyState title="No recent activity" description="Events appear here once your integration starts creating payments." />
-        ) : (
-          <ul className="divide-y divide-line">
-            {recentEvents.map((e) => (
-              <li key={e.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
-                <div className="flex items-center gap-2.5">
-                  <code className="font-mono text-[14px] text-ink">{e.type}</code>
-                  <StatusBadge
-                    label={`HTTP ${e.responseStatus ?? "—"} · ${e.attempts} attempt${e.attempts > 1 ? "s" : ""}`}
-                    tone={e.status === "delivered" ? "positive" : "danger"}
-                  />
-                </div>
-                <span className="text-[13px] text-ink-4">{timeAgo(e.createdAt)}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Card>
     </>
   );
 }
@@ -249,25 +306,25 @@ export function ApiKeysPage() {
       render: (k) => (
         <div>
           <p className="font-medium text-ink">{k.name}</p>
-          <p className="font-mono text-[13px] text-ink-4">{k.publishable}</p>
+          <p className="font-mono text-[16px] text-ink-4">{k.publishable}</p>
         </div>
       ),
       csv: (k) => k.name,
     },
     { key: "env", header: "Environment", render: (k) => <Pill tone={k.environment === "testnet" ? "warn" : "neutral"}>{k.environment}</Pill> },
-    { key: "secret", header: "Secret", render: (k) => <code className="font-mono text-[13px] text-ink-4">••••••••••••{k.secretLast4}</code> },
+    { key: "secret", header: "Secret", render: (k) => <code className="font-mono text-[16px] text-ink-4">••••••••••••{k.secretLast4}</code> },
     {
       key: "permissions",
       header: "Permissions",
       hideOnMobile: true,
-      render: (k) => <span className="text-[14px] text-ink-3">{k.permissions.join(", ")}</span>,
+      render: (k) => <span className="text-[18px] text-ink-3">{k.permissions.join(", ")}</span>,
       csv: (k) => k.permissions.join(" "),
     },
     {
       key: "lastUsed",
       header: "Last used",
       hideOnMobile: true,
-      render: (k) => <span className="text-[14px] text-ink-3">{k.lastUsedAt ? timeAgo(k.lastUsedAt) : "Never"}</span>,
+      render: (k) => <span className="text-[18px] text-ink-3">{k.lastUsedAt ? timeAgo(k.lastUsedAt) : "Never"}</span>,
       csv: (k) => k.lastUsedAt ?? "",
     },
     {
@@ -286,7 +343,7 @@ export function ApiKeysPage() {
             Revoke
           </Button>
         ) : (
-          <span className="text-[13px] text-ink-4">Revoked {timeAgo(k.revokedAt)}</span>
+          <span className="text-[16px] text-ink-4">Revoked {timeAgo(k.revokedAt)}</span>
         ),
     },
   ];
@@ -378,14 +435,14 @@ export function ApiKeysPage() {
           <div className="space-y-4">
             <CopyField label="Publishable key" value={data.apiKeys.find((k) => k.id === created.id)?.publishable ?? ""} />
             <div className="space-y-1.5">
-              <p className="text-[13px] font-medium uppercase tracking-wide text-ink-4">Secret key — shown once</p>
+              <p className="text-[16px] font-medium uppercase tracking-wide text-ink-4">Secret key — shown once</p>
               <div className="flex items-center gap-2 rounded-md border border-warn-line bg-warn-soft/60 px-2.5 py-2">
-                <code className="min-w-0 flex-1 truncate font-mono text-[14px] text-ink">{created.secret}</code>
+                <code className="min-w-0 flex-1 truncate font-mono text-[18px] text-ink">{created.secret}</code>
                 <Button size="sm" variant="secondary" icon={<Copy className="h-3 w-3" />} onClick={() => navigator.clipboard?.writeText(created.secret)}>
                   Copy
                 </Button>
               </div>
-              <p className="text-[13px] text-ink-3">
+              <p className="text-[16px] text-ink-3">
                 Store it in your server-side secret manager. After closing this dialog only the last four
                 characters are visible.
               </p>
@@ -409,7 +466,7 @@ export function ApiKeysPage() {
                 {permissionOptions.map((p) => (
                   <Checkbox
                     key={p}
-                    label={<code className="font-mono text-[14px]">{p}</code>}
+                    label={<code className="font-mono text-[18px]">{p}</code>}
                     checked={permissions.includes(p)}
                     onChange={(v) => setPermissions(v ? [...permissions, p] : permissions.filter((x) => x !== p))}
                   />
@@ -470,7 +527,7 @@ export function WebhooksPage() {
         }
       />
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-5 lg:grid-cols-2">
         {data.webhookEndpoints.map((endpoint) => (
           <Card key={endpoint.id}>
             <CardHeader
@@ -489,28 +546,28 @@ export function WebhooksPage() {
                 </div>
               }
             />
-            <div className="space-y-3 px-5 py-4">
+            <div className="space-y-3 px-6 py-5">
               <div className="flex flex-wrap items-center gap-2">
                 <StatusBadge
                   label={endpoint.health}
                   tone={endpoint.health === "healthy" ? "positive" : endpoint.health === "untested" ? "neutral" : "warn"}
                 />
                 <StatusBadge label={`${endpoint.events.length} events`} tone="neutral" dot={false} />
-                <span className="text-[13px] text-ink-4">
+                <span className="text-[16px] text-ink-4">
                   Last delivery {endpoint.lastDeliveryAt ? timeAgo(endpoint.lastDeliveryAt) : "never"}
                 </span>
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {endpoint.events.map((e) => (
-                  <code key={e} className="rounded border border-line bg-canvas px-1.5 py-0.5 font-mono text-[13px] text-ink-2">
+                  <code key={e} className="rounded border border-line bg-canvas px-1.5 py-0.5 font-mono text-[16px] text-ink-2">
                     {e}
                   </code>
                 ))}
               </div>
               <div className="flex flex-wrap items-center gap-2 rounded-md border border-line bg-canvas/60 px-3 py-2">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[13px] uppercase tracking-wide text-ink-4">Signing secret</p>
-                  <code className="font-mono text-[13px] text-ink-2">whsec_••••••••{endpoint.signingSecretLast4}</code>
+                  <p className="text-[16px] uppercase tracking-wide text-ink-4">Signing secret</p>
+                  <code className="font-mono text-[16px] text-ink-2">whsec_••••••••{endpoint.signingSecretLast4}</code>
                 </div>
                 <Button size="sm" variant="secondary" onClick={() => setEditing(endpoint)}>
                   Manage
@@ -526,14 +583,14 @@ export function WebhooksPage() {
 
       <Card>
         <CardHeader title="Event catalogue" description="Available events by resource" />
-        <div className="grid gap-4 p-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4">
           {WEBHOOK_EVENTS.map((group) => (
             <div key={group.group}>
-              <p className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-ink-4">{group.group}</p>
+              <p className="mb-2 text-[16px] font-semibold uppercase tracking-wide text-ink-4">{group.group}</p>
               <ul className="space-y-1">
                 {group.events.map((e) => (
                   <li key={e}>
-                    <code className="rounded border border-line bg-canvas px-1.5 py-0.5 font-mono text-[13px] text-ink-2">{e}</code>
+                    <code className="rounded border border-line bg-canvas px-1.5 py-0.5 font-mono text-[16px] text-ink-2">{e}</code>
                   </li>
                 ))}
               </ul>
@@ -601,12 +658,12 @@ export function WebhooksPage() {
         {secret ? (
           <div className="space-y-3">
             <div className="flex items-center gap-2 rounded-md border border-warn-line bg-warn-soft/60 px-2.5 py-2">
-              <code className="min-w-0 flex-1 truncate font-mono text-[14px] text-ink">{secret}</code>
+              <code className="min-w-0 flex-1 truncate font-mono text-[18px] text-ink">{secret}</code>
               <Button size="sm" variant="secondary" icon={<Copy className="h-3 w-3" />} onClick={() => navigator.clipboard?.writeText(secret)}>
                 Copy
               </Button>
             </div>
-            <p className="text-[14px] leading-relaxed text-ink-3">
+            <p className="text-[18px] leading-relaxed text-ink-3">
               Verify the <code className="font-mono">X-EzPayz-Signature</code> header on every request before
               trusting the payload.
             </p>
@@ -627,12 +684,12 @@ export function WebhooksPage() {
               <div className="max-h-64 space-y-3 overflow-y-auto rounded-md border border-line p-3 scroll-thin">
                 {WEBHOOK_EVENTS.map((group) => (
                   <div key={group.group}>
-                    <p className="mb-1.5 text-[13px] font-semibold uppercase tracking-wide text-ink-4">{group.group}</p>
+                    <p className="mb-1.5 text-[16px] font-semibold uppercase tracking-wide text-ink-4">{group.group}</p>
                     <div className="space-y-1.5">
                       {group.events.map((e) => (
                         <Checkbox
                           key={e}
-                          label={<code className="font-mono text-[13px]">{e}</code>}
+                          label={<code className="font-mono text-[16px]">{e}</code>}
                           checked={events.includes(e)}
                           onChange={(v) => setEvents(v ? [...events, e] : events.filter((x) => x !== e))}
                         />
@@ -661,7 +718,7 @@ export function WebhooksPage() {
           <div className="space-y-4">
             <div className="rounded-md border border-line bg-canvas/60 px-3.5 py-1">
               <KeyValue label="Endpoint ID">
-                <code className="font-mono text-[13px]">{editing.id}</code>
+                <code className="font-mono text-[16px]">{editing.id}</code>
               </KeyValue>
               <KeyValue label="URL">{editing.url}</KeyValue>
               <KeyValue label="Description">{editing.description || "—"}</KeyValue>
@@ -673,16 +730,16 @@ export function WebhooksPage() {
               </KeyValue>
               <KeyValue label="Created">{fmtDateTime(editing.createdAt)}</KeyValue>
               <KeyValue label="Signing secret">
-                <code className="font-mono text-[13px]">whsec_••••{editing.signingSecretLast4}</code>
+                <code className="font-mono text-[16px]">whsec_••••{editing.signingSecretLast4}</code>
               </KeyValue>
             </div>
             <div>
-              <p className="mb-2 text-[14px] font-medium text-ink-2">Events subscribed</p>
+              <p className="mb-2 text-[18px] font-medium text-ink-2">Events subscribed</p>
               <div className="space-y-1.5">
                 {allEvents.map((e) => (
                   <Checkbox
                     key={e}
-                    label={<code className="font-mono text-[13px]">{e}</code>}
+                    label={<code className="font-mono text-[16px]">{e}</code>}
                     checked={editing.events.includes(e)}
                     onChange={async (v) => {
                       const next = v ? [...editing.events, e] : editing.events.filter((x) => x !== e);
@@ -747,8 +804,8 @@ export function WebhooksPage() {
               ))}
             </Select>
           </Field>
-          <p className="text-[14px] text-ink-3">
-            Endpoint: <code className="font-mono text-[13px]">{testTarget?.url}</code>
+          <p className="text-[18px] text-ink-3">
+            Endpoint: <code className="font-mono text-[16px]">{testTarget?.url}</code>
           </p>
         </div>
       </Modal>
@@ -772,13 +829,13 @@ export function EventsPage() {
   );
 
   const columns: Column<WebhookEvent>[] = [
-    { key: "id", header: "Event ID", render: (e) => <code className="font-mono text-[13px]">{e.id}</code> },
-    { key: "type", header: "Type", render: (e) => <code className="font-mono text-[14px] text-ink">{e.type}</code> },
+    { key: "id", header: "Event ID", render: (e) => <code className="font-mono text-[16px]">{e.id}</code> },
+    { key: "type", header: "Type", render: (e) => <code className="font-mono text-[18px] text-ink">{e.type}</code> },
     {
       key: "endpoint",
       header: "Endpoint",
       hideOnMobile: true,
-      render: (e) => <span className="truncate font-mono text-[13px] text-ink-3">{data.webhookEndpoints.find((x) => x.id === e.endpointId)?.url ?? "—"}</span>,
+      render: (e) => <span className="truncate font-mono text-[16px] text-ink-3">{data.webhookEndpoints.find((x) => x.id === e.endpointId)?.url ?? "—"}</span>,
       csv: (e) => data.webhookEndpoints.find((x) => x.id === e.endpointId)?.url ?? "",
     },
     {
@@ -793,7 +850,7 @@ export function EventsPage() {
       csv: (e) => e.responseStatus ?? "",
     },
     { key: "attempts", header: "Attempts", align: "right", render: (e) => <span className="tnum">{e.attempts}</span>, csv: (e) => e.attempts },
-    { key: "created", header: "Timestamp", render: (e) => <span className="text-[14px] text-ink-3 tnum">{fmtDateTime(e.createdAt)}</span>, sortValue: (e) => new Date(e.createdAt).getTime(), csv: (e) => e.createdAt },
+    { key: "created", header: "Timestamp", render: (e) => <span className="whitespace-nowrap text-[18px] text-ink-3 tnum">{fmtDateTime(e.createdAt)}</span>, sortValue: (e) => new Date(e.createdAt).getTime(), csv: (e) => e.createdAt },
     {
       key: "status",
       header: "Status",
@@ -907,13 +964,13 @@ export function EventsPage() {
           <div className="space-y-4">
             <div className="rounded-md border border-line bg-canvas/60 px-3.5 py-1">
               <KeyValue label="Event ID">
-                <code className="font-mono text-[13px]">{selected.id}</code>
+                <code className="font-mono text-[16px]">{selected.id}</code>
               </KeyValue>
               <KeyValue label="Type">
-                <code className="font-mono text-[13px]">{selected.type}</code>
+                <code className="font-mono text-[16px]">{selected.type}</code>
               </KeyValue>
               <KeyValue label="Endpoint">
-                <code className="break-all font-mono text-[13px]">
+                <code className="break-all font-mono text-[16px]">
                   {data.webhookEndpoints.find((x) => x.id === selected.endpointId)?.url}
                 </code>
               </KeyValue>
@@ -929,14 +986,14 @@ export function EventsPage() {
               <KeyValue label="Next retry">{fmtDateTime(selected.nextRetryAt)}</KeyValue>
               {selected.relatedPaymentId ? (
                 <KeyValue label="Payment">
-                  <Link to={`/payments/${selected.relatedPaymentId}`} className="font-mono text-[13px] text-accent hover:underline">
+                  <Link to={`/payments/${selected.relatedPaymentId}`} className="font-mono text-[16px] text-accent hover:underline">
                     {selected.relatedPaymentId}
                   </Link>
                 </KeyValue>
               ) : null}
             </div>
             <div>
-              <p className="mb-2 text-[13px] font-semibold uppercase tracking-wide text-ink-4">Payload</p>
+              <p className="mb-2 text-[16px] font-semibold uppercase tracking-wide text-ink-4">Payload</p>
               <CodeBlock language="json" filename="payload.json" code={JSON.stringify(selected.payload, null, 2)} />
             </div>
             <Callout tone="neutral" title="Delivery is independent of settlement">
@@ -947,7 +1004,7 @@ export function EventsPage() {
         ) : null}
       </Drawer>
 
-      <p className="flex items-center justify-center gap-1.5 text-center text-[13px] text-ink-4">
+      <p className="flex items-center justify-center gap-1.5 text-center text-[16px] text-ink-4">
         <Terminal className="h-3.5 w-3.5" />
         {rows.length} events recorded · oldest {timeAgo(rows[rows.length - 1]?.createdAt)}
       </p>

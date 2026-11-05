@@ -102,10 +102,10 @@ export function DataTable<T>({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-3 border-b border-line px-5 py-4">
+      <div className="flex flex-wrap items-center gap-3 border-b border-line px-6 py-5">
         {searchValue ? (
-          <div className="relative min-w-[180px] flex-1 sm:max-w-xs">
-            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-4" />
+          <div className="relative min-w-[220px] flex-1 sm:max-w-sm">
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-4" />
             <Input
               value={query}
               onChange={(e) => {
@@ -113,7 +113,7 @@ export function DataTable<T>({
                 setPage(0);
               }}
               placeholder={searchPlaceholder}
-              className="h-12 pl-10 text-[17px]"
+              className="h-11 pl-10 text-[16px]"
               aria-label="Search table"
             />
           </div>
@@ -126,7 +126,7 @@ export function DataTable<T>({
               setFilterState((s) => ({ ...s, [f.key]: e.target.value }));
               setPage(0);
             }}
-            className="h-12 w-auto min-w-[150px] text-[16px]"
+            className="h-11 w-auto min-w-[170px] text-[16px]"
             aria-label={f.label}
           >
             {f.options.map((o) => (
@@ -163,7 +163,7 @@ export function DataTable<T>({
                       key={c.key}
                       scope="col"
                       className={cn(
-                        "px-5 py-4 text-[15px] font-semibold uppercase tracking-wide text-ink-4",
+                        "px-6 py-4 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-4",
                         c.align === "right" && "text-right",
                         c.hideOnMobile && "hidden lg:table-cell",
                       )}
@@ -201,7 +201,7 @@ export function DataTable<T>({
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
-              {paged.map((row) => (
+              {paged.map((row, i) => (
                 <tr
                   key={getRowId(row)}
                   onClick={() => onRowClick?.(row)}
@@ -209,8 +209,9 @@ export function DataTable<T>({
                   onKeyDown={(e) => {
                     if (onRowClick && e.key === "Enter") onRowClick(row);
                   }}
+                  style={{ animationDelay: `${Math.min(i * 40, 320)}ms` }}
                   className={cn(
-                    "bg-surface transition-colors",
+                    "anim-fade-up bg-surface transition-colors",
                     onRowClick && "cursor-pointer hover:bg-canvas/70",
                   )}
                 >
@@ -218,7 +219,7 @@ export function DataTable<T>({
                     <td
                       key={c.key}
                       className={cn(
-                        "px-5 align-middle text-[17px] text-ink-2",
+                        "px-6 align-middle text-[18px] text-ink-2",
                         dense ? "py-3" : "py-4",
                         c.align === "right" && "text-right",
                         c.hideOnMobile && "hidden lg:table-cell",
@@ -236,7 +237,7 @@ export function DataTable<T>({
       )}
 
       {!loading && filtered.length > 0 ? (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-4 py-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-6 py-4">
           <p className="text-[14px] text-ink-4 tnum">
             Showing {safePage * pageSize + 1}–{Math.min((safePage + 1) * pageSize, filtered.length)} of{" "}
             {filtered.length}

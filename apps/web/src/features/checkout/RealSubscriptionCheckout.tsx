@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { motion } from "motion/react";
 import { useAccount, useSendTransaction } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { AlertCircle, ArrowUpRight, Loader2, Repeat, ShieldCheck } from "lucide-react";
 import { apiFetch } from "@/services/api/http";
+import { Button, Callout, Card, Divider } from "@/components/ui";
+import { DrawnCheck, EASE_OUT_QUART } from "@/components/ui/motion";
+import { CheckoutFrame } from "./CheckoutFrame";
 
 const CHAIN_ID = 1874;
 const EXPLORER = "https://explorer.testnet.whitechain.io";
@@ -120,88 +125,229 @@ export function RealSubscriptionCheckout() {
     }
   };
 
-  if (status === "loading") return <div style={{ padding: "2rem" }}>Loading subscription plan…</div>;
-  if (status === "failed") return <div style={{ padding: "2rem", color: "red" }}>Error: {error}</div>;
-  if (!checkout) return <div>No subscription checkout</div>;
+  if (status === "loading") {
+    return (
+      <CheckoutFrame>
+        <Card className="flex items-center justify-center gap-3 p-10 text-[18px] text-ink-3 shadow-sm">
+          <Loader2 className="h-4 w-4 animate-spin text-accent" />
+          Loading subscription plan…
+        </Card>
+      </CheckoutFrame>
+    );
+  }
+
+  if (status === "failed" && !checkout) {
+    return (
+      <CheckoutFrame>
+        <Card className="p-6 text-center shadow-sm">
+          <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-danger-soft text-danger">
+            <AlertCircle className="h-5 w-5" />
+          </div>
+          <p className="text-[18px] font-semibold text-ink">Subscription unavailable</p>
+          <p className="mt-1 text-[16px] leading-relaxed text-ink-3">{error}</p>
+        </Card>
+      </CheckoutFrame>
+    );
+  }
+
+  if (!checkout) {
+    return (
+      <CheckoutFrame>
+        <Card className="p-6 text-center text-[18px] text-ink-3 shadow-sm">No subscription checkout</Card>
+      </CheckoutFrame>
+    );
+  }
 
   const wrongNetwork = chainId !== undefined && chainId !== CHAIN_ID;
+  const busy = status === "approving" || status === "subscribing" || status === "recording";
+  const stepIndex =
+    status === "recording" ? 3 : status === "subscribing" ? 2 : busy ? 1 : 0;
 
   if (status === "succeeded") {
     return (
-      <div style={{ maxWidth: 480, margin: "2rem auto", padding: "1.5rem", border: "1px solid #ddd", borderRadius: 12, fontFamily: "sans-serif" }}>
-        <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <div style={{ width: 48, height: 48, margin: "0 auto 12px", borderRadius: "50%", background: "#22c55e", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 28 }}>✓</div>
-          <h2 style={{ margin: 0, fontSize: 24 }}>Subscription activated</h2>
-          <p style={{ color: "#666", fontSize: 16, margin: "4px 0 0" }}>{checkout.merchant.displayName} · {checkout.plan.name}</p>
-        </div>
-        <div style={{ padding: 16, background: "#f5f5f5", borderRadius: 8, marginBottom: 16 }}>
-          <p style={{ fontSize: 14, color: "#666", margin: 0 }}>Amount per cycle</p>
-          <p style={{ fontSize: 28, fontWeight: 600, margin: "4px 0 0" }}>{checkout.plan.displayAmount} {checkout.token.symbol}</p>
-          <p style={{ fontSize: 14, color: "#666", margin: "4px 0 0" }}>{INTERVAL_LABEL[checkout.plan.interval]}</p>
-        </div>
-        {approvalTx && (
-          <div style={{ marginBottom: 8 }}>
-            <p style={{ fontSize: 14, color: "#666", margin: 0 }}>Allowance approval tx</p>
-            <a href={`${EXPLORER}/tx/${approvalTx}`} target="_blank" rel="noreferrer" style={{ fontSize: 15, color: "#0ea5e9", wordBreak: "break-all" }}>{approvalTx.slice(0, 20)}…</a>
+      <CheckoutFrame badge={
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-positive-line bg-positive-soft px-2.5 py-1 text-[13px] font-semibold text-positive">
+          <ShieldCheck className="h-3 w-3" />
+          Active
+        </span>
+      }>
+        <Card className="overflow-hidden shadow-md">
+          <div className="flex flex-col items-center border-b border-line bg-gradient-to-b from-positive-soft/60 to-transparent px-6 pb-6 pt-8 text-center">
+            <DrawnCheck size={64} className="text-positive" />
+            <h1 className="mt-3 text-[26px] font-bold tracking-[-0.02em] text-ink">Subscription activated</h1>
+            <p className="mt-0.5 text-[16px] text-ink-3">
+              {checkout.merchant.displayName} · {checkout.plan.name}
+            </p>
           </div>
-        )}
-        {activationTx && (
-          <div style={{ marginBottom: 16 }}>
-            <p style={{ fontSize: 14, color: "#666", margin: 0 }}>Subscription activation tx</p>
-            <a href={`${EXPLORER}/tx/${activationTx}`} target="_blank" rel="noreferrer" style={{ fontSize: 15, color: "#0ea5e9", wordBreak: "break-all" }}>{activationTx.slice(0, 20)}…</a>
+          <div className="px-6 py-5">
+            <p className="text-[14px] font-medium uppercase tracking-wider text-ink-4">Amount per cycle</p>
+            <p className="mt-1 text-[41px] font-bold tracking-[-0.02em] text-ink tnum">
+              {checkout.plan.displayAmount}{" "}
+              <span className="text-[22px] font-semibold text-ink-3">{checkout.token.symbol}</span>
+            </p>
+            <p className="mt-1 text-[16px] text-ink-3">{INTERVAL_LABEL[checkout.plan.interval]}</p>
+
+            <div className="mt-4 space-y-2">
+              {[
+                { label: "Allowance approval", tx: approvalTx },
+                { label: "Subscription activation", tx: activationTx },
+              ].map(
+                (row, i) =>
+                  row.tx ? (
+                    <motion.div
+                      key={row.label}
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.8 + i * 0.15, duration: 0.35, ease: EASE_OUT_QUART }}
+                      className="flex items-center justify-between gap-3 rounded-[10px] border border-line bg-canvas px-3.5 py-2.5"
+                    >
+                      <span className="text-[14px] text-ink-3">{row.label}</span>
+                      <a
+                        href={`${EXPLORER}/tx/${row.tx}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex shrink-0 items-center gap-1 font-mono text-[14px] font-medium text-accent hover:underline"
+                      >
+                        {row.tx.slice(0, 10)}… <ArrowUpRight className="h-3 w-3" />
+                      </a>
+                    </motion.div>
+                  ) : null,
+              )}
+            </div>
           </div>
-        )}
-        <p style={{ fontSize: 13, color: "#999", marginTop: 12, textAlign: "center" }}>
-          Renewals are gasless — the gateway relayer pays WBT gas for each cycle.
-        </p>
-      </div>
+          <div className="border-t border-line bg-canvas px-6 py-3 text-center">
+            <p className="text-[13px] text-ink-4">
+              Renewals are gasless — the gateway relayer pays WBT gas for each cycle.
+            </p>
+          </div>
+        </Card>
+      </CheckoutFrame>
     );
   }
 
   return (
-    <div style={{ maxWidth: 480, margin: "2rem auto", padding: "1.5rem", border: "1px solid #ddd", borderRadius: 12, fontFamily: "sans-serif" }}>
-      <div style={{ marginBottom: 16 }}>
-        <h2 style={{ margin: 0 }}>{checkout.merchant.displayName}</h2>
-        <p style={{ color: "#666", fontSize: 16 }}>{checkout.plan.name}</p>
-        {checkout.plan.description && <p style={{ color: "#999", fontSize: 15, margin: "4px 0 0" }}>{checkout.plan.description}</p>}
-      </div>
-      <div style={{ padding: 16, background: "#f5f5f5", borderRadius: 8, marginBottom: 16 }}>
-        <p style={{ fontSize: 14, color: "#666", margin: 0 }}>Amount per cycle</p>
-        <p style={{ fontSize: 32, fontWeight: 600, margin: "4px 0 0" }}>{checkout.plan.displayAmount} {checkout.token.symbol}</p>
-        <p style={{ fontSize: 14, color: "#666", margin: "4px 0 0" }}>{INTERVAL_LABEL[checkout.plan.interval]}</p>
-      </div>
-      <div style={{ marginBottom: 16, fontSize: 15, color: "#666" }}>
-        <p style={{ margin: 0 }}>Max charge per cycle: <strong>{checkout.plan.displayMaxChargePerCycle} {checkout.token.symbol}</strong></p>
-        <p style={{ margin: "4px 0 0" }}>Cumulative limit: <strong>{checkout.plan.displayCumulativeLimit} {checkout.token.symbol}</strong></p>
-        {checkout.plan.planExpiryMonths && <p style={{ margin: "4px 0 0" }}>Plan expires in {checkout.plan.planExpiryMonths} months</p>}
-      </div>
-      <div style={{ marginBottom: 16 }}>
-        <p style={{ fontSize: 14, color: "#666" }}>Merchant payout: {checkout.merchant.payoutWallet.slice(0, 10)}…{checkout.merchant.payoutWallet.slice(-4)}</p>
-      </div>
-      <div style={{ marginBottom: 16 }}>
-        <ConnectButton />
-      </div>
-      {address && (
-        <>
-          {wrongNetwork && <p style={{ color: "orange", fontSize: 15, marginBottom: 12 }}>Wrong network — switch to Whitechain Sepolia (chain 1874).</p>}
-          <button
-            onClick={handleApprove}
-            disabled={status === "approving" || status === "subscribing" || status === "recording" || wrongNetwork}
-            style={{ width: "100%", padding: "12px", fontSize: 17, cursor: "pointer", borderRadius: 8, border: "none", background: "#0ea5e9", color: "#fff", opacity: wrongNetwork ? 0.5 : 1 }}
-          >
-            {status === "approving" ? "Approving allowance… (confirm in wallet)" :
-             status === "subscribing" ? "Creating subscription… (confirm in wallet)" :
-             status === "recording" ? "Recording subscription…" :
-             `Approve ${checkout.plan.displayCumulativeLimit} USDT & subscribe`}
-          </button>
-        </>
-      )}
-      <p style={{ fontSize: 13, color: "#f59e0b", marginTop: 12 }}>
-        You pay WBT gas for the initial approval + subscription creation. Renewals are gasless (relayer-sponsored).
-      </p>
-      <p style={{ fontSize: 13, color: "#999", marginTop: 4 }}>
-        To cancel: call cancel() on the subscription contract. To revoke unused allowance: call approve(contract, 0).
-      </p>
-    </div>
+    <CheckoutFrame badge={
+      <span className="inline-flex items-center gap-1.5 rounded-full border border-accent-line bg-accent-soft px-2.5 py-1 text-[13px] font-semibold text-accent">
+        <Repeat className="h-3 w-3" />
+        Subscription
+      </span>
+    }>
+      <Card className="overflow-hidden shadow-md">
+        <div className="border-b border-line px-6 py-5">
+          <h1 className="text-[22px] font-bold tracking-[-0.02em] text-ink">{checkout.merchant.displayName}</h1>
+          <p className="mt-0.5 text-[16px] font-medium text-ink-2">{checkout.plan.name}</p>
+          {checkout.plan.description ? (
+            <p className="mt-0.5 text-[16px] leading-relaxed text-ink-3">{checkout.plan.description}</p>
+          ) : null}
+        </div>
+
+        <div className="bg-gradient-to-b from-accent-soft/50 to-transparent px-6 py-5">
+          <p className="text-[14px] font-medium uppercase tracking-wider text-ink-4">Amount per cycle</p>
+          <p className="mt-1 text-[41px] font-bold leading-none tracking-[-0.02em] text-ink tnum">
+            {checkout.plan.displayAmount}{" "}
+            <span className="text-[22px] font-semibold text-ink-3">{checkout.token.symbol}</span>
+          </p>
+          <p className="mt-1 text-[16px] text-ink-3">{INTERVAL_LABEL[checkout.plan.interval]}</p>
+        </div>
+
+        {/* Progress steps */}
+        <div className="flex items-center gap-1 border-b border-line px-6 py-3">
+          {["Approve", "Activate", "Record", "Done"].map((s, i) => (
+            <div key={s} className="flex min-w-0 flex-1 flex-col gap-1">
+              <div className="h-1 overflow-hidden rounded-full bg-canvas-alt">
+                <motion.div
+                  initial={false}
+                  animate={{ width: i < stepIndex ? "100%" : "0%" }}
+                  transition={{ duration: 0.4, ease: EASE_OUT_QUART }}
+                  className="h-full rounded-full bg-accent"
+                />
+              </div>
+              <span className={`truncate text-[12px] font-medium ${i < stepIndex ? "text-accent" : "text-ink-4"}`}>
+                {s}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-4 px-6 py-5">
+          <div>
+            <div className="flex items-center justify-between gap-3 py-1 text-[16px]">
+              <span className="text-ink-3">Max charge per cycle</span>
+              <span className="font-medium text-ink tnum">
+                {checkout.plan.displayMaxChargePerCycle} {checkout.token.symbol}
+              </span>
+            </div>
+            <div className="flex items-center justify-between gap-3 py-1 text-[16px]">
+              <span className="text-ink-3">Cumulative limit</span>
+              <span className="font-medium text-ink tnum">
+                {checkout.plan.displayCumulativeLimit} {checkout.token.symbol}
+              </span>
+            </div>
+            {checkout.plan.planExpiryMonths ? (
+              <div className="flex items-center justify-between gap-3 py-1 text-[16px]">
+                <span className="text-ink-3">Plan expiry</span>
+                <span className="font-medium text-ink tnum">{checkout.plan.planExpiryMonths} months</span>
+              </div>
+            ) : null}
+          </div>
+
+          <Divider />
+
+          <div className="flex items-center justify-between gap-3 text-[16px]">
+            <span className="text-ink-3">Merchant payout</span>
+            <code className="font-mono text-ink-2">
+              {checkout.merchant.payoutWallet.slice(0, 10)}…{checkout.merchant.payoutWallet.slice(-4)}
+            </code>
+          </div>
+
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-[16px] text-ink-3">Wallet</span>
+            <ConnectButton />
+          </div>
+
+          {address && wrongNetwork ? (
+            <Callout tone="warn" title="Wrong network">
+              Switch to Whitechain Sepolia (chain {CHAIN_ID}) to continue.
+            </Callout>
+          ) : null}
+
+          {status === "failed" && error ? (
+            <Callout tone="danger" title="Subscription failed">
+              {error}
+            </Callout>
+          ) : null}
+
+          {address ? (
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full"
+              onClick={handleApprove}
+              disabled={busy || wrongNetwork}
+              loading={status === "approving"}
+              icon={status === "subscribing" || status === "recording" ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined}
+            >
+              {status === "approving"
+                ? "Approving allowance… (confirm in wallet)"
+                : status === "subscribing"
+                  ? "Creating subscription… (confirm in wallet)"
+                  : status === "recording"
+                    ? "Recording subscription…"
+                    : `Approve ${checkout.plan.displayCumulativeLimit} ${checkout.token.symbol} & subscribe`}
+            </Button>
+          ) : null}
+
+          <Callout tone="warn" title="Gas notice">
+            You pay WBT gas for the initial approval + subscription creation. Renewals are gasless
+            (relayer-sponsored).
+          </Callout>
+
+          <p className="text-center text-[13px] leading-relaxed text-ink-4">
+            To cancel: call <code className="font-mono">cancel()</code> on the subscription contract. To
+            revoke unused allowance: call <code className="font-mono">approve(contract, 0)</code>.
+          </p>
+        </div>
+      </Card>
+    </CheckoutFrame>
   );
 }

@@ -77,7 +77,7 @@ export function ReceiptPage() {
         </Callout>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+      <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
         <div className="space-y-4">
           <Card>
             <CardHeader title="Receipt" description={`${data.merchant.businessName} · ${DEFAULT_NETWORK.name}`} />
@@ -86,22 +86,22 @@ export function ReceiptPage() {
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2.5">
-                      <span className="flex h-9 w-9 items-center justify-center rounded-md bg-ink text-[14px] font-bold text-white">
+                      <span className="flex h-9 w-9 items-center justify-center rounded-md bg-ink text-[18px] font-bold text-white">
                         {data.merchant.logoText}
                       </span>
                       <div>
-                        <p className="text-[16px] font-semibold text-ink">{data.merchant.displayName}</p>
-                        <p className="text-[13px] text-ink-4">{data.merchant.businessEmail}</p>
+                        <p className="text-[20px] font-semibold text-ink">{data.merchant.displayName}</p>
+                        <p className="text-[16px] text-ink-4">{data.merchant.businessEmail}</p>
                       </div>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="flex items-center justify-end gap-1.5 text-[14px] font-semibold text-positive">
+                    <p className="flex items-center justify-end gap-1.5 text-[18px] font-semibold text-positive">
                       <CheckCircle2 className="h-3.5 w-3.5" />
                       {settled ? "PAID" : PAYMENT_STATUS_META[payment.status].label.toUpperCase()}
                     </p>
-                    <p className="font-mono text-[13px] text-ink-4">{payment.id}</p>
-                    <p className="text-[13px] text-ink-3 tnum">{fmtDateTime(payment.settledAt ?? payment.createdAt)}</p>
+                    <p className="font-mono text-[16px] text-ink-4">{payment.id}</p>
+                    <p className="whitespace-nowrap text-[16px] text-ink-3 tnum">{fmtDateTime(payment.settledAt ?? payment.createdAt)}</p>
                   </div>
                 </div>
 
@@ -109,17 +109,17 @@ export function ReceiptPage() {
 
                 <div className="grid gap-5 sm:grid-cols-2">
                   <div>
-                    <p className="text-[13px] font-medium uppercase tracking-wide text-ink-4">Paid by</p>
-                    <p className="mt-1 text-[15px] font-medium text-ink">{customer?.name ?? payment.customerEmail ?? "Guest checkout"}</p>
+                    <p className="text-[16px] font-medium uppercase tracking-wide text-ink-4">Paid by</p>
+                    <p className="mt-1 text-[18px] font-medium text-ink">{customer?.name ?? payment.customerEmail ?? "Guest checkout"}</p>
                     {payment.payerWallet ? (
-                      <p className="mt-0.5 break-all font-mono text-[13px] text-ink-3">{payment.payerWallet}</p>
+                      <p className="mt-0.5 break-all font-mono text-[16px] text-ink-3">{payment.payerWallet}</p>
                     ) : null}
                   </div>
                   <div className="sm:text-right">
-                    <p className="text-[13px] font-medium uppercase tracking-wide text-ink-4">Amount paid</p>
-                    <AmountDisplay base={payment.receivedAmount ?? payment.amount} className="text-[20px]" />
+                    <p className="text-[16px] font-medium uppercase tracking-wide text-ink-4">Amount paid</p>
+                    <AmountDisplay base={payment.receivedAmount ?? payment.amount} className="text-[26px]" />
                     {payment.refundedAmount !== "0" ? (
-                      <p className="mt-0.5 text-[13px] text-accent">
+                      <p className="mt-0.5 text-[16px] text-accent">
                         {fmtAmount(payment.refundedAmount)} {TOKEN.symbol} refunded
                       </p>
                     ) : null}
@@ -127,7 +127,7 @@ export function ReceiptPage() {
                 </div>
 
                 <div className="mt-5 rounded-md border border-line bg-canvas/60 p-4">
-                  <div className="flex items-center justify-between gap-4 text-[15px]">
+                  <div className="flex items-center justify-between gap-4 text-[18px]">
                     <span className="text-ink-2">{payment.description}</span>
                     <span className="font-semibold text-ink tnum">
                       {fmtAmount(payment.receivedAmount ?? payment.amount)} {TOKEN.symbol}
@@ -135,12 +135,12 @@ export function ReceiptPage() {
                   </div>
                   <Divider className="my-3" />
                   <div className="flex items-center justify-between gap-4">
-                    <span className="text-[14px] font-semibold text-ink">Total paid</span>
-                    <AmountDisplay base={payment.receivedAmount ?? payment.amount} className="text-[18px]" />
+                    <span className="text-[18px] font-semibold text-ink">Total paid</span>
+                    <AmountDisplay base={payment.receivedAmount ?? payment.amount} className="text-[22px]" />
                   </div>
                 </div>
 
-                <p className="mt-4 text-[13px] leading-relaxed text-ink-4">
+                <p className="mt-4 text-[16px] leading-relaxed text-ink-4">
                   Settlement asset: {TOKEN.name} on {DEFAULT_NETWORK.name} (chain {DEFAULT_NETWORK.chainId}).
                   Receipts are emailed after settlement. This is a demo receipt generated in your browser —
                   no PDF is produced and no on-chain settlement took place.
@@ -162,7 +162,7 @@ export function ReceiptPage() {
             <CardHeader title="Settlement details" />
             <div className="px-5 py-2">
               <KeyValue label="Payment ID">
-                <code className="font-mono text-[13px]">{payment.id}</code>
+                <code className="font-mono text-[16px]">{payment.id}</code>
                 <CopyButton value={payment.id} label="Copy" size="xs" />
               </KeyValue>
               <KeyValue label="Status">
@@ -178,10 +178,10 @@ export function ReceiptPage() {
               <KeyValue label="Network">{DEFAULT_NETWORK.name}</KeyValue>
               <KeyValue label="Token">{TOKEN.symbol}</KeyValue>
               <KeyValue label="Payer wallet">
-                <code className="break-all font-mono text-[13px]">{payment.payerWallet}</code>
+                <code className="break-all font-mono text-[16px]">{payment.payerWallet}</code>
               </KeyValue>
               <KeyValue label="Merchant payout">
-                <code className="break-all font-mono text-[13px]">{payment.payoutWallet}</code>
+                <code className="break-all font-mono text-[16px]">{payment.payoutWallet}</code>
               </KeyValue>
               <KeyValue label="Gas">
                 {payment.gasSponsored ? "Sponsored by merchant" : "Paid by payer"}
@@ -208,7 +208,7 @@ export function ReceiptPage() {
               <KeyValue label="Sent at">{fmtDateTime(payment.settledAt)}</KeyValue>
             </div>
             <div className="border-t border-line px-5 py-3">
-              <p className="text-[13px] leading-relaxed text-ink-4">
+              <p className="text-[16px] leading-relaxed text-ink-4">
                 Unpaid invoices are never emailed automatically. Only settled payments trigger a receipt.
               </p>
             </div>
@@ -216,7 +216,7 @@ export function ReceiptPage() {
 
           <Card>
             <CardHeader title="Timeline" />
-            <div className="px-5 py-4">
+            <div className="px-6 py-5">
               <Timeline
                 entries={payment.timeline.map((t, i) => ({
                   label: t.label,

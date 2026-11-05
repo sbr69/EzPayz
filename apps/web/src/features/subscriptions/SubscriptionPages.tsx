@@ -45,10 +45,10 @@ export function SubscriptionsList() {
       header: "Subscription",
       render: (s) => (
         <div>
-          <Link to={`/subscriptions/${s.id}`} className="font-mono text-[14px] text-ink hover:text-accent hover:underline">
+          <Link to={`/subscriptions/${s.id}`} className="font-mono text-[18px] text-ink hover:text-accent hover:underline">
             {s.id}
           </Link>
-          <p className="text-[13px] text-ink-3">{data.plans.find((p) => p.id === s.planId)?.name}</p>
+          <p className="text-[16px] text-ink-3">{data.plans.find((p) => p.id === s.planId)?.name}</p>
         </div>
       ),
       csv: (s) => s.id,
@@ -65,9 +65,9 @@ export function SubscriptionsList() {
       align: "right",
       render: (s) =>
         s.amount === "0" ? (
-          <span className="text-[14px] text-ink-3">Usage-based</span>
+          <span className="text-[18px] text-ink-3">Usage-based</span>
         ) : (
-          <AmountDisplay base={s.amount} className="text-[14px]" />
+          <AmountDisplay base={s.amount} className="text-[18px]" />
         ),
       csv: (s) => s.amount,
     },
@@ -75,7 +75,7 @@ export function SubscriptionsList() {
     {
       key: "next",
       header: "Next billing",
-      render: (s) => <span className="text-[14px] text-ink-3">{s.nextBillingAt ? `${fmtDateTime(s.nextBillingAt)} (${untilFuture(s.nextBillingAt)})` : "—"}</span>,
+      render: (s) => <span className="text-[18px] text-ink-3">{s.nextBillingAt ? `${fmtDateTime(s.nextBillingAt)} (${untilFuture(s.nextBillingAt)})` : "—"}</span>,
       sortValue: (s) => (s.nextBillingAt ? new Date(s.nextBillingAt).getTime() : 0),
       csv: (s) => s.nextBillingAt ?? "",
     },
@@ -84,7 +84,7 @@ export function SubscriptionsList() {
       header: "Per-cycle cap",
       align: "right",
       hideOnMobile: true,
-      render: (s) => <AmountDisplay base={s.maxChargePerCycle} className="text-[14px]" />,
+      render: (s) => <AmountDisplay base={s.maxChargePerCycle} className="text-[18px]" />,
       csv: (s) => s.maxChargePerCycle,
     },
     {
@@ -92,14 +92,14 @@ export function SubscriptionsList() {
       header: "Cumulative cap",
       align: "right",
       hideOnMobile: true,
-      render: (s) => <AmountDisplay base={s.cumulativeLimit} className="text-[14px]" />,
+      render: (s) => <AmountDisplay base={s.cumulativeLimit} className="text-[18px]" />,
       csv: (s) => s.cumulativeLimit,
     },
     {
       key: "spent",
       header: "Spent",
       align: "right",
-      render: (s) => <AmountDisplay base={s.spent} className="text-[14px]" />,
+      render: (s) => <AmountDisplay base={s.spent} className="text-[18px]" />,
       sortValue: (s) => Number(s.spent),
       csv: (s) => s.spent,
     },
@@ -108,7 +108,7 @@ export function SubscriptionsList() {
       header: "Authorization left",
       align: "right",
       hideOnMobile: true,
-      render: (s) => <AmountDisplay base={s.allowanceRemaining} className="text-[14px] text-accent" />,
+      render: (s) => <AmountDisplay base={s.allowanceRemaining} className="text-[18px] text-accent" />,
       csv: (s) => s.allowanceRemaining,
     },
     {
@@ -121,7 +121,7 @@ export function SubscriptionsList() {
       key: "created",
       header: "Created",
       hideOnMobile: true,
-      render: (s) => <span className="text-[14px] text-ink-3 tnum">{fmtDateTime(s.createdAt)}</span>,
+      render: (s) => <span className="whitespace-nowrap text-[18px] text-ink-3 tnum">{fmtDateTime(s.createdAt)}</span>,
       sortValue: (s) => new Date(s.createdAt).getTime(),
       csv: (s) => s.createdAt,
     },
@@ -129,7 +129,7 @@ export function SubscriptionsList() {
       key: "expiry",
       header: "Expiry",
       hideOnMobile: true,
-      render: (s) => <span className="text-[14px] text-ink-3 tnum">{fmtDateTime(s.expiresAt)}</span>,
+      render: (s) => <span className="whitespace-nowrap text-[18px] text-ink-3 tnum">{fmtDateTime(s.expiresAt)}</span>,
       csv: (s) => s.expiresAt ?? "",
     },
   ];
@@ -248,12 +248,12 @@ export function SubscriptionDetail() {
   ];
 
   const usageColumns: Column<UsageRecord>[] = [
-    { key: "id", header: "Record", render: (r) => <code className="font-mono text-[13px]">{r.id}</code> },
-    { key: "ref", header: "Merchant reference", render: (r) => <span className="text-[14px] text-ink-3">{r.merchantReference}</span> },
+    { key: "id", header: "Record", render: (r) => <code className="font-mono text-[16px]">{r.id}</code> },
+    { key: "ref", header: "Merchant reference", render: (r) => <span className="text-[18px] text-ink-3">{r.merchantReference}</span> },
     { key: "units", header: "Units", align: "right", render: (r) => <span className="tnum">{fmtNumber(r.units)}</span>, sortValue: (r) => r.units, csv: (r) => r.units },
-    { key: "price", header: "Unit price", align: "right", render: (r) => <AmountDisplay base={r.unitPrice} className="text-[14px]" /> },
-    { key: "amount", header: "Amount", align: "right", render: (r) => <AmountDisplay base={r.amount} className="text-[14px]" />, csv: (r) => r.amount },
-    { key: "recorded", header: "Recorded", render: (r) => <span className="text-[14px] text-ink-3 tnum">{fmtDateTime(r.recordedAt)}</span> },
+    { key: "price", header: "Unit price", align: "right", render: (r) => <AmountDisplay base={r.unitPrice} className="text-[18px]" /> },
+    { key: "amount", header: "Amount", align: "right", render: (r) => <AmountDisplay base={r.amount} className="text-[18px]" />, csv: (r) => r.amount },
+    { key: "recorded", header: "Recorded", render: (r) => <span className="whitespace-nowrap text-[18px] text-ink-3 tnum">{fmtDateTime(r.recordedAt)}</span> },
     {
       key: "billed",
       header: "Status",
@@ -276,7 +276,7 @@ export function SubscriptionDetail() {
         meta={
           <>
             <StatusBadge label={SUBSCRIPTION_STATUS_META[subscription.status].label} tone={SUBSCRIPTION_TONES[subscription.status]} />
-            <span className="font-mono text-[13px] text-ink-4">{subscription.id}</span>
+            <span className="font-mono text-[16px] text-ink-4">{subscription.id}</span>
             {subscription.nextBillingAt ? (
               <StatusBadge label={`Next renewal ${untilFuture(subscription.nextBillingAt)}`} tone="neutral" dot={false} />
             ) : null}
@@ -322,9 +322,9 @@ export function SubscriptionDetail() {
         </Callout>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
-          <div className="px-4 pt-1">
+          <div className="px-6 pt-2">
             <Tabs
               value={tab}
               onChange={setTab}
@@ -339,9 +339,9 @@ export function SubscriptionDetail() {
           </div>
 
           {tab === "overview" ? (
-            <div className="grid gap-x-8 px-5 py-3 sm:grid-cols-2">
+            <div className="grid gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
               <KeyValue label="Subscription ID">
-                <code className="font-mono text-[13px]">{subscription.id}</code>
+                <code className="font-mono text-[16px]">{subscription.id}</code>
               </KeyValue>
               <KeyValue label="Status">
                 <StatusBadge label={SUBSCRIPTION_STATUS_META[subscription.status].label} tone={SUBSCRIPTION_TONES[subscription.status]} />
@@ -394,9 +394,9 @@ export function SubscriptionDetail() {
           ) : null}
 
           {tab === "authorization" ? (
-            <div className="space-y-4 px-5 py-4">
+            <div className="space-y-4 px-6 py-5">
               <div className="rounded-md border border-line bg-canvas/60 p-4">
-                <div className="flex items-center justify-between text-[14px]">
+                <div className="flex items-center justify-between text-[18px]">
                   <span className="text-ink-3">Cumulative authorization used</span>
                   <span className="font-medium text-ink tnum">
                     {fmtAmount(subscription.spent)} / {fmtAmount(subscription.cumulativeLimit)} {TOKEN.symbol}
@@ -412,20 +412,20 @@ export function SubscriptionDetail() {
                 </div>
                 <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
                   <div>
-                    <p className="text-[13px] uppercase tracking-wide text-ink-4">Per-cycle cap</p>
-                    <AmountDisplay base={subscription.maxChargePerCycle} className="text-[15px]" />
+                    <p className="text-[16px] uppercase tracking-wide text-ink-4">Per-cycle cap</p>
+                    <AmountDisplay base={subscription.maxChargePerCycle} className="text-[18px]" />
                   </div>
                   <div>
-                    <p className="text-[13px] uppercase tracking-wide text-ink-4">Spent</p>
-                    <AmountDisplay base={subscription.spent} className="text-[15px]" />
+                    <p className="text-[16px] uppercase tracking-wide text-ink-4">Spent</p>
+                    <AmountDisplay base={subscription.spent} className="text-[18px]" />
                   </div>
                   <div>
-                    <p className="text-[13px] uppercase tracking-wide text-ink-4">Remaining</p>
-                    <AmountDisplay base={subscription.allowanceRemaining} className="text-[15px] text-accent" />
+                    <p className="text-[16px] uppercase tracking-wide text-ink-4">Remaining</p>
+                    <AmountDisplay base={subscription.allowanceRemaining} className="text-[18px] text-accent" />
                   </div>
                 </div>
               </div>
-              <div className="grid gap-x-8 sm:grid-cols-2">
+              <div className="grid gap-x-8 sm:grid-cols-2 2xl:grid-cols-3">
                 <KeyValue label="Allowance status">
                   {subscription.allowanceRevokedAt ? (
                     <StatusBadge label="Revoked" tone="danger" />
@@ -439,11 +439,11 @@ export function SubscriptionDetail() {
                   <TxRefDisplay value={subscription.approvalTxRef} />
                 </KeyValue>
                 <KeyValue label="Customer wallet">
-                  <code className="font-mono text-[13px]">{customer?.wallet ?? "—"}</code>
+                  <code className="font-mono text-[16px]">{customer?.wallet ?? "—"}</code>
                   {customer?.wallet ? <CopyButton value={customer.wallet} label="Copy" size="xs" /> : null}
                 </KeyValue>
                 <KeyValue label="Merchant payout">
-                  <code className="font-mono text-[13px]">{data.merchant.payoutWallet.slice(0, 12)}…</code>
+                  <code className="font-mono text-[16px]">{data.merchant.payoutWallet.slice(0, 12)}…</code>
                 </KeyValue>
               </div>
               <Callout tone="warn" title="Gas for setup and cancellation">
@@ -461,11 +461,11 @@ export function SubscriptionDetail() {
                 subscription.billingHistory.map((b) => (
                   <Link key={b.paymentId} to={`/payments/${b.paymentId}`} className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-canvas">
                     <div>
-                      <code className="font-mono text-[14px] text-ink">{b.paymentId}</code>
-                      <p className="text-[13px] text-ink-3 tnum">{fmtDateTime(b.at)}</p>
+                      <code className="font-mono text-[18px] text-ink">{b.paymentId}</code>
+                      <p className="whitespace-nowrap text-[16px] text-ink-3 tnum">{fmtDateTime(b.at)}</p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <AmountDisplay base={b.amount} className="text-[14px]" />
+                      <AmountDisplay base={b.amount} className="text-[18px]" />
                       <StatusBadge label={b.status} tone="positive" />
                     </div>
                   </Link>
@@ -479,9 +479,9 @@ export function SubscriptionDetail() {
               rows={renewals}
               columns={[
                 { key: "attempt", header: "#", render: (r) => <span className="tnum">{r.attempt}</span> },
-                { key: "scheduled", header: "Scheduled", render: (r) => <span className="text-[14px] text-ink-3 tnum">{fmtDateTime(r.scheduledFor)}</span> },
-                { key: "executed", header: "Executed", render: (r) => <span className="text-[14px] text-ink-3 tnum">{fmtDateTime(r.executedAt)}</span> },
-                { key: "amount", header: "Amount", align: "right", render: (r) => <AmountDisplay base={r.amount} className="text-[14px]" /> },
+                { key: "scheduled", header: "Scheduled", render: (r) => <span className="whitespace-nowrap text-[18px] text-ink-3 tnum">{fmtDateTime(r.scheduledFor)}</span> },
+                { key: "executed", header: "Executed", render: (r) => <span className="whitespace-nowrap text-[18px] text-ink-3 tnum">{fmtDateTime(r.executedAt)}</span> },
+                { key: "amount", header: "Amount", align: "right", render: (r) => <AmountDisplay base={r.amount} className="text-[18px]" /> },
                 {
                   key: "status",
                   header: "Status",
@@ -493,7 +493,7 @@ export function SubscriptionDetail() {
                   ),
                   csv: (r) => r.status,
                 },
-                { key: "reason", header: "Detail", render: (r) => <span className="text-[14px] text-ink-3">{r.reason ?? (r.txRef ? "Settled" : "—")}</span> },
+                { key: "reason", header: "Detail", render: (r) => <span className="text-[18px] text-ink-3">{r.reason ?? (r.txRef ? "Settled" : "—")}</span> },
               ]}
               getRowId={(r) => r.id}
               emptyTitle="No renewal attempts"
@@ -504,7 +504,7 @@ export function SubscriptionDetail() {
           {tab === "usage" ? (
             plan?.billingMode === "usage" ? (
               <div className="space-y-4 p-4">
-                <div className="grid gap-3 sm:grid-cols-4">
+                <div className="grid gap-5 sm:grid-cols-4">
                   {[
                     ["Units recorded", fmtNumber(usageRecords.reduce((a, r) => a + r.units, 0))],
                     ["Pending value", `${fmtAmount(pendingAmount)} ${TOKEN.symbol}`],
@@ -512,8 +512,8 @@ export function SubscriptionDetail() {
                     ["Authorization left", `${fmtAmount(subscription.allowanceRemaining)} ${TOKEN.symbol}`],
                   ].map(([label, value]) => (
                     <div key={label} className="rounded-md border border-line bg-canvas/60 px-3 py-2">
-                      <p className="text-[13px] uppercase tracking-wide text-ink-4">{label}</p>
-                      <p className="mt-0.5 text-[16px] font-semibold text-ink tnum">{value}</p>
+                      <p className="text-[16px] uppercase tracking-wide text-ink-4">{label}</p>
+                      <p className="mt-0.5 text-[20px] font-semibold text-ink tnum">{value}</p>
                     </div>
                   ))}
                 </div>
@@ -535,10 +535,10 @@ export function SubscriptionDetail() {
                   emptyTitle="No usage records"
                   pageSize={6}
                 />
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-line bg-canvas/60 px-4 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-line bg-canvas/60 px-6 py-4">
                   <div>
-                    <p className="text-[14px] font-medium text-ink">Charge pending usage</p>
-                    <p className="text-[13px] text-ink-3">
+                    <p className="text-[18px] font-medium text-ink">Charge pending usage</p>
+                    <p className="text-[16px] text-ink-3">
                       {pendingUsage.length} unbilled records · {fmtAmount(pendingAmount)} {TOKEN.symbol} ·
                       cap {fmtAmount(subscription.maxChargePerCycle)} {TOKEN.symbol}
                     </p>
@@ -573,14 +573,14 @@ export function SubscriptionDetail() {
         <div className="space-y-4">
           <Card>
             <CardHeader title="Automatic renewal timeline" description="Simulated steps in demo mode" />
-            <div className="px-5 py-4">
+            <div className="px-6 py-5">
               <Timeline entries={renewalTimeline} />
             </div>
           </Card>
 
           <Card>
             <CardHeader title="Failure handling" />
-            <div className="space-y-2.5 px-5 py-4">
+            <div className="space-y-2.5 px-6 py-5">
               {[
                 ["Insufficient USDT", "Retries inside the retry window, then the subscription becomes past due."],
                 ["Insufficient allowance", "Fails immediately; the customer must approve more allowance."],
@@ -591,8 +591,8 @@ export function SubscriptionDetail() {
                 ["RPC or relayer failure", "Retried by the gateway; raised as a relayer exception."],
               ].map(([title, desc]) => (
                 <div key={title} className="rounded-md border border-line px-3 py-2">
-                  <p className="text-[14px] font-medium text-ink">{title}</p>
-                  <p className="mt-0.5 text-[13px] leading-relaxed text-ink-3">{desc}</p>
+                  <p className="text-[18px] font-medium text-ink">{title}</p>
+                  <p className="mt-0.5 text-[16px] leading-relaxed text-ink-3">{desc}</p>
                 </div>
               ))}
             </div>
@@ -600,8 +600,8 @@ export function SubscriptionDetail() {
 
           <Card>
             <CardHeader title="Customer management" />
-            <div className="space-y-2.5 px-5 py-4">
-              <p className="text-[14px] leading-relaxed text-ink-3">
+            <div className="space-y-2.5 px-6 py-5">
+              <p className="text-[18px] leading-relaxed text-ink-3">
                 The customer can cancel and revoke separately from their own subscription page.
               </p>
               <a href={`#/customer/subscriptions/${subscription.id}`} target="_blank" rel="noreferrer">
@@ -712,7 +712,7 @@ export function SubscriptionDetail() {
         </div>
       </Modal>
 
-      <p className="flex items-center justify-center gap-1.5 text-center text-[13px] text-ink-4">
+      <p className="flex items-center justify-center gap-1.5 text-center text-[16px] text-ink-4">
         <CreditCard className="h-3.5 w-3.5" />
         {subscription.billingHistory.length} renewals settled ·{" "}
         {addBase(subscription.spent, "0") !== "0"

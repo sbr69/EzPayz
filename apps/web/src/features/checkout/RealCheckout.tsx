@@ -1,9 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
+import { motion } from "motion/react";
 import { useAccount, useSignTypedData } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { AlertCircle, ArrowUpRight, Loader2, Receipt, ShieldCheck } from "lucide-react";
 import { apiFetch, API_URL } from "@/services/api/http";
 import { fmtAmount } from "@/lib/money";
+import { Button, Callout, Card } from "@/components/ui";
+import { DrawnCheck, EASE_OUT_QUART } from "@/components/ui/motion";
+import { CheckoutFrame } from "./CheckoutFrame";
 
 const USDT = "0xcedfB56113143d55b2358b8CFbB0dEB5Ad2f55a7";
 const CHAIN_ID = 1874;
@@ -22,6 +27,8 @@ type CheckoutData = {
   successUrl?: string;
   cancelUrl?: string;
 };
+
+const STEPS = ["Details", "Connect wallet", "Sign authorization", "Confirming"] as const;
 
 /**
  * Real checkout — uses the live gateway API + wagmi/RainbowKit for wallet signing.
@@ -106,98 +113,218 @@ export function RealCheckout() {
 
   const displayAmt = checkout?.displayAmount ?? (checkout ? fmtAmount(checkout.amount) : "");
 
-  if (status === "loading") return <div style={{ padding: "2rem" }}>Loading checkout…</div>;
-  if (status === "failed") return (
-    <div style={{ padding: "2rem", maxWidth: 480, margin: "2rem auto", fontFamily: "sans-serif" }}>
-      <div style={{ color: "red", marginBottom: 12 }}>Error: {error}</div>
-      {checkout?.cancelUrl && (
-        <a href={checkout.cancelUrl}>
-          <button style={{ padding: "10px 20px", borderRadius: 8, border: "1px solid #ddd", cursor: "pointer", background: "#fff" }}>
-            Back to merchant
-          </button>
-        </a>
-      )}
-    </div>
-  );
-  if (!checkout) return <div>No checkout</div>;
+  if (status === "loading") {
+    return (
+      <CheckoutFrame>
+        <Card className="flex items-center justify-center gap-3 p-10 text-[18px] text-ink-3 shadow-sm">
+          <Loader2 className="h-4 w-4 animate-spin text-accent" />
+          Loading checkout…
+        </Card>
+      </CheckoutFrame>
+    );
+  }
+
+  if (status === "failed" && !checkout) {
+    return (
+      <CheckoutFrame>
+        <Card className="p-6 text-center shadow-sm">
+          <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-danger-soft text-danger">
+            <AlertCircle className="h-5 w-5" />
+          </div>
+          <p className="text-[18px] font-semibold text-ink">Checkout unavailable</p>
+          <p className="mt-1 text-[16px] leading-relaxed text-ink-3">{error}</p>
+        </Card>
+      </CheckoutFrame>
+    );
+  }
+
+  if (!checkout) {
+    return (
+      <CheckoutFrame>
+        <Card className="p-6 text-center text-[18px] text-ink-3 shadow-sm">No checkout</Card>
+      </CheckoutFrame>
+    );
+  }
 
   const wrongNetwork = chainId !== CHAIN_ID;
+  const busy = status === "signing" || status === "submitted";
+  const stepIndex = !address ? 1 : busy ? 3 : 2;
 
   // Success page
   if (status === "succeeded") {
     return (
-      <div style={{ maxWidth: 480, margin: "2rem auto", padding: "1.5rem", border: "1px solid #ddd", borderRadius: 12, fontFamily: "sans-serif" }}>
-        <div style={{ textAlign: "center", marginBottom: 20 }}>
-          <div style={{ width: 48, height: 48, margin: "0 auto 12px", borderRadius: "50%", background: "#22c55e", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontSize: 28 }}>✓</div>
-          <h2 style={{ margin: 0, fontSize: 24 }}>Payment succeeded</h2>
-          <p style={{ color: "#666", fontSize: 16, margin: "4px 0 0" }}>{checkout.merchant.displayName}</p>
-        </div>
-        <div style={{ padding: 16, background: "#f5f5f5", borderRadius: 8, marginBottom: 16 }}>
-          <p style={{ fontSize: 14, color: "#666", margin: 0 }}>Amount paid</p>
-          <p style={{ fontSize: 28, fontWeight: 600, margin: "4px 0 0" }}>{displayAmt} {checkout.token.symbol}</p>
-          <p style={{ fontSize: 14, color: "#666", margin: "8px 0 0" }}>{checkout.description}</p>
-        </div>
-        {txRef && (
-          <div style={{ marginBottom: 16 }}>
-            <p style={{ fontSize: 14, color: "#666", margin: 0 }}>Transaction</p>
-            <a href={`${EXPLORER}/tx/${txRef}`} target="_blank" rel="noreferrer" style={{ fontSize: 15, color: "#0ea5e9", wordBreak: "break-all" }}>
-              {txRef.slice(0, 20)}…{txRef.slice(-8)} →
-            </a>
+      <CheckoutFrame badge={
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-positive-line bg-positive-soft px-2.5 py-1 text-[13px] font-semibold text-positive">
+          <ShieldCheck className="h-3 w-3" />
+          Paid
+        </span>
+      }>
+        <Card className="overflow-hidden shadow-md">
+          <div className="flex flex-col items-center border-b border-line bg-gradient-to-b from-positive-soft/60 to-transparent px-6 pb-6 pt-8 text-center">
+            <DrawnCheck size={64} className="text-positive" />
+            <h1 className="mt-3 text-[26px] font-bold tracking-[-0.02em] text-ink">Payment succeeded</h1>
+            <p className="mt-0.5 text-[16px] text-ink-3">{checkout.merchant.displayName}</p>
           </div>
-        )}
-        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-          {checkout.successUrl && (
-            <a href={`${checkout.successUrl}${checkout.successUrl.includes("?") ? "&" : "?"}paymentIntentId=${checkout.paymentIntentId}&status=succeeded`} style={{ flex: 1 }}>
-              <button style={{ width: "100%", padding: "10px", fontSize: 16, cursor: "pointer", borderRadius: 8, border: "none", background: "#0ea5e9", color: "#fff" }}>
-                Return to merchant
-              </button>
-            </a>
-          )}
-          <a href={`${API_URL}/v1/checkout/${slug}/receipt.pdf`} target="_blank" rel="noreferrer">
-            <button style={{ padding: "10px 16px", fontSize: 16, cursor: "pointer", borderRadius: 8, border: "1px solid #ddd", background: "#fff" }}>
-              Download receipt
-            </button>
-          </a>
-        </div>
-        <p style={{ fontSize: 13, color: "#999", marginTop: 12, textAlign: "center" }}>
-          Gasless payment — the gateway relayer paid WBT gas. You only signed the authorization.
-        </p>
-      </div>
+          <div className="px-6 py-5">
+            <p className="text-[14px] font-medium uppercase tracking-wider text-ink-4">Amount paid</p>
+            <p className="mt-1 text-[41px] font-bold tracking-[-0.02em] text-ink tnum">
+              {displayAmt} <span className="text-[22px] font-semibold text-ink-3">{checkout.token.symbol}</span>
+            </p>
+            <p className="mt-1 text-[16px] text-ink-3">{checkout.description}</p>
+
+            {txRef ? (
+              <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.9, duration: 0.35, ease: EASE_OUT_QUART }}
+                className="mt-4 flex items-center justify-between gap-3 rounded-[10px] border border-line bg-canvas px-3.5 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="text-[13px] font-medium uppercase tracking-wider text-ink-4">Transaction</p>
+                  <code className="block truncate font-mono text-[14px] text-ink-2">
+                    {txRef.slice(0, 20)}…{txRef.slice(-8)}
+                  </code>
+                </div>
+                <a
+                  href={`${EXPLORER}/tx/${txRef}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex shrink-0 items-center gap-1 text-[16px] font-medium text-accent hover:underline"
+                >
+                  Explorer <ArrowUpRight className="h-3 w-3" />
+                </a>
+              </motion.div>
+            ) : null}
+
+            <div className="mt-5 flex flex-wrap gap-2">
+              {checkout.successUrl ? (
+                <a
+                  className="min-w-0 flex-1"
+                  href={`${checkout.successUrl}${checkout.successUrl.includes("?") ? "&" : "?"}paymentIntentId=${checkout.paymentIntentId}&status=succeeded`}
+                >
+                  <Button variant="primary" size="lg" className="w-full" iconRight={<ArrowUpRight className="h-4 w-4" />}>
+                    Return to merchant
+                  </Button>
+                </a>
+              ) : null}
+              <a href={`${API_URL}/v1/checkout/${slug}/receipt.pdf`} target="_blank" rel="noreferrer">
+                <Button variant="secondary" size="lg" icon={<Receipt className="h-4 w-4" />}>
+                  Receipt
+                </Button>
+              </a>
+            </div>
+          </div>
+          <div className="border-t border-line bg-canvas px-6 py-3 text-center">
+            <p className="text-[13px] text-ink-4">
+              Gasless payment — the gateway relayer paid WBT gas. You only signed the authorization.
+            </p>
+          </div>
+        </Card>
+      </CheckoutFrame>
     );
   }
 
   return (
-    <div style={{ maxWidth: 480, margin: "2rem auto", padding: "1.5rem", border: "1px solid #ddd", borderRadius: 12, fontFamily: "sans-serif" }}>
-      <div style={{ marginBottom: 16 }}>
-        <h2 style={{ margin: 0 }}>{checkout.merchant.displayName}</h2>
-        <p style={{ color: "#666", fontSize: 16 }}>{checkout.description}</p>
-      </div>
-      <div style={{ padding: 16, background: "#f5f5f5", borderRadius: 8, marginBottom: 16 }}>
-        <p style={{ fontSize: 14, color: "#666", margin: 0 }}>Amount due</p>
-        <p style={{ fontSize: 32, fontWeight: 600, margin: "4px 0 0" }}>
-          {displayAmt} {checkout.token.symbol}
-        </p>
-      </div>
-      <div style={{ marginBottom: 16 }}>
-        <p style={{ fontSize: 14, color: "#666" }}>Recipient: {checkout.merchant.payoutWallet.slice(0, 10)}…{checkout.merchant.payoutWallet.slice(-4)}</p>
-      </div>
-      <div style={{ marginBottom: 16 }}>
-        <ConnectButton />
-      </div>
-      {address && (
-        <>
-          {wrongNetwork && <p style={{ color: "orange", fontSize: 15 }}>Wrong network — switch to Whitechain Sepolia (chain 1874).</p>}
-          <button
-            onClick={handlePay}
-            disabled={status === "signing" || status === "submitted" || wrongNetwork}
-            style={{ width: "100%", padding: "12px", fontSize: 17, cursor: "pointer", borderRadius: 8, border: "none", background: "#0ea5e9", color: "#fff" }}
-          >
-            {status === "signing" ? "Sign in wallet…" : status === "submitted" ? "Confirming on-chain…" : `Pay ${displayAmt} USDT (gasless)`}
-          </button>
-        </>
-      )}
-      {status === "submitted" && <p style={{ color: "#0ea5e9", marginTop: 12, fontSize: 15 }}>Confirming on Whitechain Sepolia… this usually takes a few seconds.</p>}
-      <p style={{ fontSize: 13, color: "#999", marginTop: 12 }}>Gasless: the gateway relayer pays WBT gas. You only sign the authorization.</p>
-    </div>
+    <CheckoutFrame>
+      <Card className="overflow-hidden shadow-md">
+        <div className="border-b border-line px-6 py-5">
+          <h1 className="text-[22px] font-bold tracking-[-0.02em] text-ink">{checkout.merchant.displayName}</h1>
+          <p className="mt-0.5 text-[16px] text-ink-3">{checkout.description}</p>
+        </div>
+
+        <div className="bg-gradient-to-b from-accent-soft/50 to-transparent px-6 py-5">
+          <p className="text-[14px] font-medium uppercase tracking-wider text-ink-4">Amount due</p>
+          <p className="mt-1 text-[41px] font-bold leading-none tracking-[-0.02em] text-ink tnum">
+            {displayAmt} <span className="text-[22px] font-semibold text-ink-3">{checkout.token.symbol}</span>
+          </p>
+        </div>
+
+        {/* Progress steps */}
+        <div className="flex items-center gap-1 border-b border-line px-6 py-3">
+          {STEPS.map((s, i) => (
+            <div key={s} className="flex min-w-0 flex-1 flex-col gap-1">
+              <div className="h-1 overflow-hidden rounded-full bg-canvas-alt">
+                <motion.div
+                  initial={false}
+                  animate={{ width: i < stepIndex ? "100%" : "0%" }}
+                  transition={{ duration: 0.4, ease: EASE_OUT_QUART }}
+                  className="h-full rounded-full bg-accent"
+                />
+              </div>
+              <span className={`truncate text-[12px] font-medium ${i < stepIndex ? "text-accent" : "text-ink-4"}`}>
+                {s}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div className="space-y-4 px-6 py-5">
+          <div className="flex items-center justify-between gap-3 text-[16px]">
+            <span className="text-ink-3">Recipient</span>
+            <code className="font-mono text-ink-2">
+              {checkout.merchant.payoutWallet.slice(0, 10)}…{checkout.merchant.payoutWallet.slice(-4)}
+            </code>
+          </div>
+
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-[16px] text-ink-3">Wallet</span>
+            <ConnectButton />
+          </div>
+
+          {address && wrongNetwork ? (
+            <Callout tone="warn" title="Wrong network">
+              Switch to Whitechain Sepolia (chain {CHAIN_ID}) to continue.
+            </Callout>
+          ) : null}
+
+          {status === "failed" && error ? (
+            <Callout tone="danger" title="Payment failed">
+              {error}
+            </Callout>
+          ) : null}
+
+          {address ? (
+            <Button
+              variant="primary"
+              size="lg"
+              className="w-full"
+              onClick={handlePay}
+              disabled={busy || wrongNetwork}
+              loading={status === "signing"}
+              icon={status === "submitted" ? <Loader2 className="h-4 w-4 animate-spin" /> : undefined}
+            >
+              {status === "signing"
+                ? "Sign in wallet…"
+                : status === "submitted"
+                  ? "Confirming on-chain…"
+                  : `Pay ${displayAmt} ${checkout.token.symbol} (gasless)`}
+            </Button>
+          ) : null}
+
+          {status === "submitted" ? (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="anim-pulse-soft text-center text-[14px] font-medium text-info"
+            >
+              Confirming on Whitechain Sepolia… this usually takes a few seconds.
+            </motion.p>
+          ) : null}
+
+          <p className="flex items-start justify-center gap-1.5 text-center text-[13px] leading-relaxed text-ink-4">
+            <ShieldCheck className="mt-0.5 h-3 w-3 shrink-0 text-positive" />
+            Gasless: the gateway relayer pays WBT gas. You only sign the authorization.
+          </p>
+
+          {checkout.cancelUrl ? (
+            <div className="text-center">
+              <a href={checkout.cancelUrl} className="text-[14px] text-ink-4 underline-offset-2 hover:text-ink-2 hover:underline">
+                Cancel and return to merchant
+              </a>
+            </div>
+          ) : null}
+        </div>
+      </Card>
+    </CheckoutFrame>
   );
 }

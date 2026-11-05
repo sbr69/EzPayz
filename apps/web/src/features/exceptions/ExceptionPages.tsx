@@ -54,10 +54,10 @@ export function ExceptionsList() {
       header: "Exception",
       render: (e) => (
         <div>
-          <Link to={`/exceptions/${e.id}`} className="font-mono text-[14px] text-ink hover:text-accent hover:underline">
+          <Link to={`/exceptions/${e.id}`} className="font-mono text-[18px] text-ink hover:text-accent hover:underline">
             {e.id}
           </Link>
-          <p className="text-[13px] text-ink-3">{EXCEPTION_TYPE_LABEL[e.type]}</p>
+          <p className="text-[16px] text-ink-3">{EXCEPTION_TYPE_LABEL[e.type]}</p>
         </div>
       ),
       csv: (e) => e.id,
@@ -65,7 +65,7 @@ export function ExceptionsList() {
     {
       key: "type",
       header: "Type",
-      render: (e) => <span className="text-[14px] text-ink">{EXCEPTION_TYPE_LABEL[e.type]}</span>,
+      render: (e) => <span className="text-[18px] text-ink">{EXCEPTION_TYPE_LABEL[e.type]}</span>,
       csv: (e) => EXCEPTION_TYPE_LABEL[e.type],
     },
     {
@@ -83,17 +83,17 @@ export function ExceptionsList() {
       render: (e) => {
         if (e.paymentId)
           return (
-            <Link to={`/payments/${e.paymentId}`} className="font-mono text-[13px] text-accent hover:underline">
+            <Link to={`/payments/${e.paymentId}`} className="font-mono text-[16px] text-accent hover:underline">
               {e.paymentId}
             </Link>
           );
         if (e.subscriptionId)
           return (
-            <Link to={`/subscriptions/${e.subscriptionId}`} className="font-mono text-[13px] text-accent hover:underline">
+            <Link to={`/subscriptions/${e.subscriptionId}`} className="font-mono text-[16px] text-accent hover:underline">
               {e.subscriptionId}
             </Link>
           );
-        if (e.webhookEventId) return <code className="font-mono text-[13px]">{e.webhookEventId}</code>;
+        if (e.webhookEventId) return <code className="font-mono text-[16px]">{e.webhookEventId}</code>;
         return <span className="text-ink-4">Workspace</span>;
       },
       csv: (e) => e.paymentId ?? e.subscriptionId ?? e.webhookEventId ?? "",
@@ -102,13 +102,13 @@ export function ExceptionsList() {
       key: "amount",
       header: "Amount",
       align: "right",
-      render: (e) => (e.amount ? <AmountDisplay base={e.amount} className="text-[14px]" /> : <span className="text-ink-4">—</span>),
+      render: (e) => (e.amount ? <AmountDisplay base={e.amount} className="text-[18px]" /> : <span className="text-ink-4">—</span>),
       csv: (e) => e.amount ?? "",
     },
     {
       key: "detected",
       header: "Detected",
-      render: (e) => <span className="text-[14px] text-ink-3">{timeAgo(e.detectedAt)}</span>,
+      render: (e) => <span className="text-[18px] text-ink-3">{timeAgo(e.detectedAt)}</span>,
       sortValue: (e) => new Date(e.detectedAt).getTime(),
       csv: (e) => e.detectedAt,
     },
@@ -122,7 +122,7 @@ export function ExceptionsList() {
       key: "recommended",
       header: "Recommended action",
       hideOnMobile: true,
-      render: (e) => <span className="text-[14px] text-ink-3">{ACTION_LABEL[e.recommendedAction]}</span>,
+      render: (e) => <span className="text-[18px] text-ink-3">{ACTION_LABEL[e.recommendedAction]}</span>,
       csv: (e) => ACTION_LABEL[e.recommendedAction],
     },
     {
@@ -130,7 +130,7 @@ export function ExceptionsList() {
       header: "",
       align: "right",
       render: (e) => (
-        <Link to={`/exceptions/${e.id}`} className="inline-flex items-center gap-1 text-[14px] font-medium text-accent hover:underline">
+        <Link to={`/exceptions/${e.id}`} className="inline-flex items-center gap-1 text-[18px] font-medium text-accent hover:underline">
           Open
           <ChevronRight className="h-3 w-3" />
         </Link>
@@ -144,7 +144,7 @@ export function ExceptionsList() {
         title="Payment exceptions"
         description="Operational issues detected by the gateway: underpayments, relayer failures, webhook outages and reconciliation mismatches."
         actions={
-          <Select value={severity} onChange={(e) => setSeverity(e.target.value)} className="h-9 w-[160px]" aria-label="Severity">
+          <Select value={severity} onChange={(e) => setSeverity(e.target.value)} className="h-10 w-[170px]" aria-label="Severity">
             <option value="all">All severities</option>
             <option value="critical">Critical</option>
             <option value="high">High</option>
@@ -154,7 +154,7 @@ export function ExceptionsList() {
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard label="Open" value={open} tone={open ? "danger" : "neutral"} />
         <MetricCard label="Action required" value={action} tone="warn" />
         <MetricCard label="Critical unresolved" value={critical} tone={critical ? "danger" : "neutral"} />
@@ -253,7 +253,7 @@ export function ExceptionDetail() {
           <>
             <StatusBadge label={EXCEPTION_SEVERITY_META[exception.severity].label} tone={EXCEPTION_SEVERITY_TONES[exception.severity]} />
             <StatusBadge label={EXCEPTION_STATUS_META[exception.status].label} tone={EXCEPTION_STATUS_TONES[exception.status]} />
-            <span className="font-mono text-[13px] text-ink-4">{exception.id}</span>
+            <span className="font-mono text-[16px] text-ink-4">{exception.id}</span>
           </>
         }
         actions={
@@ -263,22 +263,22 @@ export function ExceptionDetail() {
         }
       />
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
           <Card>
             <CardHeader title="Diagnosis" description="What happened and why the gateway detected it" />
-            <div className="space-y-4 px-5 py-4">
+            <div className="space-y-4 px-6 py-5">
               <div>
-                <p className="text-[13px] font-semibold uppercase tracking-wide text-ink-4">What happened</p>
-                <p className="mt-1 text-[15px] leading-relaxed text-ink-2">{exception.whatHappened}</p>
+                <p className="text-[16px] font-semibold uppercase tracking-wide text-ink-4">What happened</p>
+                <p className="mt-1 text-[18px] leading-relaxed text-ink-2">{exception.whatHappened}</p>
               </div>
               <div>
-                <p className="text-[13px] font-semibold uppercase tracking-wide text-ink-4">Why it happened</p>
-                <p className="mt-1 text-[15px] leading-relaxed text-ink-2">{exception.whyItHappened}</p>
+                <p className="text-[16px] font-semibold uppercase tracking-wide text-ink-4">Why it happened</p>
+                <p className="mt-1 text-[18px] leading-relaxed text-ink-2">{exception.whyItHappened}</p>
               </div>
               <div>
-                <p className="text-[13px] font-semibold uppercase tracking-wide text-ink-4">Suggested resolution</p>
-                <p className="mt-1 text-[15px] leading-relaxed text-ink-2">{exception.suggestedAction}</p>
+                <p className="text-[16px] font-semibold uppercase tracking-wide text-ink-4">Suggested resolution</p>
+                <p className="mt-1 text-[18px] leading-relaxed text-ink-2">{exception.suggestedAction}</p>
               </div>
             </div>
           </Card>
@@ -289,11 +289,11 @@ export function ExceptionDetail() {
               {payment ? (
                 <Link to={`/payments/${payment.id}`} className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-canvas">
                   <div>
-                    <p className="text-[14px] text-ink-3">Payment</p>
-                    <code className="font-mono text-[14px] text-ink">{payment.id}</code>
+                    <p className="text-[18px] text-ink-3">Payment</p>
+                    <code className="font-mono text-[18px] text-ink">{payment.id}</code>
                   </div>
                   <div className="flex items-center gap-3">
-                    <AmountDisplay base={payment.receivedAmount ?? payment.amount} className="text-[14px]" />
+                    <AmountDisplay base={payment.receivedAmount ?? payment.amount} className="text-[18px]" />
                     <TxRefDisplay value={payment.txRef} size="xs" />
                   </div>
                 </Link>
@@ -301,8 +301,8 @@ export function ExceptionDetail() {
               {subscription ? (
                 <Link to={`/subscriptions/${subscription.id}`} className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-canvas">
                   <div>
-                    <p className="text-[14px] text-ink-3">Subscription</p>
-                    <code className="font-mono text-[14px] text-ink">{subscription.id}</code>
+                    <p className="text-[18px] text-ink-3">Subscription</p>
+                    <code className="font-mono text-[18px] text-ink">{subscription.id}</code>
                   </div>
                   <StatusBadge label={subscription.status.replace(/_/g, " ")} tone="warn" />
                 </Link>
@@ -310,14 +310,14 @@ export function ExceptionDetail() {
               {webhookEvent ? (
                 <Link to="/developers/events" className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-canvas">
                   <div>
-                    <p className="text-[14px] text-ink-3">Webhook event</p>
-                    <code className="font-mono text-[14px] text-ink">{webhookEvent.type}</code>
+                    <p className="text-[18px] text-ink-3">Webhook event</p>
+                    <code className="font-mono text-[18px] text-ink">{webhookEvent.type}</code>
                   </div>
                   <StatusBadge label={`HTTP ${webhookEvent.responseStatus}`} tone={webhookEvent.responseStatus === 200 ? "positive" : "danger"} />
                 </Link>
               ) : null}
               {!payment && !subscription && !webhookEvent ? (
-                <p className="px-5 py-4 text-[14px] text-ink-4">No payment, subscription or webhook record is linked.</p>
+                <p className="px-6 py-5 text-[18px] text-ink-4">No payment, subscription or webhook record is linked.</p>
               ) : null}
             </div>
           </Card>
@@ -325,7 +325,7 @@ export function ExceptionDetail() {
           <Card>
             <CardHeader title="Resolution history" description="Previous attempts recorded against this exception" />
             {timeline.length ? (
-              <div className="px-5 py-4">
+              <div className="px-6 py-5">
                 <Timeline entries={timeline} />
               </div>
             ) : (
@@ -339,7 +339,7 @@ export function ExceptionDetail() {
             <CardHeader title="Exception record" />
             <div className="px-5 py-2">
               <KeyValue label="Exception ID">
-                <code className="font-mono text-[13px]">{exception.id}</code>
+                <code className="font-mono text-[16px]">{exception.id}</code>
               </KeyValue>
               <KeyValue label="Type">{EXCEPTION_TYPE_LABEL[exception.type]}</KeyValue>
               <KeyValue label="Severity">
@@ -422,7 +422,7 @@ export function ExceptionDetail() {
         }}
       />
 
-      <p className="flex items-center justify-center gap-1.5 text-center text-[13px] text-ink-4">
+      <p className="flex items-center justify-center gap-1.5 text-center text-[16px] text-ink-4">
         <AlertTriangle className="h-3.5 w-3.5" />
         {data.exceptions.filter((e) => e.status !== "resolved").length} unresolved exceptions in this workspace
       </p>

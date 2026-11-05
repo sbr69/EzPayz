@@ -51,7 +51,7 @@ export function PlansListPage() {
           <Link to={`/subscriptions/plans/${p.id}`} className="font-medium text-ink hover:text-accent hover:underline">
             {p.name}
           </Link>
-          <p className="truncate text-[13px] text-ink-3">{p.description}</p>
+          <p className="truncate text-[16px] text-ink-3">{p.description}</p>
         </div>
       ),
       csv: (p) => p.name,
@@ -63,11 +63,11 @@ export function PlansListPage() {
       render: (p) =>
         p.billingMode === "usage" ? (
           <div className="text-right">
-            <AmountDisplay base={p.unitPrice ?? "0"} className="text-[14px]" />
-            <p className="text-[13px] text-ink-4">per {p.unitLabel}</p>
+            <AmountDisplay base={p.unitPrice ?? "0"} className="text-[18px]" />
+            <p className="text-[16px] text-ink-4">per {p.unitLabel}</p>
           </div>
         ) : (
-          <AmountDisplay base={p.amount} className="text-[14px]" />
+          <AmountDisplay base={p.amount} className="text-[18px]" />
         ),
       csv: (p) => p.amount,
     },
@@ -76,14 +76,14 @@ export function PlansListPage() {
       key: "cap",
       header: "Per-cycle cap",
       align: "right",
-      render: (p) => <AmountDisplay base={p.maxChargePerCycle} className="text-[14px]" />,
+      render: (p) => <AmountDisplay base={p.maxChargePerCycle} className="text-[18px]" />,
       csv: (p) => p.maxChargePerCycle,
     },
     {
       key: "limit",
       header: "Cumulative limit",
       align: "right",
-      render: (p) => <AmountDisplay base={p.cumulativeLimit} className="text-[14px]" />,
+      render: (p) => <AmountDisplay base={p.cumulativeLimit} className="text-[18px]" />,
       csv: (p) => p.cumulativeLimit,
     },
     {
@@ -91,7 +91,7 @@ export function PlansListPage() {
       header: "Retry policy",
       hideOnMobile: true,
       render: (p) => (
-        <span className="text-[14px] text-ink-3">
+        <span className="text-[18px] text-ink-3">
           {p.retryPolicy.maxAttempts}× {p.retryPolicy.backoff} · {p.retryPolicy.intervalMinutes}m
         </span>
       ),
@@ -285,10 +285,10 @@ export function PlanForm() {
         }
       />
 
-      <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+      <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
         <Card>
           <CardHeader title="Plan configuration" />
-          <div className="space-y-4 px-5 py-4">
+          <div className="space-y-4 px-6 py-5">
             <Field label="Plan name" required error={errors.name}>
               <Input value={form.name} invalid={Boolean(errors.name)} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Northwind Pro" />
             </Field>
@@ -310,17 +310,17 @@ export function PlanForm() {
                       form.billingMode === value ? "border-accent bg-accent-soft" : "border-line-strong hover:bg-canvas"
                     }`}
                   >
-                    <span className={`block text-[14px] font-semibold ${form.billingMode === value ? "text-accent" : "text-ink"}`}>
+                    <span className={`block text-[18px] font-semibold ${form.billingMode === value ? "text-accent" : "text-ink"}`}>
                       {title}
                     </span>
-                    <span className="mt-0.5 block text-[13px] text-ink-3">{desc}</span>
+                    <span className="mt-0.5 block text-[16px] text-ink-3">{desc}</span>
                   </button>
                 ))}
               </div>
             </Field>
 
             {form.billingMode === "usage" ? (
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-5 sm:grid-cols-2">
                 <Field label={`Price per unit (${TOKEN.symbol})`} required error={errors.unitPrice}>
                   <Input inputMode="decimal" value={form.unitPrice} invalid={Boolean(errors.unitPrice)} onChange={(e) => setForm({ ...form, unitPrice: e.target.value })} />
                 </Field>
@@ -334,7 +334,7 @@ export function PlanForm() {
               </Field>
             )}
 
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-5 sm:grid-cols-3">
               <Field label="Billing interval" required>
                 <Select value={form.interval} onChange={(e) => setForm({ ...form, interval: e.target.value as typeof form.interval })}>
                   <option value="hourly">Hourly</option>
@@ -355,7 +355,7 @@ export function PlanForm() {
               </Field>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-5 sm:grid-cols-2">
               <Field label="Plan expiry" hint="Subscriptions end after this period.">
                 <Select value={form.planExpiryMonths} onChange={(e) => setForm({ ...form, planExpiryMonths: e.target.value })}>
                   <option value="1">1 month</option>
@@ -368,13 +368,13 @@ export function PlanForm() {
               <Field label="Customer notifications">
                 <div className="flex h-9 items-center gap-3">
                   <Switch checked={form.notifyCustomer} onChange={(v) => setForm({ ...form, notifyCustomer: v })} label="Notify customer" />
-                  <span className="text-[14px] text-ink-3">Notify before each renewal</span>
+                  <span className="text-[18px] text-ink-3">Notify before each renewal</span>
                 </div>
               </Field>
             </div>
 
             <Field label="Retry policy" hint="Applied when a renewal cannot be executed.">
-              <div className="grid gap-3 rounded-md border border-line bg-canvas/60 p-3 sm:grid-cols-2">
+              <div className="grid gap-5 rounded-md border border-line bg-canvas/60 p-3 sm:grid-cols-2">
                 <Field label="Max attempts" error={errors.maxAttempts}>
                   <Input inputMode="numeric" value={form.maxAttempts} invalid={Boolean(errors.maxAttempts)} onChange={(e) => setForm({ ...form, maxAttempts: e.target.value })} />
                 </Field>
@@ -399,18 +399,18 @@ export function PlanForm() {
         <div className="space-y-4">
           <Card>
             <CardHeader title="Pricing preview" description="What the customer authorises" />
-            <div className="space-y-3 px-5 py-4">
+            <div className="space-y-3 px-6 py-5">
               <div className="rounded-md border border-line bg-canvas p-4">
-                <p className="text-[15px] font-semibold text-ink">{form.name || "Untitled plan"}</p>
-                <p className="mt-1 text-[14px] text-ink-3">{form.description || "Plan description"}</p>
-                <p className="mt-3 text-[20px] font-semibold text-ink tnum">
+                <p className="text-[18px] font-semibold text-ink">{form.name || "Untitled plan"}</p>
+                <p className="mt-1 text-[18px] text-ink-3">{form.description || "Plan description"}</p>
+                <p className="mt-3 text-[26px] font-semibold text-ink tnum">
                   {form.billingMode === "usage"
                     ? `${form.unitPrice} ${TOKEN.symbol} / ${form.unitLabel}`
                     : `${form.amount || "0.00"} ${TOKEN.symbol}`}
                 </p>
-                <p className="mt-1 text-[13px] text-ink-4">Billed {form.interval}</p>
+                <p className="mt-1 text-[16px] text-ink-4">Billed {form.interval}</p>
               </div>
-              <div className="space-y-2 text-[14px]">
+              <div className="space-y-2 text-[18px]">
                 <div className="flex justify-between">
                   <span className="text-ink-3">Max charge per cycle</span>
                   <span className="font-medium text-ink tnum">
@@ -510,12 +510,12 @@ export function PlanList() {
         }
       />
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader title="Plan details" />
-          <div className="grid gap-x-8 px-5 py-2 sm:grid-cols-2">
+          <div className="grid gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
             <KeyValue label="Plan ID">
-              <code className="font-mono text-[13px]">{plan.id}</code>
+              <code className="font-mono text-[16px]">{plan.id}</code>
             </KeyValue>
             <KeyValue label="Currency">{plan.currency}</KeyValue>
             <KeyValue label="Amount per cycle">
@@ -557,10 +557,10 @@ export function PlanList() {
               subscriptions.map((s) => (
                 <Link key={s.id} to={`/subscriptions/${s.id}`} className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-canvas">
                   <div className="min-w-0">
-                    <p className="text-[14px] font-medium text-ink">
+                    <p className="text-[18px] font-medium text-ink">
                       {data.customers.find((c) => c.id === s.customerId)?.name}
                     </p>
-                    <code className="font-mono text-[13px] text-ink-4">{s.id}</code>
+                    <code className="font-mono text-[16px] text-ink-4">{s.id}</code>
                   </div>
                   <StatusBadge label={SUBSCRIPTION_STATUS_META[s.status].label} tone={SUBSCRIPTION_TONES[s.status]} />
                 </Link>
@@ -576,7 +576,7 @@ export function PlanList() {
             title="Usage records"
             description="Measurements are submitted by the merchant application and are not independently verified by the gateway"
           />
-          <div className="grid gap-4 p-4 lg:grid-cols-[1.4fr_1fr]">
+          <div className="grid gap-4 p-5 lg:grid-cols-[1.4fr_1fr]">
             <TrendLineChart
               data={usageRecords
                 .slice()
@@ -592,7 +592,7 @@ export function PlanList() {
                 ["Pending", fmtNumber(usageRecords.filter((r) => !r.billed).length)],
                 ["Calculated value", `${fmtAmount(usageRecords.reduce((a, r) => (a + Number(r.amount)).toString(), "0"))} ${TOKEN.symbol}`],
               ].map(([label, value]) => (
-                <div key={label} className="flex items-center justify-between rounded-md border border-line bg-canvas/60 px-3 py-2 text-[14px]">
+                <div key={label} className="flex items-center justify-between rounded-md border border-line bg-canvas/60 px-3 py-2 text-[18px]">
                   <span className="text-ink-3">{label}</span>
                   <span className="font-medium text-ink tnum">{value}</span>
                 </div>
@@ -607,7 +607,7 @@ export function PlanList() {
         exceed the spending limit the customer approved. When the limit is reached the renewal fails and the
         exception centre raises an <strong>insufficient allowance</strong> case.
       </Callout>
-      <p className="flex items-center justify-center gap-1.5 text-center text-[13px] text-ink-4">
+      <p className="flex items-center justify-center gap-1.5 text-center text-[16px] text-ink-4">
         <BarChart3 className="h-3.5 w-3.5" />
         {subscriptions.length} subscriptions · {usageRecords.length} usage records
       </p>

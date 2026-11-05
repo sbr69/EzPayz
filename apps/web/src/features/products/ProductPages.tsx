@@ -49,14 +49,14 @@ export function ProductsList() {
       header: "Product",
       render: (p) => (
         <div className="flex items-center gap-2.5">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-canvas-alt text-[12px] font-bold text-ink-2">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-canvas-alt text-[14px] font-bold text-ink-2">
             {p.imageGlyph}
           </span>
           <div className="min-w-0">
             <Link to={`/products/${p.id}`} className="font-medium text-ink hover:text-accent hover:underline">
               {p.name}
             </Link>
-            <p className="truncate text-[13px] text-ink-3">{p.description}</p>
+            <p className="truncate text-[16px] text-ink-3">{p.description}</p>
           </div>
         </div>
       ),
@@ -70,11 +70,11 @@ export function ProductsList() {
       render: (p) =>
         p.billingMode === "usage" ? (
           <div className="text-right">
-            <AmountDisplay base={p.unitPrice ?? "0"} className="text-[14px]" />
-            <p className="text-[13px] text-ink-4">per {p.unitLabel}</p>
+            <AmountDisplay base={p.unitPrice ?? "0"} className="text-[18px]" />
+            <p className="text-[16px] text-ink-4">per {p.unitLabel}</p>
           </div>
         ) : (
-          <AmountDisplay base={p.price} className="text-[14px]" />
+          <AmountDisplay base={p.price} className="text-[18px]" />
         ),
       sortValue: (p) => Number(p.price),
       csv: (p) => p.price,
@@ -95,7 +95,7 @@ export function ProductsList() {
       key: "created",
       header: "Created",
       hideOnMobile: true,
-      render: (p) => <span className="text-[14px] text-ink-3 tnum">{fmtDateTime(p.createdAt)}</span>,
+      render: (p) => <span className="whitespace-nowrap text-[18px] text-ink-3 tnum">{fmtDateTime(p.createdAt)}</span>,
       sortValue: (p) => new Date(p.createdAt).getTime(),
       csv: (p) => p.createdAt,
     },
@@ -316,7 +316,7 @@ function ProductDialog({ product, onClose }: { product: Product | null; onClose:
           </Select>
         </Field>
         {form.billingMode === "usage" ? (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2">
             <Field label={`Price per unit (${TOKEN.symbol})`} required error={errors.unitPrice}>
               <Input
                 inputMode="decimal"
@@ -378,7 +378,7 @@ export function ProductDetail() {
           <>
             <StatusBadge label={product.active ? "Active" : "Archived"} tone={product.active ? "positive" : "neutral"} />
             <StatusBadge label={modeLabels[product.billingMode]} tone="info" dot={false} />
-            <span className="font-mono text-[13px] text-ink-4">{product.id}</span>
+            <span className="font-mono text-[16px] text-ink-4">{product.id}</span>
           </>
         }
         actions={
@@ -407,12 +407,12 @@ export function ProductDetail() {
         }
       />
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader title="Product details" />
-          <div className="grid gap-x-8 px-5 py-2 sm:grid-cols-2">
+          <div className="grid gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
             <KeyValue label="Product ID">
-              <code className="font-mono text-[13px]">{product.id}</code>
+              <code className="font-mono text-[16px]">{product.id}</code>
             </KeyValue>
             <KeyValue label="Currency">{product.currency}</KeyValue>
             <KeyValue label="Billing mode">{modeLabels[product.billingMode]}</KeyValue>
@@ -435,16 +435,16 @@ export function ProductDetail() {
           <CardHeader title="Usage" />
           <div className="divide-y divide-line">
             <div className="px-5 py-3">
-              <p className="text-[13px] uppercase tracking-wide text-ink-4">Payment links</p>
-              <p className="mt-1 text-[17px] font-semibold text-ink tnum">{links.length}</p>
+              <p className="text-[16px] uppercase tracking-wide text-ink-4">Payment links</p>
+              <p className="mt-1 text-[20px] font-semibold text-ink tnum">{links.length}</p>
             </div>
             <div className="px-5 py-3">
-              <p className="text-[13px] uppercase tracking-wide text-ink-4">Matching plans</p>
-              <p className="mt-1 text-[17px] font-semibold text-ink tnum">{plans.length}</p>
+              <p className="text-[16px] uppercase tracking-wide text-ink-4">Matching plans</p>
+              <p className="mt-1 text-[20px] font-semibold text-ink tnum">{plans.length}</p>
             </div>
             <div className="px-5 py-3">
-              <p className="text-[13px] uppercase tracking-wide text-ink-4">Mark</p>
-              <p className="mt-1 text-[17px] font-semibold text-ink">{product.imageGlyph}</p>
+              <p className="text-[16px] uppercase tracking-wide text-ink-4">Mark</p>
+              <p className="mt-1 text-[20px] font-semibold text-ink">{product.imageGlyph}</p>
             </div>
           </div>
         </Card>
@@ -460,11 +460,11 @@ export function ProductDetail() {
               <li key={l.id}>
                 <Link to={`/payment-links/${l.id}`} className="flex items-center justify-between gap-3 px-5 py-3 hover:bg-canvas">
                   <div>
-                    <p className="text-[14px] font-medium text-ink">{l.title}</p>
-                    <p className="font-mono text-[13px] text-ink-4">/l/{l.slug}</p>
+                    <p className="text-[18px] font-medium text-ink">{l.title}</p>
+                    <p className="font-mono text-[16px] text-ink-4">/l/{l.slug}</p>
                   </div>
                   <div className="flex items-center gap-3">
-                    <AmountDisplay base={l.totalCollected} className="text-[14px]" />
+                    <AmountDisplay base={l.totalCollected} className="text-[18px]" />
                     <StatusBadge label={`${l.usageCount} payments`} tone="neutral" dot={false} />
                   </div>
                 </Link>

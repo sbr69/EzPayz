@@ -40,7 +40,7 @@ export function QRCodeImage({
   if (error) {
     return (
       <div
-        className="flex items-center justify-center rounded border border-line bg-canvas text-[13px] text-ink-4"
+        className="flex items-center justify-center rounded border border-line bg-canvas text-[16px] text-ink-4"
         style={{ width: size, height: size }}
       >
         QR unavailable
@@ -109,20 +109,20 @@ export function QRCodeDialog({
         <div className="flex flex-col items-center gap-3 rounded-md border border-line bg-canvas p-5">
           <QRCodeImage value={url} size={200} />
           <div className="text-center">
-            <p className="text-[15px] font-semibold text-ink">{merchantName}</p>
-            <p className="text-[14px] text-ink-2">{title}</p>
-            {amountLabel ? <p className="text-[14px] font-semibold text-ink tnum">{amountLabel}</p> : null}
-            {description ? <p className="mt-1 max-w-xs text-[13px] text-ink-4">{description}</p> : null}
+            <p className="text-[18px] font-semibold text-ink">{merchantName}</p>
+            <p className="text-[18px] text-ink-2">{title}</p>
+            {amountLabel ? <p className="text-[18px] font-semibold text-ink tnum">{amountLabel}</p> : null}
+            {description ? <p className="mt-1 max-w-xs text-[16px] text-ink-4">{description}</p> : null}
           </div>
         </div>
         <CopyField label="Checkout URL" value={url} />
         <button
           onClick={() => downloadText(`${title.replace(/[^a-z0-9]+/gi, "-").toLowerCase()}-url.txt`, url)}
-          className="text-[14px] font-medium text-accent hover:underline"
+          className="text-[18px] font-medium text-accent hover:underline"
         >
           Download URL as text file
         </button>
-        <p className="text-[13px] leading-relaxed text-ink-4">
+        <p className="text-[16px] leading-relaxed text-ink-4">
           Scanning opens the hosted checkout page in a wallet browser. The customer still reviews the
           amount and recipient and signs the payment authorization themselves.
         </p>

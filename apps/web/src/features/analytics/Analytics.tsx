@@ -9,6 +9,7 @@ import { Button, Card, CardHeader, PageHeader, Select } from "@/components/ui";
 import { DonutChart, HorizontalBars, StackedBarChart, TrendLineChart, VolumeChart } from "@/components/ui/charts";
 import { MetricCard } from "@/components/common/MetricCard";
 import { StatusBadge } from "@/components/ui/display";
+import { Stagger, StaggerItem } from "@/components/ui/motion";
 
 const kindLabels: Record<string, string> = {
   one_time: "One-time",
@@ -55,7 +56,7 @@ export default function Analytics() {
         description={`Every figure below is derived from the same payment, refund and relayer records used across the workspace on ${DEFAULT_NETWORK.name}.`}
         actions={
           <>
-            <Select value={range} onChange={(e) => setRange(e.target.value as RangeKey)} className="h-9 w-[150px]" aria-label="Date range">
+            <Select value={range} onChange={(e) => setRange(e.target.value as RangeKey)} className="h-10 w-[160px]" aria-label="Date range">
               {RANGE_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>
                   {o.label}
@@ -69,69 +70,85 @@ export default function Analytics() {
         }
       />
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard
-          label="Total volume"
-          value={<span>{fmtAmount(metrics.grossVolume)} {TOKEN.symbol}</span>}
-          sub={`net ${fmtAmount(metrics.netVolume)} ${TOKEN.symbol}`}
-        />
-        <MetricCard label="Successful payments" value={fmtNumber(metrics.settled.length)} tone="positive" />
-        <MetricCard
-          label="Failure rate"
-          value={`${metrics.attempts ? Math.round(((metrics.attempts - metrics.settled.length) / metrics.attempts) * 1000) / 10 : 0}%`}
-          tone={metrics.attempts && metrics.settled.length / metrics.attempts < 0.8 ? "warn" : "neutral"}
-          sub={`${metrics.failed.length} failed or expired`}
-        />
-        <MetricCard label="Total refunded" value={<span>{fmtAmount(metrics.refundedTotal)} {TOKEN.symbol}</span>} sub={`${metrics.refunds.length} refunds`} />
-        <MetricCard label="Active subscriptions" value={fmtNumber(metrics.activeSubs)} sub={`${metrics.renewalSuccess}% renewal success`} />
-        <MetricCard label="Average payment value" value={<span>{fmtAmount(metrics.avgValue)} {TOKEN.symbol}</span>} />
-        <MetricCard label="Relayer sponsorship cost" value={`${metrics.sponsorshipCost} WBT`} tone="accent" />
-        <MetricCard label="Payment records" value={fmtNumber(metrics.payments.length)} sub={`${data.payments.length} in workspace`} />
-      </div>
+      <Stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4" gap={0.05}>
+        <StaggerItem>
+          <MetricCard
+            label="Total volume"
+            value={<span>{fmtAmount(metrics.grossVolume)} {TOKEN.symbol}</span>}
+            sub={`net ${fmtAmount(metrics.netVolume)} ${TOKEN.symbol}`}
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <MetricCard label="Successful payments" value={fmtNumber(metrics.settled.length)} tone="positive" />
+        </StaggerItem>
+        <StaggerItem>
+          <MetricCard
+            label="Failure rate"
+            value={`${metrics.attempts ? Math.round(((metrics.attempts - metrics.settled.length) / metrics.attempts) * 1000) / 10 : 0}%`}
+            tone={metrics.attempts && metrics.settled.length / metrics.attempts < 0.8 ? "warn" : "neutral"}
+            sub={`${metrics.failed.length} failed or expired`}
+          />
+        </StaggerItem>
+        <StaggerItem>
+          <MetricCard label="Total refunded" value={<span>{fmtAmount(metrics.refundedTotal)} {TOKEN.symbol}</span>} sub={`${metrics.refunds.length} refunds`} />
+        </StaggerItem>
+        <StaggerItem>
+          <MetricCard label="Active subscriptions" value={fmtNumber(metrics.activeSubs)} sub={`${metrics.renewalSuccess}% renewal success`} />
+        </StaggerItem>
+        <StaggerItem>
+          <MetricCard label="Average payment value" value={<span>{fmtAmount(metrics.avgValue)} {TOKEN.symbol}</span>} />
+        </StaggerItem>
+        <StaggerItem>
+          <MetricCard label="Relayer sponsorship cost" value={`${metrics.sponsorshipCost} WBT`} tone="accent" />
+        </StaggerItem>
+        <StaggerItem>
+          <MetricCard label="Payment records" value={fmtNumber(metrics.payments.length)} sub={`${data.payments.length} in workspace`} />
+        </StaggerItem>
+      </Stagger>
 
       <Card>
         <CardHeader title="Payment volume timeline" description="Settled volume per period bucket" />
-        <div className="p-4">
+        <div className="p-5">
           <VolumeChart data={metrics.series} height={280} />
         </div>
       </Card>
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader title="Payments by status" description="Outcome distribution per period" />
-          <div className="p-4">
+          <div className="p-5">
             <StackedBarChart
               data={metrics.series}
               keys={["succeeded", "failed"]}
               labels={{ succeeded: "Succeeded", failed: "Failed / expired" }}
-              height={240}
+              height={260}
             />
           </div>
         </Card>
         <Card>
           <CardHeader title="Status breakdown" description="Share of payment records" />
-          <div className="p-4">
+          <div className="p-5">
             <DonutChart
               data={metrics.byStatus.slice(0, 6).map((s) => ({
                 name: PAYMENT_STATUS_META[s.status as keyof typeof PAYMENT_STATUS_META]?.label ?? s.status,
                 value: s.count,
               }))}
-              height={240}
+              height={260}
             />
           </div>
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-2">
+      <div className="grid gap-5 lg:grid-cols-2">
         <Card>
           <CardHeader title="Refund trends" description="Refunded volume per period" />
-          <div className="p-4">
-            <TrendLineChart data={refundTrend} dataKey="refundVolume" label={`Refunded ${TOKEN.symbol}`} height={230} color="#9a6300" />
+          <div className="p-5">
+            <TrendLineChart data={refundTrend} dataKey="refundVolume" label={`Refunded ${TOKEN.symbol}`} height={260} color="#9a6300" />
           </div>
         </Card>
         <Card>
           <CardHeader title="Subscription renewals" description="Renewal attempts recorded per subscription" />
-          <div className="p-4">
+          <div className="p-5">
             <TrendLineChart
               data={data.subscriptions
                 .flatMap((s) => s.attempts.map((a) => ({ label: s.id.slice(-4), value: a.status === "succeeded" ? 1 : 0 })))
@@ -144,7 +161,7 @@ export default function Analytics() {
                 .map((r) => ({ label: `…${r.label}`, renewals: r.succeeded }))}
               dataKey="renewals"
               label="Successful renewals"
-              height={230}
+              height={260}
             />
           </div>
         </Card>
@@ -152,27 +169,27 @@ export default function Analytics() {
 
       <Card>
         <CardHeader title="Payment link performance" description="Collected volume per link" />
-        <div className="p-4">
+        <div className="p-5">
           <HorizontalBars
             data={metrics.linkPerformance.map((l) => ({
               name: l.title.length > 22 ? `${l.title.slice(0, 21)}…` : l.title,
               value: l.collected,
             }))}
-            height={230}
+            height={260}
           />
         </div>
       </Card>
 
       <Card>
         <CardHeader title="Payment method distribution" description="How customers paid in this range" />
-        <div className="grid gap-4 p-4 sm:grid-cols-2">
-          <DonutChart data={metrics.byKind.map((k) => ({ name: kindLabels[k.kind] ?? k.kind, value: k.count }))} height={230} />
+        <div className="grid gap-4 p-5 sm:grid-cols-2">
+          <DonutChart data={metrics.byKind.map((k) => ({ name: kindLabels[k.kind] ?? k.kind, value: k.count }))} height={260} />
           <div className="space-y-2">
             {metrics.byKind.map((k) => (
               <div key={k.kind} className="flex items-center justify-between rounded-md border border-line bg-canvas/60 px-3 py-2">
-                <span className="text-[14px] text-ink-2">{kindLabels[k.kind] ?? k.kind}</span>
+                <span className="text-[18px] text-ink-2">{kindLabels[k.kind] ?? k.kind}</span>
                 <div className="flex items-center gap-3">
-                  <span className="text-[14px] font-medium text-ink tnum">{k.count}</span>
+                  <span className="text-[18px] font-medium text-ink tnum">{k.count}</span>
                   <StatusBadge
                     tone="neutral"
                     dot={false}
@@ -187,7 +204,7 @@ export default function Analytics() {
 
       <Card>
         <CardHeader title="Reconciliation" description="How these numbers are computed" />
-        <div className="grid gap-x-8 gap-y-1 px-5 py-4 sm:grid-cols-2">
+        <div className="grid gap-x-8 gap-y-1 px-6 py-5 sm:grid-cols-2 2xl:grid-cols-3">
           {[
             ["Payment records in range", fmtNumber(metrics.payments.length)],
             ["Settled records", fmtNumber(metrics.settled.length)],
@@ -196,14 +213,14 @@ export default function Analytics() {
             ["Net volume (base units)", fmtNumber(Number(metrics.netVolume))],
             ["Average value (base units)", fmtNumber(Number(metrics.avgValue))],
           ].map(([label, value]) => (
-            <div key={label} className="flex items-center justify-between gap-4 border-b border-line py-2 text-[14px] last:border-0">
+            <div key={label} className="flex items-center justify-between gap-4 border-b border-line py-2 text-[18px] last:border-0">
               <span className="text-ink-3">{label}</span>
               <span className="font-medium text-ink tnum">{value}</span>
             </div>
           ))}
         </div>
         <div className="border-t border-line px-5 py-3">
-          <p className="text-[13px] leading-relaxed text-ink-4">
+          <p className="text-[16px] leading-relaxed text-ink-4">
             Volume is the sum of base-unit amounts across settled payments, minus any amount that was
             received but differs from the requested amount. Net volume subtracts settled refunds. Totals
             reconcile with the payments table and the dashboard because they read the same records.
@@ -211,7 +228,7 @@ export default function Analytics() {
         </div>
       </Card>
 
-      <p className="text-center text-[13px] text-ink-4">
+      <p className="text-center text-[16px] text-ink-4">
         Sum of all payment records in the workspace: {fmtAmount(sumBase(data.payments.map((p) => p.amount)))} {TOKEN.symbol} requested
       </p>
     </>

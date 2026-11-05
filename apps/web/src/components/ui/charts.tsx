@@ -23,19 +23,19 @@ const axisProps = {
   stroke: "#d6d2c8",
   tickLine: false,
   axisLine: false,
-  tick: { fontSize: 13, fill: "#6b7470" },
+  tick: { fontSize: 16, fill: "#6b7470" },
 } as const;
 
 export function VolumeChart({
   data,
-  height = 240,
+  height = 280,
 }: {
   data: { label: string; volume: string; count: number }[];
   height?: number;
 }) {
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+      <AreaChart data={data} margin={{ top: 12, right: 16, left: 0, bottom: 0 }}>
         <defs>
           <linearGradient id="volumeFill" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="#0d7a6f" stopOpacity={0.16} />
@@ -44,13 +44,13 @@ export function VolumeChart({
         </defs>
         <CartesianGrid stroke="#eceae4" vertical={false} />
         <XAxis dataKey="label" {...axisProps} />
-        <YAxis {...axisProps} width={62} tickFormatter={(v: number) => fmtCompact(String(v))} />
+        <YAxis {...axisProps} width={76} tickFormatter={(v: number) => fmtCompact(String(v))} />
         <Tooltip
           formatter={((v: unknown, name: unknown) =>
             name === "volume"
               ? [fmtCompact(String(v ?? "0")), "Volume"]
               : [String(v ?? "0"), "Payments"]) as never}
-          contentStyle={{ fontSize: 14 }}
+          contentStyle={{ fontSize: 16, borderRadius: 10, border: "1px solid #e7e4dd", boxShadow: "0 8px 24px rgba(27,31,30,0.08)" }}
         />
         <Area
           type="monotone"
@@ -68,7 +68,7 @@ export function VolumeChart({
 export function StackedBarChart({
   data,
   keys,
-  height = 220,
+  height = 250,
   labels,
 }: {
   data: Record<string, string | number>[];
@@ -78,12 +78,12 @@ export function StackedBarChart({
 }) {
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }} barCategoryGap="28%">
+      <BarChart data={data} margin={{ top: 12, right: 16, left: 0, bottom: 0 }} barCategoryGap="28%">
         <CartesianGrid stroke="#eceae4" vertical={false} />
         <XAxis dataKey="label" {...axisProps} />
-        <YAxis {...axisProps} width={44} allowDecimals={false} />
-        <Tooltip contentStyle={{ fontSize: 14 }} />
-        <Legend wrapperStyle={{ fontSize: 13.5 }} iconType="circle" iconSize={7} />
+        <YAxis {...axisProps} width={48} allowDecimals={false} />
+        <Tooltip contentStyle={{ fontSize: 16, borderRadius: 10, border: "1px solid #e7e4dd", boxShadow: "0 8px 24px rgba(27,31,30,0.08)" }} />
+        <Legend wrapperStyle={{ fontSize: 16 }} iconType="circle" iconSize={7} />
         {keys.map((k, i) => (
           <Bar key={k} dataKey={k} name={labels[k] ?? k} stackId="a" fill={CHART_COLORS[i % CHART_COLORS.length]} radius={[0, 0, 0, 0]} />
         ))}
@@ -94,7 +94,7 @@ export function StackedBarChart({
 
 export function DonutChart({
   data,
-  height = 220,
+  height = 250,
 }: {
   data: { name: string; value: number }[];
   height?: number;
@@ -107,8 +107,8 @@ export function DonutChart({
             <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />
           ))}
         </Pie>
-        <Tooltip contentStyle={{ fontSize: 14 }} />
-        <Legend wrapperStyle={{ fontSize: 13.5 }} iconType="circle" iconSize={7} />
+        <Tooltip contentStyle={{ fontSize: 16, borderRadius: 10, border: "1px solid #e7e4dd", boxShadow: "0 8px 24px rgba(27,31,30,0.08)" }} />
+        <Legend wrapperStyle={{ fontSize: 16 }} iconType="circle" iconSize={7} />
       </PieChart>
     </ResponsiveContainer>
   );
@@ -118,7 +118,7 @@ export function TrendLineChart({
   data,
   dataKey,
   label,
-  height = 220,
+  height = 250,
   color = "#0d7a6f",
 }: {
   data: Record<string, string | number>[];
@@ -129,11 +129,11 @@ export function TrendLineChart({
 }) {
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+      <LineChart data={data} margin={{ top: 12, right: 16, left: 0, bottom: 0 }}>
         <CartesianGrid stroke="#eceae4" vertical={false} />
         <XAxis dataKey="label" {...axisProps} />
-        <YAxis {...axisProps} width={44} allowDecimals={false} />
-        <Tooltip contentStyle={{ fontSize: 14 }} />
+        <YAxis {...axisProps} width={48} allowDecimals={false} />
+        <Tooltip contentStyle={{ fontSize: 16, borderRadius: 10, border: "1px solid #e7e4dd", boxShadow: "0 8px 24px rgba(27,31,30,0.08)" }} />
         <Line
           type="monotone"
           dataKey={dataKey}
@@ -150,20 +150,20 @@ export function TrendLineChart({
 
 export function HorizontalBars({
   data,
-  height = 220,
+  height = 250,
 }: {
   data: { name: string; value: string }[];
   height?: number;
 }) {
   return (
     <ResponsiveContainer width="100%" height={height}>
-      <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, left: 0, bottom: 0 }}>
+      <BarChart data={data} layout="vertical" margin={{ top: 8, right: 24, left: 0, bottom: 0 }}>
         <CartesianGrid stroke="#eceae4" horizontal={false} />
         <XAxis type="number" {...axisProps} tickFormatter={(v: number) => fmtCompact(String(v))} />
         <YAxis type="category" dataKey="name" {...axisProps} width={110} />
         <Tooltip
           formatter={((v: unknown) => [`${fmtCompact(String(v ?? "0"))}`, "Collected"]) as never}
-          contentStyle={{ fontSize: 14 }}
+          contentStyle={{ fontSize: 16, borderRadius: 10, border: "1px solid #e7e4dd", boxShadow: "0 8px 24px rgba(27,31,30,0.08)" }}
         />
         <Bar dataKey="value" fill="#0d7a6f" radius={[0, 3, 3, 0]} barSize={16} />
       </BarChart>

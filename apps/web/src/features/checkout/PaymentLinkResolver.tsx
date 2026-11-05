@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { AlertCircle, Loader2 } from "lucide-react";
 import { apiFetch } from "@/services/api/http";
 import { fmtAmount } from "@/lib/money";
+import { Button, Card, Field, Input } from "@/components/ui";
+import { CheckoutFrame } from "./CheckoutFrame";
 
 type LinkData = {
   id: string;
@@ -76,39 +79,74 @@ export function PaymentLinkResolver() {
     }
   };
 
-  if (status === "loading" || status === "creating") return <div style={{ padding: "2rem", textAlign: "center", fontFamily: "sans-serif" }}>Preparing checkout…</div>;
-  if (status === "failed") return <div style={{ padding: "2rem", textAlign: "center", fontFamily: "sans-serif", color: "red" }}>{error}</div>;
+  if (status === "loading" || status === "creating") {
+    return (
+      <CheckoutFrame>
+        <Card className="flex items-center justify-center gap-3 p-10 text-[18px] text-ink-3 shadow-sm">
+          <Loader2 className="h-4 w-4 animate-spin text-accent" />
+          Preparing checkout…
+        </Card>
+      </CheckoutFrame>
+    );
+  }
+
+  if (status === "failed") {
+    return (
+      <CheckoutFrame>
+        <Card className="p-6 text-center shadow-sm">
+          <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-danger-soft text-danger">
+            <AlertCircle className="h-5 w-5" />
+          </div>
+          <p className="text-[18px] font-semibold text-ink">Payment link unavailable</p>
+          <p className="mt-1 text-[16px] leading-relaxed text-ink-3">{error}</p>
+        </Card>
+      </CheckoutFrame>
+    );
+  }
+
   if (!link || link.linkType === "fixed") return null;
 
   // Customer-entered amount for customer_amount links.
   return (
-    <div style={{ maxWidth: 420, margin: "2rem auto", padding: "1.5rem", border: "1px solid #ddd", borderRadius: 12, fontFamily: "sans-serif" }}>
-      <h2 style={{ margin: "0 0 8px" }}>{link.merchant.displayName}</h2>
-      <p style={{ color: "#666", fontSize: 16, margin: "0 0 16px" }}>{link.title}</p>
-      {link.description && <p style={{ color: "#999", fontSize: 15, margin: "0 0 16px" }}>{link.description}</p>}
-      <div style={{ marginBottom: 16 }}>
-        <label style={{ fontSize: 14, color: "#666", display: "block", marginBottom: 4 }}>Amount (USDT)</label>
-        <input
-          type="text"
-          inputMode="decimal"
-          value={customAmount}
-          onChange={(e) => setCustomAmount(e.target.value)}
-          placeholder={link.minAmount ? `Min ${fmtAmount(link.minAmount)}` : "0.00"}
-          style={{ width: "100%", padding: "10px", fontSize: 18, borderRadius: 8, border: "1px solid #ddd", boxSizing: "border-box" }}
-        />
-        {link.minAmount && link.maxAmount && (
-          <p style={{ fontSize: 14, color: "#999", margin: "4px 0 0" }}>
-            Between {fmtAmount(link.minAmount)} and {fmtAmount(link.maxAmount)} USDT
-          </p>
-        )}
-      </div>
-      <button
-        onClick={() => startCheckout(customAmount)}
-        disabled={!customAmount}
-        style={{ width: "100%", padding: "12px", fontSize: 17, cursor: "pointer", borderRadius: 8, border: "none", background: "#0ea5e9", color: "#fff", opacity: !customAmount ? 0.5 : 1 }}
-      >
-        Pay
-      </button>
-    </div>
+    <CheckoutFrame>
+      <Card className="overflow-hidden shadow-md">
+        <div className="border-b border-line px-6 py-5">
+          <h1 className="text-[22px] font-bold tracking-[-0.02em] text-ink">{link.merchant.displayName}</h1>
+          <p className="mt-0.5 text-[16px] font-medium text-ink-2">{link.title}</p>
+          {link.description ? <p className="mt-1 text-[16px] leading-relaxed text-ink-3">{link.description}</p> : null}
+        </div>
+        <div className="space-y-4 px-6 py-5">
+          <Field
+            label={`Amount (${link.token.symbol})`}
+            hint={
+              link.minAmount && link.maxAmount
+                ? `Between ${fmtAmount(link.minAmount)} and ${fmtAmount(link.maxAmount)} ${link.token.symbol}`
+                : link.minAmount
+                  ? `Minimum ${fmtAmount(link.minAmount)} ${link.token.symbol}`
+                  : undefined
+            }
+          >
+            <Input
+              type="text"
+              inputMode="decimal"
+              value={customAmount}
+              onChange={(e) => setCustomAmount(e.target.value)}
+              placeholder={link.minAmount ? `Min ${fmtAmount(link.minAmount)}` : "0.00"}
+              className="h-12 text-[26px] font-semibold tnum"
+              aria-label="Payment amount"
+            />
+          </Field>
+          <Button
+            variant="primary"
+            size="lg"
+            className="w-full"
+            onClick={() => startCheckout(customAmount)}
+            disabled={!customAmount}
+          >
+            Continue to payment
+          </Button>
+        </div>
+      </Card>
+    </CheckoutFrame>
   );
 }

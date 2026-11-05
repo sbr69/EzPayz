@@ -87,7 +87,7 @@ export function PaymentsList() {
     {
       key: "id",
       header: "Payment ID",
-      render: (p) => <span className="font-mono text-[14px] text-ink">{p.id}</span>,
+      render: (p) => <span className="font-mono text-[18px] text-ink">{p.id}</span>,
       sortValue: (p) => p.id,
       csv: (p) => p.id,
     },
@@ -108,9 +108,9 @@ export function PaymentsList() {
       align: "right",
       render: (p) => (
         <div className="text-right">
-          <AmountDisplay base={p.receivedAmount ?? p.amount} className="text-[14px]" />
+          <AmountDisplay base={p.receivedAmount ?? p.amount} className="text-[18px]" />
           {p.refundedAmount !== "0" ? (
-            <p className="text-[13px] text-accent">−{fmtAmount(p.refundedAmount)} refunded</p>
+            <p className="text-[16px] text-accent">−{fmtAmount(p.refundedAmount)} refunded</p>
           ) : null}
         </div>
       ),
@@ -127,14 +127,14 @@ export function PaymentsList() {
       key: "kind",
       header: "Method",
       hideOnMobile: true,
-      render: (p) => <span className="text-ink-3">{kindLabels[p.kind]}</span>,
+      render: (p) => <span className="whitespace-nowrap text-ink-3">{kindLabels[p.kind]}</span>,
       csv: (p) => p.kind,
     },
     {
       key: "created",
       header: "Created",
       hideOnMobile: true,
-      render: (p) => <span className="text-[14px] text-ink-3 tnum">{fmtDateTime(p.createdAt)}</span>,
+      render: (p) => <span className="whitespace-nowrap text-[18px] text-ink-3 tnum">{fmtDateTime(p.createdAt)}</span>,
       sortValue: (p) => new Date(p.createdAt).getTime(),
       csv: (p) => p.createdAt,
     },
@@ -142,7 +142,7 @@ export function PaymentsList() {
       key: "settled",
       header: "Settled",
       hideOnMobile: true,
-      render: (p) => <span className="text-[14px] text-ink-3 tnum">{fmtDateTime(p.settledAt)}</span>,
+      render: (p) => <span className="whitespace-nowrap text-[18px] text-ink-3 tnum">{fmtDateTime(p.settledAt)}</span>,
       csv: (p) => p.settledAt ?? "",
     },
     {
@@ -157,7 +157,7 @@ export function PaymentsList() {
       header: "",
       align: "right",
       render: (p) => (
-        <Link to={`/payments/${p.id}`} className="inline-flex items-center gap-1 text-[14px] font-medium text-accent hover:underline">
+        <Link to={`/payments/${p.id}`} className="inline-flex items-center gap-1 text-[18px] font-medium text-accent hover:underline">
           View
           <ChevronRight className="h-3 w-3" />
         </Link>
@@ -199,7 +199,7 @@ export function PaymentsList() {
       />
 
       <Card>
-        <div className="px-4 pt-1">
+        <div className="px-6 pt-2">
           <Tabs
             value={tab}
             onChange={changeTab}
@@ -211,7 +211,7 @@ export function PaymentsList() {
             ]}
           />
         </div>
-        <div className="grid gap-3 border-b border-line bg-canvas/50 px-4 py-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 border-b border-line bg-canvas/50 px-6 py-4 sm:grid-cols-2 lg:grid-cols-4">
           <Field label="From date">
             <Input type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} />
           </Field>
@@ -372,7 +372,7 @@ export function PaymentDetail() {
         meta={
           <>
             <StatusBadge label={PAYMENT_STATUS_META[payment.status].label} tone={PAYMENT_TONES[payment.status]} />
-            <span className="font-mono text-[13px] text-ink-4">{payment.id}</span>
+            <span className="font-mono text-[16px] text-ink-4">{payment.id}</span>
             {payment.gasSponsored ? <StatusBadge label="Gas sponsored" tone="accent" dot={false} /> : null}
           </>
         }
@@ -406,13 +406,13 @@ export function PaymentDetail() {
         </Callout>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-3">
+      <div className="grid gap-5 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
           <Card>
             <CardHeader title="Payment summary" />
-            <div className="grid gap-x-8 px-5 py-2 sm:grid-cols-2">
+            <div className="grid gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
               <KeyValue label="Payment ID">
-                <code className="font-mono text-[13px]">{payment.id}</code>
+                <code className="font-mono text-[16px]">{payment.id}</code>
               </KeyValue>
               <KeyValue label="Merchant">{data.merchant.displayName}</KeyValue>
               <KeyValue label="Customer">
@@ -453,14 +453,14 @@ export function PaymentDetail() {
 
           <Card>
             <CardHeader title="Payment timeline" description="Each step is simulated in demo mode" />
-            <div className="px-5 py-4">
+            <div className="px-6 py-5">
               <Timeline entries={timeline} />
             </div>
           </Card>
 
           <Card>
             <CardHeader title="Settlement and delivery" />
-            <div className="grid gap-x-8 px-5 py-2 sm:grid-cols-2">
+            <div className="grid gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
               <KeyValue label="Authorization status">
                 {payment.authorizationRef ? (
                   <span className="text-positive">Received</span>
@@ -472,7 +472,7 @@ export function PaymentDetail() {
               </KeyValue>
               <KeyValue label="Authorization reference">
                 {payment.authorizationRef ? (
-                  <code className="font-mono text-[13px]">{payment.authorizationRef}</code>
+                  <code className="font-mono text-[16px]">{payment.authorizationRef}</code>
                 ) : (
                   "—"
                 )}
@@ -513,7 +513,7 @@ export function PaymentDetail() {
               </KeyValue>
             </div>
             <div className="border-t border-line px-5 py-3">
-              <p className="text-[13px] leading-relaxed text-ink-4">
+              <p className="text-[16px] leading-relaxed text-ink-4">
                 Settlement status is independent of email and webhook delivery. A payment is only marked
                 successful after the settlement record is verified — never because a frontend callback
                 returned.
@@ -526,7 +526,7 @@ export function PaymentDetail() {
               <CardHeader
                 title="Refund history"
                 actions={
-                  <Link to="/refunds" className="text-[14px] font-medium text-accent hover:underline">
+                  <Link to="/refunds" className="text-[18px] font-medium text-accent hover:underline">
                     All refunds
                   </Link>
                 }
@@ -535,13 +535,13 @@ export function PaymentDetail() {
                 {refunds.map((r) => (
                   <li key={r.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
                     <div>
-                      <Link to={`/refunds/${r.id}`} className="font-mono text-[14px] text-accent hover:underline">
+                      <Link to={`/refunds/${r.id}`} className="font-mono text-[18px] text-accent hover:underline">
                         {r.id}
                       </Link>
-                      <p className="mt-0.5 max-w-md text-[14px] text-ink-3">{r.reason}</p>
+                      <p className="mt-0.5 max-w-md text-[18px] text-ink-3">{r.reason}</p>
                     </div>
                     <div className="flex items-center gap-3">
-                      <AmountDisplay base={r.amount} className="text-[14px]" />
+                      <AmountDisplay base={r.amount} className="text-[18px]" />
                       <StatusBadge label={REFUND_STATUS_META[r.status].label} tone={REFUND_TONES[r.status]} />
                     </div>
                   </li>
@@ -554,18 +554,18 @@ export function PaymentDetail() {
         <div className="space-y-4">
           <Card>
             <CardHeader title="Wallets" />
-            <div className="space-y-3 px-5 py-4">
+            <div className="space-y-3 px-6 py-5">
               <div>
-                <p className="flex items-center gap-1.5 text-[13px] font-medium uppercase tracking-wide text-ink-4">
+                <p className="flex items-center gap-1.5 text-[16px] font-medium uppercase tracking-wide text-ink-4">
                   <Wallet className="h-3 w-3" /> Payer wallet
                 </p>
-                <p className="mt-1 break-all font-mono text-[13px] text-ink-2">{payment.payerWallet ?? "Not connected yet"}</p>
+                <p className="mt-1 break-all font-mono text-[16px] text-ink-2">{payment.payerWallet ?? "Not connected yet"}</p>
               </div>
               <div>
-                <p className="flex items-center gap-1.5 text-[13px] font-medium uppercase tracking-wide text-ink-4">
+                <p className="flex items-center gap-1.5 text-[16px] font-medium uppercase tracking-wide text-ink-4">
                   <ShieldCheck className="h-3 w-3" /> Merchant payout wallet
                 </p>
-                <p className="mt-1 break-all font-mono text-[13px] text-ink-2">{payment.payoutWallet}</p>
+                <p className="mt-1 break-all font-mono text-[16px] text-ink-2">{payment.payoutWallet}</p>
               </div>
               <Callout tone="neutral">
                 Verify the payout address before authorising large payments. The gateway signature covers
@@ -590,7 +590,7 @@ export function PaymentDetail() {
                   <Link
                     key={r!.to}
                     to={r!.to}
-                    className="flex items-center justify-between gap-3 px-5 py-2.5 text-[14px] transition-colors hover:bg-canvas"
+                    className="flex items-center justify-between gap-3 px-5 py-2.5 text-[18px] transition-colors hover:bg-canvas"
                   >
                     <span className="text-ink-3">{r!.label}</span>
                     <span className="flex items-center gap-1 font-medium text-accent">
@@ -600,7 +600,7 @@ export function PaymentDetail() {
                   </Link>
                 ))}
               {!invoice && !link && !subscription && !fulfilment ? (
-                <p className="px-5 py-4 text-[14px] text-ink-4">
+                <p className="px-6 py-5 text-[18px] text-ink-4">
                   No invoice, link, subscription or fulfilment record is attached to this payment.
                 </p>
               ) : null}
@@ -610,12 +610,12 @@ export function PaymentDetail() {
           {fulfilment ? (
             <Card>
               <CardHeader title="Fulfilment" />
-              <div className="space-y-2 px-5 py-4">
+              <div className="space-y-2 px-6 py-5">
                 <StatusBadge
                   label={fulfilment.status.replace(/_/g, " ")}
                   tone={fulfilment.status === "fulfilled" ? "positive" : fulfilment.status === "not_started" ? "neutral" : "info"}
                 />
-                <p className="text-[14px] leading-relaxed text-ink-3">{fulfilment.customerNotes}</p>
+                <p className="text-[18px] leading-relaxed text-ink-3">{fulfilment.customerNotes}</p>
                 <Button size="sm" variant="secondary" onClick={() => navigate(`/fulfilment/${fulfilment.id}`)}>
                   Manage fulfilment
                 </Button>
@@ -629,7 +629,7 @@ export function PaymentDetail() {
               <ul className="divide-y divide-line">
                 {events.map((e) => (
                   <li key={e.id} className="flex items-center justify-between gap-2 px-5 py-2.5">
-                    <code className="font-mono text-[13px] text-ink-2">{e.type}</code>
+                    <code className="font-mono text-[16px] text-ink-2">{e.type}</code>
                     <StatusBadge
                       tone={e.status === "delivered" ? "positive" : "danger"}
                       label={`HTTP ${e.responseStatus ?? "—"} · ${e.attempts} attempt${e.attempts > 1 ? "s" : ""}`}
@@ -654,7 +654,7 @@ export function PaymentDetail() {
 
       <RefundDialog payment={payment} open={refundOpen} onClose={() => setRefundOpen(false)} />
 
-      <p className="text-center text-[13px] text-ink-4">
+      <p className="text-center text-[16px] text-ink-4">
         {fmtNumber(data.payments.length)} payment records in this workspace · demo data persisted locally
       </p>
     </>

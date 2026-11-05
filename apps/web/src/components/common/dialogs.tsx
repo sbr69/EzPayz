@@ -246,20 +246,20 @@ export function RefundDialog({
       <div className="space-y-4">
         <div className="grid grid-cols-2 gap-3 rounded-md border border-line bg-canvas p-3 sm:grid-cols-4">
           <div>
-            <p className="text-[13px] uppercase tracking-wide text-ink-4">Original</p>
-            <AmountDisplay base={payment.amount} className="text-[15px]" />
+            <p className="text-[16px] uppercase tracking-wide text-ink-4">Original</p>
+            <AmountDisplay base={payment.amount} className="text-[18px]" />
           </div>
           <div>
-            <p className="text-[13px] uppercase tracking-wide text-ink-4">Refunded</p>
-            <AmountDisplay base={payment.refundedAmount} className="text-[15px]" />
+            <p className="text-[16px] uppercase tracking-wide text-ink-4">Refunded</p>
+            <AmountDisplay base={payment.refundedAmount} className="text-[18px]" />
           </div>
           <div>
-            <p className="text-[13px] uppercase tracking-wide text-ink-4">Refundable</p>
-            <AmountDisplay base={remaining} className="text-[15px] text-accent" />
+            <p className="text-[16px] uppercase tracking-wide text-ink-4">Refundable</p>
+            <AmountDisplay base={remaining} className="text-[18px] text-accent" />
           </div>
           <div>
-            <p className="text-[13px] uppercase tracking-wide text-ink-4">Payer</p>
-            <code className="font-mono text-[13px] text-ink-2">
+            <p className="text-[16px] uppercase tracking-wide text-ink-4">Payer</p>
+            <code className="font-mono text-[16px] text-ink-2">
               {payment.payerWallet ? `${payment.payerWallet.slice(0, 8)}…${payment.payerWallet.slice(-4)}` : "—"}
             </code>
           </div>
@@ -274,12 +274,12 @@ export function RefundDialog({
                 setAmount(fromDisplayRemaining(payment));
                 setError(null);
               }}
-              className={`flex-1 rounded-md border px-3 py-2 text-left text-[15px] transition-colors ${
+              className={`flex-1 rounded-md border px-3 py-2 text-left text-[18px] transition-colors ${
                 mode === m ? "border-accent bg-accent-soft text-accent" : "border-line-strong bg-surface hover:bg-canvas"
               }`}
             >
               <span className="block font-semibold">{m === "full" ? "Full refund" : "Partial refund"}</span>
-              <span className="block text-[13px] opacity-80">
+              <span className="block text-[16px] opacity-80">
                 {m === "full" ? `Remaining ${fmtAmount(remaining)} ${TOKEN.symbol}` : "Choose the amount"}
               </span>
             </button>
@@ -320,8 +320,8 @@ export function RefundDialog({
                 className="mt-0.5 accent-[#0d7a6f]"
               />
               <span>
-                <span className="block text-[15px] font-medium text-ink">Sponsored (gasless) refund</span>
-                <span className="block text-[13px] leading-relaxed text-ink-3">
+                <span className="block text-[18px] font-medium text-ink">Sponsored (gasless) refund</span>
+                <span className="block text-[16px] leading-relaxed text-ink-3">
                   You sign a delegated transfer authorization and the GasGuard relayer submits the
                   transaction and pays gas. Availability depends on the token contract supporting
                   delegated transfers — unverified for this contract.
@@ -331,8 +331,8 @@ export function RefundDialog({
             <label className="flex cursor-pointer items-start gap-2.5 rounded-md border border-line p-3">
               <input type="radio" checked={!gas} onChange={() => setGas(false)} className="mt-0.5 accent-[#0d7a6f]" />
               <span>
-                <span className="block text-[15px] font-medium text-ink">Merchant-paid gas</span>
-                <span className="block text-[13px] leading-relaxed text-ink-3">
+                <span className="block text-[18px] font-medium text-ink">Merchant-paid gas</span>
+                <span className="block text-[16px] leading-relaxed text-ink-3">
                   You submit the transfer directly from your wallet and pay network gas in WBT. Always
                   available.
                 </span>

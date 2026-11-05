@@ -33,8 +33,9 @@ export function CopyButton({
       }}
       title={`Copy ${label}`}
       className={cn(
-        "inline-flex shrink-0 items-center gap-1 rounded border border-line bg-surface font-medium text-ink-3 transition-colors hover:border-line-strong hover:text-ink",
-        size === "sm" ? "h-6 px-1.5 text-[13px]" : "h-5 px-1 text-[12px]",
+        "inline-flex shrink-0 items-center gap-1 rounded-md border border-line bg-surface font-medium text-ink-3",
+        "transition-all duration-150 hover:border-line-strong hover:text-ink active:scale-95",
+        size === "sm" ? "h-6 px-1.5 text-[14px]" : "h-5 px-1 text-[13px]",
         className,
       )}
     >
@@ -47,11 +48,11 @@ export function CopyButton({
 export function CopyField({ label, value, mono = true }: { label: string; value: string; mono?: boolean }) {
   return (
     <div className="space-y-1">
-      <p className="text-[13px] font-medium uppercase tracking-wide text-ink-4">{label}</p>
+      <p className="text-[16px] font-medium uppercase tracking-wide text-ink-4">{label}</p>
       <div className="flex items-center gap-2">
         <code
           className={cn(
-            "min-w-0 flex-1 truncate rounded border border-line bg-canvas px-2.5 py-1.5 text-[14px] text-ink-2",
+            "min-w-0 flex-1 truncate rounded border border-line bg-canvas px-2.5 py-1.5 text-[18px] text-ink-2",
             mono && "font-mono",
           )}
         >
@@ -98,7 +99,7 @@ export function StatusBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 whitespace-nowrap rounded border px-1.5 py-0.5 text-[13px] font-medium leading-4",
+        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5 text-[14px] font-medium leading-4",
         toneClass[tone],
         className,
       )}
@@ -153,7 +154,7 @@ export function AddressDisplay({
   const text = full ? address : truncateMiddle(address);
   return (
     <span className={cn("inline-flex items-center gap-1.5", className)}>
-      <code className="font-mono text-[14px] text-ink-2">{text}</code>
+      <code className="font-mono text-[18px] text-ink-2">{text}</code>
       <CopyButton value={address} label={label ?? "Copy"} size="xs" />
       {href ? (
         <a href={href} target="_blank" rel="noreferrer" className="text-ink-3 hover:text-accent">
@@ -177,7 +178,7 @@ export function TxRefDisplay({
   if (!value) return <span className="text-ink-4">—</span>;
   return (
     <span className={cn("inline-flex items-center gap-1.5", className)} title="Demo reference — not an on-chain transaction hash">
-      <code className="font-mono text-[13px] text-ink-2">{truncateMiddle(value, 14, 8)}</code>
+      <code className="font-mono text-[16px] text-ink-2">{truncateMiddle(value, 14, 8)}</code>
       <CopyButton value={value} label="Copy" size={size} />
     </span>
   );
@@ -193,7 +194,7 @@ export function ExplorerLinkPlaceholder({ txRef }: { txRef?: string | null }) {
           e.stopPropagation();
           setOpen(true);
         }}
-        className="inline-flex items-center gap-1 text-[13px] font-medium text-accent hover:underline"
+        className="inline-flex items-center gap-1 text-[16px] font-medium text-accent hover:underline"
       >
         <ExternalLink className="h-3 w-3" />
         View transaction
@@ -208,18 +209,18 @@ export function ExplorerLinkPlaceholder({ txRef }: { txRef?: string | null }) {
             className="relative z-10 w-full max-w-md rounded-[10px] border border-line bg-surface p-5 shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-[16px] font-semibold text-ink">Explorer links are not available</h3>
-            <p className="mt-2 text-[14px] leading-relaxed text-ink-3">
+            <h3 className="text-[20px] font-semibold text-ink">Explorer links are not available</h3>
+            <p className="mt-2 text-[18px] leading-relaxed text-ink-3">
               This is a frontend demo. The reference <code className="font-mono">{txRef ?? "—"}</code> is a
               simulated value produced by the mock service layer. No transaction was broadcast to
               Whitechain Sepolia and there is no on-chain record to inspect.
             </p>
-            <p className="mt-2 text-[14px] leading-relaxed text-ink-3">
+            <p className="mt-2 text-[18px] leading-relaxed text-ink-3">
               Explorer deep links will be enabled once the backend and indexer integration exists.
             </p>
             <button
               onClick={() => setOpen(false)}
-              className="mt-4 h-8 rounded-md border border-line-strong bg-surface px-3 text-[15px] font-medium text-ink hover:bg-canvas-alt"
+              className="mt-4 h-8 rounded-md border border-line-strong bg-surface px-3 text-[18px] font-medium text-ink hover:bg-canvas-alt"
             >
               Close
             </button>
@@ -255,11 +256,11 @@ export function Timeline({
             ) : null}
             <span
               className={cn(
-                "relative mt-1 h-2.5 w-2.5 shrink-0 rounded-full border-2",
+                "relative mt-1 h-2.5 w-2.5 shrink-0 rounded-full border-2 transition-colors",
                 entry.state === "done"
                   ? "border-accent bg-accent"
                   : entry.state === "current"
-                    ? "border-accent bg-surface"
+                    ? "anim-pulse-soft border-accent bg-surface ring-4 ring-accent/15"
                     : "border-line-strong bg-surface",
               )}
             />
@@ -267,23 +268,23 @@ export function Timeline({
               <div className="flex flex-wrap items-center gap-2">
                 <p
                   className={cn(
-                    "text-[15px] font-medium",
+                    "text-[18px] font-medium",
                     entry.state === "todo" ? "text-ink-4" : "text-ink",
                   )}
                 >
                   {entry.label}
                 </p>
                 {entry.simulated ? (
-                  <span className="rounded border border-warn-line bg-warn-soft px-1 py-px text-[12px] font-semibold uppercase tracking-wide text-warn">
+                  <span className="rounded border border-warn-line bg-warn-soft px-1 py-px text-[14px] font-semibold uppercase tracking-wide text-warn">
                     simulated
                   </span>
                 ) : null}
               </div>
               {entry.detail ? (
-                <p className={cn("text-[14px] leading-relaxed text-ink-3", compact && "line-clamp-2")}>{entry.detail}</p>
+                <p className={cn("text-[18px] leading-relaxed text-ink-3", compact && "line-clamp-2")}>{entry.detail}</p>
               ) : null}
               {entry.at ? (
-                <p className="mt-0.5 text-[13px] text-ink-4 tnum">
+                <p className="mt-0.5 text-[16px] text-ink-4 tnum">
                   {new Date(entry.at).toLocaleString("en-GB", {
                     day: "2-digit",
                     month: "short",
@@ -335,15 +336,15 @@ export function CodeBlock({
   filename?: string;
 }) {
   return (
-    <figure className="overflow-hidden rounded-md border border-line bg-[#fbfaf8]">
+    <figure className="overflow-hidden rounded-[10px] border border-line bg-[#fbfaf8] shadow-xs">
       <div className="flex items-center justify-between gap-2 border-b border-line bg-canvas px-3 py-1.5">
-        <span className="font-mono text-[13px] text-ink-3">{filename ?? language}</span>
+        <span className="font-mono text-[16px] text-ink-3">{filename ?? language}</span>
         <CopyButton value={code} label="Copy" size="xs" />
       </div>
-      <pre className="overflow-x-auto px-3.5 py-3 text-[14px] leading-relaxed scroll-thin">
+      <pre className="overflow-x-auto px-3.5 py-3 text-[18px] leading-relaxed scroll-thin">
         <code className="font-mono text-ink-2">{code}</code>
       </pre>
-      {caption ? <figcaption className="border-t border-line px-3.5 py-2 text-[13px] text-ink-4">{caption}</figcaption> : null}
+      {caption ? <figcaption className="border-t border-line px-3.5 py-2 text-[16px] text-ink-4">{caption}</figcaption> : null}
     </figure>
   );
 }

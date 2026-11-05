@@ -5,3 +5,4 @@ export * from "./display";
 export * from "./DataTable";
 export * from "./charts";
 export * from "./statusTones";
+export * from "./motion";
