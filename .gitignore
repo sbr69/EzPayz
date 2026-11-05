@@ -32,3 +32,16 @@ coverage/
 # Operating system files
 .DS_Store
 Thumbs.db
+
+# Foundry (Phase 1) — out/cache/broadcast are build artifacts. lib/ holds git
+# submodules (forge-std, openzeppelin-contracts) tracked via .gitmodules,
+# so lib/ is NOT ignored.
+packages/contracts/out/
+packages/contracts/cache/
+packages/contracts/broadcast/
+
+# pnpm
+.pnpm-store/
+
+# Prisma generated client (regenerable via `prisma generate` / @prisma/client postinstall)
+apps/api/src/db/generated/

@@ -1,0 +1,894 @@
+// Whitechain USDT Payment Gateway — Prisma schema.
+// Mirrors apps/web/src/types/index.ts domain types + PRD §22 core entities.
+// All merchant-owned models enforce tenant isolation via merchantId.
+// Amounts are integer base-unit strings (BaseAmount) — no floating point, no overflow.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/db/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ------------------------------------------------------------------ //
+// Enums                                                                //
+// ------------------------------------------------------------------ //
+
+enum Environment {
+  testnet
+  mainnet
+}
+
+enum PaymentStatus {
+  created
+  requires_authorization
+  authorized
+  submitted
+  pending_confirmation
+  succeeded
+  underpaid
+  overpaid
+  expired
+  failed
+  cancelled
+  partially_refunded
+  refunded
+  exception
+}
+
+enum PaymentKind {
+  one_time
+  payment_link
+  invoice
+  subscription
+  usage
+}
+
+enum PaymentSourceKind {
+  checkout_session
+  payment_link
+  invoice
+  subscription
+}
+
+enum EmailDeliveryState {
+  not_applicable
+  queued
+  sent
+  delivered
+  failed
+  suppressed
+}
+
+enum PayeeShieldStatus {
+  verified
+  verification_pending
+  invalid_signature
+  tampered
+  expired
+  signing_key_revoked
+}
+
+enum SigningKeyStatus {
+  active
+  rotating
+  revoked
+}
+
+enum BillingMode {
+  fixed
+  usage
+}
+
+enum LinkType {
+  fixed
+  customer_amount
+  reusable
+}
+
+enum InvoiceStatus {
+  draft
+  open
+  paid
+  partially_paid
+  overpaid
+  uncollectible
+  void
+  expired
+}
+
+enum RefundStatus {
+  created
+  awaiting_authorization
+  authorized
+  submitted
+  pending_confirmation
+  succeeded
+  failed
+  exception
+}
+
+enum BillingInterval {
+  hourly
+  daily
+  monthly
+}
+
+enum RetryBackoff {
+  fixed
+  linear
+  exponential
+}
+
+enum SubscriptionStatus {
+  pending_authorization
+  pending_activation
+  active
+  renewal_due
+  processing
+  past_due
+  paused
+  cancelled
+  expired
+  failed
+}
+
+enum RenewalAttemptStatus {
+  scheduled
+  submitted
+  succeeded
+  failed
+  skipped
+}
+
+enum FulfilmentStatus {
+  not_started
+  processing
+  fulfilled
+  cancelled
+  return_requested
+  refund_initiated
+  refunded
+}
+
+enum ExceptionType {
+  underpayment
+  overpayment
+  duplicate_payment
+  expired_invoice_paid_late
+  failed_transaction
+  transaction_reverted
+  insufficient_subscription_balance
+  insufficient_allowance
+  relayer_failure
+  refund_failure
+  webhook_delivery_failure
+  email_delivery_failure
+  unconfirmed_payment
+  reconciliation_mismatch
+}
+
+enum ExceptionSeverity {
+  critical
+  high
+  medium
+  low
+}
+
+enum ExceptionStatus {
+  open
+  investigating
+  action_required
+  resolved
+  dismissed
+}
+
+enum ExceptionActionId {
+  retry_webhook
+  replay_event
+  recheck_transaction
+  mark_for_review
+  create_balance_due_request
+  initiate_refund
+  resolve
+  dismiss
+}
+
+enum ApiKeyStatus {
+  active
+  revoked
+}
+
+enum WebhookHealth {
+  healthy
+  degraded
+  failing
+  untested
+}
+
+enum WebhookEventStatus {
+  pending
+  delivered
+  failed
+}
+
+enum RelayerOperation {
+  payment_relay
+  refund_relay
+  subscription_renewal
+  subscription_activation
+}
+
+enum RelayerTxStatus {
+  submitted
+  confirmed
+  failed
+  rejected
+  pending
+}
+
+enum BudgetScope {
+  merchant
+  global
+}
+
+enum NotificationKind {
+  payment
+  refund
+  subscription
+  exception
+  system
+}
+
+// ------------------------------------------------------------------ //
+// Merchants / customers / products                                     //
+// ------------------------------------------------------------------ //
+
+model Merchant {
+  id                String      @id @default(cuid())
+  businessName      String
+  displayName       String
+  website           String      @default("")
+  businessEmail     String
+  supportEmail      String      @default("")
+  description       String      @default("")
+  logoText          String      @default("W")
+  accentColor       String      @default("#0ea5e9")
+  payoutWallet      String
+  walletVerified    Boolean     @default(false)
+  walletVerifiedAt  DateTime?
+  environment       Environment @default(testnet)
+  onboardingComplete Boolean    @default(false)
+  country           String      @default("")
+  // Auth (Phase 3): email + password hash for JWT login.
+  passwordHash      String?
+  createdAt         DateTime    @default(now())
+
+  @@unique([businessEmail])
+  @@index([environment])
+}
+
+model MerchantApiKey {
+  id           String       @id @default(cuid())
+  merchantId   String
+  name         String
+  environment  Environment
+  publishable  String       @unique
+  secretHash   String // Hashed at rest; the raw secret is shown once, never stored.
+  secretLast4  String
+  permissions  String[] // Postgres text[]
+  status       ApiKeyStatus @default(active)
+  createdAt    DateTime     @default(now())
+  lastUsedAt   DateTime?
+  revokedAt    DateTime?
+
+  @@index([merchantId])
+}
+
+model Customer {
+  id            String   @id @default(cuid())
+  merchantId    String
+  email         String
+  name          String   @default("")
+  wallet        String?
+  createdAt     DateTime @default(now())
+  lastPaymentAt DateTime?
+
+  @@unique([merchantId, email])
+  @@index([merchantId])
+}
+
+model CustomerNote {
+  id         String   @id @default(cuid())
+  customerId String
+  merchantId String
+  text       String
+  createdAt  DateTime @default(now())
+
+  @@index([customerId])
+}
+
+model Product {
+  id          String      @id @default(cuid())
+  merchantId  String
+  name        String
+  description String      @default("")
+  imageGlyph  String      @default("$")
+  price       String // base units
+  currency    String      @default("USDT")
+  billingMode BillingMode @default(fixed)
+  unitLabel   String?
+  unitPrice   String? // base units
+  active      Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+
+  @@index([merchantId, active])
+}
+
+// ------------------------------------------------------------------ //
+// Payments                                                             //
+// ------------------------------------------------------------------ //
+
+model PaymentIntent {
+  id               String          @id @default(cuid())
+  merchantId       String
+  customerId       String?
+  customerEmail    String?
+  description      String          @default("")
+  amount           String // base units requested
+  receivedAmount   String? // base units actually received
+  refundedAmount   String          @default("0") // base units
+  token            String          @default("USDT")
+  network          String          @default("whitechain-sepolia")
+  kind             PaymentKind     @default(one_time)
+  sourceKind       PaymentSourceKind?
+  sourceId         String?
+  sourceLabel      String?
+  payerWallet      String?
+  payoutWallet     String
+  status           PaymentStatus   @default(created)
+  txRef            String? // on-chain tx hash once relayed
+  authorizationRef String? // EIP-3009 nonce / authorization id
+  gasSponsored     Boolean         @default(true)
+  failureReason    String?
+  createdAt        DateTime        @default(now())
+  settledAt        DateTime?
+  expiresAt        DateTime?
+  // Soft links to originating resources (string FKs, not Prisma relations).
+  invoiceId        String?
+  paymentLinkId    String?
+  subscriptionId   String?
+  fulfilmentId     String?
+  checkoutUrl      String          @default("")
+  receiptEmail     EmailDeliveryState @default(not_applicable)
+  // Return URLs (UX-only redirect after settlement; webhook is source of truth). PRD §17.6, FLOW §5.4.
+  successUrl       String?
+  cancelUrl        String?
+  // Merchant-supplied metadata (order ID, etc.) — stored as JSON, never sent on-chain. PRD §17.6.
+  metadataJson     Json?
+  // PayeeShield record inline (JSON) — one per intent/invoice.
+  payeeShieldJson  Json?
+
+  timeline PaymentTimelineEntry[]
+
+  @@index([merchantId, status])
+  @@index([merchantId, createdAt])
+  @@index([txRef])
+  @@index([authorizationRef])
+}
+
+model PaymentTimelineEntry {
+  id         String        @id @default(cuid())
+  paymentId  String
+  payment    PaymentIntent @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  status     String
+  label      String
+  detail     String?
+  at         DateTime      @default(now())
+  simulated  Boolean       @default(false)
+
+  @@index([paymentId, at])
+}
+
+model CheckoutSession {
+  id         String   @id @default(cuid())
+  paymentId  String
+  merchantId String
+  hostedSlug String   @unique
+  status     String   @default("open") // open | completed | expired
+  expiresAt  DateTime?
+  createdAt  DateTime @default(now())
+
+  @@index([paymentId])
+}
+
+// Subscription checkout session — for the hosted subscription widget on a merchant's site.
+// Created by POST /v1/subscriptions/checkout; the widget fetches plan details via GET /v1/subscription-checkout/:slug.
+// PRD §11.4.1, FLOW §10.2.1.
+model SubscriptionCheckoutSession {
+  id         String   @id @default(cuid())
+  planId     String
+  merchantId String
+  hostedSlug String   @unique
+  status     String   @default("open") // open | completed | expired
+  expiresAt  DateTime?
+  createdAt  DateTime @default(now())
+
+  @@index([planId])
+  @@index([merchantId])
+}
+
+model PaymentLink {
+  id             String   @id @default(cuid())
+  merchantId     String
+  slug           String   @unique
+  title          String
+  description    String   @default("")
+  linkType       LinkType @default(fixed)
+  amount         String? // base units (fixed)
+  minAmount      String? // base units (customer_amount)
+  maxAmount      String? // base units (customer_amount)
+  productId      String?
+  reference      String?
+  returnUrl      String?
+  active         Boolean  @default(true)
+  usageCount     Int      @default(0)
+  totalCollected String   @default("0") // base units
+  createdAt      DateTime @default(now())
+  expiresAt      DateTime?
+
+  @@index([merchantId, active])
+}
+
+// ------------------------------------------------------------------ //
+// Invoices + PayeeShield                                               //
+// ------------------------------------------------------------------ //
+
+model Invoice {
+  id              String        @id @default(cuid())
+  merchantId      String
+  customerId      String?
+  customerEmail   String
+  title           String
+  description     String        @default("")
+  total           String // base units
+  status          InvoiceStatus @default(draft)
+  orderReference  String?
+  createdAt       DateTime      @default(now())
+  expiresAt       DateTime?
+  paidAt          DateTime?
+  paymentId       String?
+  receiptEmailedAt DateTime?
+  tampered        Boolean       @default(false)
+  payeeShieldJson Json?
+
+  lineItems InvoiceLineItem[]
+
+  @@index([merchantId, status])
+}
+
+model InvoiceLineItem {
+  id          String  @id @default(cuid())
+  invoiceId   String
+  invoice     Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description String
+  quantity    Int
+  unitPrice   String // base units
+
+  @@index([invoiceId])
+}
+
+// ------------------------------------------------------------------ //
+// On-chain transactions (settlement ledger)                            //
+// ------------------------------------------------------------------ //
+
+model OnChainTransaction {
+  id            String   @id @default(cuid())
+  chainId       Int      @default(1874)
+  txHash        String   @unique
+  tokenContract String
+  from          String
+  to            String
+  amount        String // base units
+  blockNumber   BigInt?
+  receiptStatus String? // success | reverted
+  paymentId     String?
+  refundId      String?
+  detectedAt    DateTime @default(now())
+
+  @@index([paymentId])
+  @@index([tokenContract, to])
+}
+
+// ------------------------------------------------------------------ //
+// Refunds                                                              //
+// ------------------------------------------------------------------ //
+
+model Refund {
+  id               String        @id @default(cuid())
+  merchantId       String
+  paymentId        String
+  customerId       String?
+  amount           String // base units
+  reason           String        @default("")
+  status           RefundStatus  @default(created)
+  gasSponsored     Boolean       @default(true)
+  authorizationRef String?
+  txRef            String?
+  createdAt        DateTime      @default(now())
+  settledAt        DateTime?
+  customerNotified EmailDeliveryState @default(not_applicable)
+
+  timeline RefundTimelineEntry[]
+
+  @@index([merchantId, paymentId])
+  @@index([txRef])
+}
+
+model RefundTimelineEntry {
+  id        String   @id @default(cuid())
+  refundId  String
+  refund    Refund   @relation(fields: [refundId], references: [id], onDelete: Cascade)
+  status    String
+  label     String
+  detail    String?
+  at        DateTime @default(now())
+  simulated Boolean  @default(false)
+
+  @@index([refundId, at])
+}
+
+// ------------------------------------------------------------------ //
+// Subscriptions + usage                                                //
+// ------------------------------------------------------------------ //
+
+model SubscriptionPlan {
+  id                String          @id @default(cuid())
+  merchantId        String
+  name              String
+  description       String          @default("")
+  amount            String // base units (fixed)
+  currency          String          @default("USDT")
+  billingMode       BillingMode     @default(fixed)
+  unitLabel         String?
+  unitPrice         String? // base units (usage)
+  interval          BillingInterval @default(monthly)
+  maxChargePerCycle String // base units
+  cumulativeLimit   String // base units — bounded total (no unbounded allowance)
+  planExpiryMonths  Int?
+  retryPolicyJson   Json // { maxAttempts, backoff, intervalMinutes, gracePeriodMinutes }
+  notifyCustomer    Boolean         @default(true)
+  active            Boolean         @default(true)
+  createdAt         DateTime        @default(now())
+
+  @@index([merchantId, active])
+}
+
+model Subscription {
+  id                    String              @id @default(cuid())
+  merchantId            String
+  customerId            String
+  planId                String
+  onChainSubscriptionId String? // bytes32 subId in SubscriptionContract
+  status                SubscriptionStatus  @default(pending_authorization)
+  amount                String // base units (default per cycle)
+  interval              BillingInterval     @default(monthly)
+  maxChargePerCycle     String // base units
+  cumulativeLimit       String // base units
+  spent                 String              @default("0") // base units
+  allowanceRemaining    String // base units
+  nextBillingAt         DateTime?
+  createdAt             DateTime            @default(now())
+  expiresAt             DateTime?
+  cancelledAt           DateTime?
+  allowanceRevokedAt    DateTime?
+  activationTxRef       String?
+  approvalTxRef         String?
+  retryPolicyJson       Json
+
+  attempts        RenewalAttempt[]
+  billingHistory  SubscriptionBillingHistory[]
+  usageRecords    UsageRecord[]
+
+  @@index([merchantId, status])
+  @@index([customerId])
+  @@index([nextBillingAt])
+}
+
+model RenewalAttempt {
+  id             String                @id @default(cuid())
+  subscriptionId String
+  subscription   Subscription          @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  attempt        Int
+  scheduledFor   DateTime
+  executedAt     DateTime?
+  status         RenewalAttemptStatus  @default(scheduled)
+  amount         String // base units
+  reason         String?
+  txRef          String?
+  // Idempotency: one charge per (subscriptionId, billingSequence).
+  billingSequence String?
+
+  @@unique([subscriptionId, billingSequence])
+  @@index([subscriptionId, scheduledFor])
+}
+
+model SubscriptionBillingHistory {
+  id             String       @id @default(cuid())
+  subscriptionId String
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  paymentId      String
+  amount         String // base units
+  at             DateTime @default(now())
+  status         String
+
+  @@index([subscriptionId, at])
+}
+
+model UsageRecord {
+  id              String       @id @default(cuid())
+  merchantId      String
+  subscriptionId  String
+  subscription    Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  units           Int
+  unitPrice       String // base units
+  amount          String // base units (units * unitPrice)
+  recordedAt      DateTime @default(now())
+  merchantReference String
+  billed          Boolean  @default(false)
+  billedPaymentId String?
+
+  @@index([subscriptionId, billed])
+}
+
+// ------------------------------------------------------------------ //
+// Fulfilment (DeliveryGuard)                                           //
+// ------------------------------------------------------------------ //
+
+model FulfilmentOrder {
+  id             String            @id @default(cuid())
+  merchantId     String
+  paymentId      String
+  customerId     String
+  productId      String?
+  orderReference String
+  amount         String // base units
+  status         FulfilmentStatus  @default(not_started)
+  trackingNumber String?
+  completionUrl  String?
+  merchantNotes  String            @default("")
+  customerNotes  String            @default("")
+  updatedAt      DateTime          @default(now())
+
+  events FulfilmentEvent[]
+
+  @@index([merchantId, status])
+  @@index([paymentId])
+}
+
+model FulfilmentEvent {
+  id              String          @id @default(cuid())
+  fulfilmentId    String
+  fulfilment      FulfilmentOrder @relation(fields: [fulfilmentId], references: [id], onDelete: Cascade)
+  status          FulfilmentStatus
+  note            String   @default("")
+  at              DateTime @default(now())
+  actor           String   @default("merchant") // merchant | system
+  customerVisible Boolean  @default(false)
+
+  @@index([fulfilmentId, at])
+}
+
+// ------------------------------------------------------------------ //
+// Developer platform — webhooks                                        //
+// ------------------------------------------------------------------ //
+
+model WebhookEndpoint {
+  id                 String        @id @default(cuid())
+  merchantId         String
+  url                String
+  description        String        @default("")
+  eventTypes        String[] // event types this endpoint subscribes to
+  active             Boolean       @default(true)
+  signingSecretHash  String // hashed; raw secret shown once.
+  signingSecretLast4 String
+  health             WebhookHealth @default(untested)
+  createdAt          DateTime      @default(now())
+  lastDeliveryAt     DateTime?
+
+  events WebhookEvent[]
+
+  @@index([merchantId, active])
+}
+
+model WebhookEvent {
+  id                    String            @id @default(cuid())
+  merchantId            String
+  type                  String
+  endpointId            String
+  endpoint              WebhookEndpoint   @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  payloadSummary        String
+  payloadJson           Json
+  responseStatus        Int?
+  attempts              Int               @default(0)
+  status                WebhookEventStatus @default(pending)
+  createdAt             DateTime          @default(now())
+  lastAttemptAt         DateTime?
+  nextRetryAt           DateTime?
+  relatedPaymentId      String?
+  relatedSubscriptionId String?
+
+  @@index([merchantId, status])
+  @@index([nextRetryAt])
+  @@index([endpointId])
+}
+
+// ------------------------------------------------------------------ //
+// Exceptions                                                           //
+// ------------------------------------------------------------------ //
+
+model PaymentException {
+  id                String            @id @default(cuid())
+  merchantId        String
+  type              ExceptionType
+  severity          ExceptionSeverity @default(medium)
+  status            ExceptionStatus   @default(open)
+  paymentId         String?
+  customerId        String?
+  subscriptionId    String?
+  amount            String? // base units
+  webhookEventId    String?
+  detectedAt        DateTime          @default(now())
+  whatHappened      String
+  whyItHappened     String            @default("")
+  suggestedAction   String            @default("")
+  recommendedAction ExceptionActionId @default(mark_for_review)
+
+  attempts ResolutionAttempt[]
+
+  @@index([merchantId, status])
+  @@index([paymentId])
+}
+
+model ResolutionAttempt {
+  id          String           @id @default(cuid())
+  exceptionId String
+  exception   PaymentException @relation(fields: [exceptionId], references: [id], onDelete: Cascade)
+  action      String
+  at         DateTime @default(now())
+  result     String   @default("")
+  succeeded  Boolean  @default(false)
+
+  @@index([exceptionId, at])
+}
+
+// ------------------------------------------------------------------ //
+// GasGuard / relayer                                                   //
+// ------------------------------------------------------------------ //
+
+model RelayerTransaction {
+  id              String           @id @default(cuid())
+  merchantId      String
+  operation       RelayerOperation
+  gasSponsored    String           @default("true")
+  wbtCost         String           @default("0") // base units (18 decimals)
+  status          RelayerTxStatus  @default(pending)
+  txRef           String
+  paymentId       String?
+  rejectionReason String?
+  createdAt       DateTime         @default(now())
+
+  @@index([merchantId, status])
+  @@index([txRef])
+}
+
+model RelayerBudget {
+  id              String     @id @default(cuid())
+  scope           BudgetScope
+  merchantId      String? // null when scope = global
+  maxSpendWbt     String // base units (18 decimals)
+  currentUsageWbt String     @default("0")
+  dailyLimitWbt   String
+  dailySpentWbt   String     @default("0")
+  windowStart     DateTime   @default(now())
+  paused          Boolean    @default(false)
+
+  @@index([merchantId])
+}
+
+model GasGuardPolicy {
+  id                    String   @id @default(cuid())
+  merchantId            String?
+  maxGasPerTxGwei       Int      @default(100)
+  merchantBudgetWbt     String // base units
+  merchantSpentWbt      String   @default("0")
+  dailyLimitWbt         String
+  dailySpentWbt         String   @default("0")
+  allowedNetwork        String   @default("whitechain-sepolia")
+  allowedToken          String   @default("0xcedfB56113143d55b2358b8CFbB0dEB5Ad2f55a7")
+  allowedContract       String // subscription contract address
+  allowedFunctions      String[] // e.g. ["transferWithAuthorization", "charge"]
+  rateLimitPerMinute    Int      @default(60)
+  authorizationExpiryCheck Boolean @default(true)
+  replayProtection      Boolean  @default(true)
+  emergencyPaused       Boolean  @default(false)
+
+  @@index([merchantId])
+}
+
+// ------------------------------------------------------------------ //
+// Idempotency + outbox + email stub                                   //
+// ------------------------------------------------------------------ //
+
+model IdempotencyRecord {
+  id             String   @id @default(cuid())
+  merchantId     String
+  key            String
+  resourceType   String
+  resourceId     String
+  requestBodyHash String
+  createdAt      DateTime @default(now())
+
+  @@unique([merchantId, key])
+}
+
+model OutboxEvent {
+  id          String    @id @default(cuid())
+  merchantId  String
+  type        String // e.g. payment.succeeded, refund.created
+  resourceId  String
+  payloadJson Json
+  createdAt   DateTime  @default(now())
+  processedAt DateTime?
+
+  @@index([merchantId, processedAt])
+}
+
+model EmailLog {
+  id            String             @id @default(cuid())
+  merchantId    String
+  toAddress     String
+  template      String // e.g. receipt.paid, refund.confirmation
+  subject       String
+  bodyJson      Json
+  status        EmailDeliveryState @default(queued)
+  createdAt     DateTime           @default(now())
+  sentAt        DateTime?
+  failureReason String?
+  relatedPaymentId String?
+  relatedRefundId  String?
+  relatedSubscriptionId String?
+
+  @@index([merchantId, status])
+}
+
+// ------------------------------------------------------------------ //
+// Misc                                                                 //
+// ------------------------------------------------------------------ //
+
+model AppNotification {
+  id         String            @id @default(cuid())
+  merchantId String
+  title      String
+  body       String
+  at         DateTime          @default(now())
+  read       Boolean           @default(false)
+  kind       NotificationKind
+  link       String?
+
+  @@index([merchantId, read, at])
+}
+
+model SecurityEvent {
+  id         String   @id @default(cuid())
+  merchantId String?
+  at         DateTime @default(now())
+  event      String
+  detail     String   @default("")
+  ip         String   @default("")
+
+  @@index([merchantId, at])
+}
