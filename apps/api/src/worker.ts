@@ -2,12 +2,16 @@ import "./config";
 import { Worker } from "bullmq";
 import { getRedisConnection } from "./queues/connection";
 import { relayAndSettle } from "./services/relayer";
+import { renewAndSettle } from "./services/renewal";
 import { dispatchWebhookEvent } from "./services/webhook";
 import { processEmail } from "./services/email";
-import type { RelayPaymentJob } from "./queues";
+import { getRelayerQueue } from "./queues";
+import type { RelayPaymentJob, RenewalJob } from "./queues";
+import { prisma } from "./db/client";
 
 /**
- * Background worker process (separate from the API). Processes relayer + webhook + email jobs.
+ * Background worker process. Processes relayer (one-time + renewal) + webhook + email jobs,
+ * + a scheduler poller that finds due subscriptions and enqueues renewal jobs.
  * Run: pnpm --filter @ezpayz/api worker
  */
 const relayerWorker = new Worker(
@@ -17,6 +21,12 @@ const relayerWorker = new Worker(
       const data = job.data as RelayPaymentJob;
       const result = await relayAndSettle(data);
       job.log(`relayed+settled txHash=${result.txHash} settled=${result.settled}`);
+      return result;
+    }
+    if (job.name === "renew-subscription") {
+      const data = job.data as RenewalJob;
+      const result = await renewAndSettle(data);
+      job.log(`renewed txHash=${result.txHash} settled=${result.settled}`);
       return result;
     }
     throw new Error(`Unknown relayer job name: ${job.name}`);
@@ -57,7 +67,42 @@ webhookWorker.on("failed", (job, err) => console.error(`[webhook] failed job ${j
 emailWorker.on("completed", (job) => console.log(`[email] completed job ${job.id}`));
 emailWorker.on("failed", (job, err) => console.error(`[email] failed job ${job?.id}: ${err.message}`));
 
-console.log("Workers started (queues: relayer, webhook, email).");
+/**
+ * Scheduler poller: every 60s, find active subscriptions due for renewal + enqueue
+ * a relayer renewal job (idempotent by periodId). PRD §11.7, FLOW §10.3.
+ */
+const INTERVAL_SECONDS: Record<string, number> = { hourly: 3600, daily: 86400, monthly: 2592000 };
+async function pollDueSubscriptions(): Promise<void> {
+  try {
+    const due = await prisma.subscription.findMany({
+      where: { status: "active", nextBillingAt: { lte: new Date() }, expiresAt: { gt: new Date() } },
+      take: 20,
+    });
+    for (const sub of due) {
+      if (!sub.onChainSubscriptionId) continue;
+      const intervalSec = INTERVAL_SECONDS[sub.interval] ?? 2592000;
+      const periodId = Math.floor(Date.now() / 1000 / intervalSec);
+      await getRelayerQueue().add(
+        "renew-subscription",
+        {
+          subscriptionDbId: sub.id,
+          merchantId: sub.merchantId,
+          onChainSubscriptionId: sub.onChainSubscriptionId,
+          periodId,
+          amount: sub.amount,
+          customerId: sub.customerId,
+        },
+        { jobId: `${sub.id}-${periodId}` }
+      );
+    }
+  } catch (e) {
+    console.error("[scheduler] poll error:", (e as Error).message);
+  }
+}
+setInterval(pollDueSubscriptions, 60_000);
+void pollDueSubscriptions();
+
+console.log("Workers started (queues: relayer, webhook, email) + subscription scheduler poller (60s).");
 
 async function shutdown(): Promise<void> {
   await relayerWorker.close();

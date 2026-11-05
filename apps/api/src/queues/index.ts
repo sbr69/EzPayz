@@ -36,3 +36,13 @@ export interface RelayPaymentJob {
   nonce: string;
   signature: string;
 }
+
+// The job payload for a subscription renewal (relayer calls charge() on the SubscriptionContract).
+export interface RenewalJob {
+  subscriptionDbId: string;
+  merchantId: string;
+  onChainSubscriptionId: string;
+  periodId: number;
+  amount: string;
+  customerId: string;
+}

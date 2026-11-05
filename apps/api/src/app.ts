@@ -20,6 +20,9 @@ import { invoiceRoutes } from "./routes/v1/invoices";
 import { exceptionRoutes } from "./routes/v1/exceptions";
 import { fulfilmentRoutes } from "./routes/v1/fulfilment";
 import { analyticsRoutes } from "./routes/v1/analytics";
+import { planRoutes } from "./routes/v1/plans";
+import { subscriptionRoutes } from "./routes/v1/subscriptions";
+import { usageRoutes } from "./routes/v1/usage";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -50,6 +53,9 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(exceptionRoutes, { prefix: "/v1/exceptions" });
   await app.register(fulfilmentRoutes, { prefix: "/v1/fulfilment" });
   await app.register(analyticsRoutes, { prefix: "/v1/analytics" });
+  await app.register(planRoutes, { prefix: "/v1/plans" });
+  await app.register(subscriptionRoutes, { prefix: "/v1/subscriptions" });
+  await app.register(usageRoutes, { prefix: "/v1/usage" });
 
   return app;
 }
