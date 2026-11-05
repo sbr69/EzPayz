@@ -288,11 +288,10 @@ Senior-developer codebase audit identified 16 remaining gaps. Fixed in two batch
 16. Settings wallet verify wired to real challenge→sign→verify flow.
 
 **Remaining known limitations (documented, not blocking):**
-- Settings pages (notifications, security, gas sponsorship) still use fake save — wallet settings + checkout settings are real. These need backend endpoints requiring Prisma migrations.
 - Email deferred (code preserved, stubbed — no SMTP). Downloadable PDF receipt is primary.
 - Products CRUD routes not built (page hidden from navigation, code preserved).
-- Customer notes not implemented (needs schema migration).
-- Legacy mock components preserved (Checkout, SubscriptionCheckout) but routes removed from router.
+- Schema drift from earlier db push usage — database was reset during notificationPrefs migration. Re-register + re-onboard to test.
+- Some form fields (billingMode, unitLabel, unitPrice for plans) are stored but don't affect subscription behavior yet (billing mode is cosmetic until usage-based billing logic is implemented).
 
 ---
 
