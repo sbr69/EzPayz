@@ -27,6 +27,7 @@ The same flow supports **recurring subscriptions** (via a hosted checkout widget
    - A **secret key** (`sk_...`) — server-only, full write access. Shown once; hashed at rest.
 3. **A Whitechain Sepolia wallet** for your payout (where USDT arrives) — configured as the merchant's `payoutWallet`.
 4. **The gateway running**: `pnpm dev` (API on :3000) + `pnpm worker` (relayer/webhook workers).
+5. **The SDK built** (if integrating via npm): `cd packages/sdk && pnpm build` → generates `dist/index.js` (ESM) + `dist/browser-entry.global.js` (standalone `<script>` bundle). `dist/` is gitignored.
 
 > **Security model**: the secret key never reaches the browser. When a payment intent is created (server-side), the gateway returns a short-lived **`clientSecret`** (15 min, signed) that the browser widget uses instead. A leaked `clientSecret` expires in minutes and is scoped to one checkout session.
 
@@ -410,7 +411,7 @@ The integration has three parts: server creates the intent (secret key) → fron
 - **Single PayeeShield key**: one gateway-wide signing key (per-merchant keys deferred). If compromised, all requests are forgeable until rotated.
 - **Relayer key in `.env`**: the relayer's private key is stored in an environment variable (not a KMS/HSM). Acceptable for a hackathon, not for production.
 - **Webhook signing secret stored as plaintext** in the database (MVP; should be encrypted at rest).
-- **Dashboard UI is partially mock**: the real checkout (`/real-checkout/:slug`), real subscription checkout (`/real-subscription-checkout/:slug`), and real refund signing (`RealRefundSign`) are wired to the live API, but the merchant dashboard list/analytics pages still run on the mock adapter. Full dashboard wiring is incremental.
+- **Dashboard UI is partially mock**: the real checkout (`/real-checkout/:slug`), real subscription checkout (`/real-subscription-checkout/:slug`), real refund signing (`RealRefundSign`), and onboarding wallet verification are wired to the live API. Dashboard login/signup is real (calls `POST /v1/auth/login` + `POST /v1/auth/register`, stores JWT in `localStorage`). However, dashboard **list/analytics pages** (payments list, refunds list, invoices, analytics, subscriptions, customers) still read from the mock Zustand store for data display — write operations go through the real API, but the list views show seed data until each page is migrated to use the `useApiData` hook. Full dashboard wiring is incremental.
 - **No deploy yet**: the gateway runs locally. Vercel/Render deploy is pending (the owner is testing locally first).
 - **Monthly interval = 30-day approximation on-chain**: the contract uses 2592000s for monthly; the backend scheduler handles real calendar timing, but the on-chain `nextDueTime` advances by 30 days.
 - **WalletConnect not configured**: the RainbowKit config uses a placeholder projectId — MetaMask/injected works, but WalletConnect connections don't (until a real projectId is set).
@@ -418,4 +419,4 @@ The integration has three parts: server creates the intent (secret key) → fron
 - **Requires an external wallet**: the gasless flow still needs the customer to have an EVM wallet (MetaMask) to sign the EIP-3009 authorization. No embedded/account-abstraction wallet-less flow yet.
 - **Single-token (USDT only)**: the gateway is built for the required test USDT. Multi-token support isn't implemented.
 - **Refund backend-signing deferred**: the MVP uses browser-based Wagmi signing for refunds. The production-recommended backend-signing path (key never leaves merchant server) is documented but not implemented.
-- **SDK published to private registry (Option A)**: the SDK is published to GitHub Packages (private). Public npm publishing (Option B) is documented in `packages/sdk/NPM_PUBLISH.md` for later use.
+- **SDK built locally, not published**: the SDK builds to `dist/` via `pnpm build` (ESM + IIFE browser bundle). `dist/` is gitignored — run `pnpm build` after cloning. Publishing to a private npm registry (GitHub Packages) is documented in `packages/sdk/NPM_PUBLISH.md` but not yet executed. Public npm publishing (Option B) is documented for later.
