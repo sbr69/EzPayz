@@ -30,9 +30,13 @@ export interface NetworkConfig {
   name: string;
   chainId: number;
   chainIdHex: string;
+  rpcUrl: string;
+  wsUrl: string;
   currency: { symbol: string; name: string; decimals: number | null; decimalsVerified: boolean };
   explorerLabel: string;
   explorerUrl: string | null;
+  faucetUrl: string | null;
+  bridgeUrl: string | null;
   rpcLabel: string;
 }
 
@@ -42,6 +46,8 @@ export const NETWORKS: Record<string, NetworkConfig> = {
     name: "Whitechain Sepolia",
     chainId: 1874,
     chainIdHex: "0x752",
+    rpcUrl: "https://rpc.testnet.whitechain.io",
+    wsUrl: "wss://rpc.testnet.whitechain.io/ws",
     currency: {
       symbol: "WBT",
       name: "WhiteBIT Token",
@@ -49,18 +55,24 @@ export const NETWORKS: Record<string, NetworkConfig> = {
       decimalsVerified: false,
     },
     explorerLabel: "Whitechain explorer",
-    explorerUrl: null,
-    rpcLabel: "Configured RPC endpoint (demo)",
+    explorerUrl: "https://explorer.testnet.whitechain.io",
+    faucetUrl: "https://faucet.testnet.whitechain.io",
+    bridgeUrl: "https://bridge.testnet.whitechain.io",
+    rpcLabel: "Whitechain official public RPC",
   },
   "whitechain-mainnet": {
     id: "whitechain-mainnet",
     name: "Whitechain",
-    chainId: 1,
-    chainIdHex: "0x1",
+    chainId: 1875,
+    chainIdHex: "0x753",
+    rpcUrl: "https://rpc.whitechain.io",
+    wsUrl: "wss://rpc.whitechain.io/ws",
     currency: { symbol: "WBT", name: "WhiteBIT Token", decimals: 18, decimalsVerified: false },
     explorerLabel: "Whitechain explorer",
-    explorerUrl: null,
-    rpcLabel: "Configured RPC endpoint (demo)",
+    explorerUrl: "https://explorer.whitechain.io",
+    faucetUrl: null,
+    bridgeUrl: "https://bridge.whitechain.io",
+    rpcLabel: "Whitechain official public RPC",
   },
 };
 

@@ -76,18 +76,38 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     const provider = typeof window !== "undefined" ? window.ethereum : undefined;
     setHasProvider(Boolean(provider));
     if (provider?.on) {
-      const handler = (..._args: unknown[]) => {
+      const accountsChanged = (...args: unknown[]) => {
+        const accounts = args[0] as string[] | undefined;
         setState((s) =>
-          s.status === "connected"
-            ? { ...s, status: "disconnected_unexpectedly", address: null, error: "Wallet reported accounts changed or disconnected." }
-            : s,
+          accounts?.[0]
+            ? {
+                ...s,
+                address: accounts[0],
+                status: s.chainId === DEFAULT_NETWORK.chainId ? "connected" : "wrong_network",
+                error: null,
+              }
+            : { ...s, status: "disconnected_unexpectedly", address: null, error: "Wallet disconnected from this page." },
         );
       };
-      provider.on("accountsChanged", handler);
-      provider.on("disconnect", handler);
+      const chainChanged = (...args: unknown[]) => {
+        const chainId = parseInt(String(args[0]), 16);
+        setState((s) => ({
+          ...s,
+          chainId,
+          status: s.address ? (chainId === DEFAULT_NETWORK.chainId ? "connected" : "wrong_network") : "disconnected",
+          error: chainId === DEFAULT_NETWORK.chainId ? null : `Switch to ${DEFAULT_NETWORK.name} (chain ${DEFAULT_NETWORK.chainId}) to continue.`,
+        }));
+      };
+      const disconnected = () => {
+        setState((s) => ({ ...s, status: "disconnected_unexpectedly", address: null, error: "Wallet disconnected from this page." }));
+      };
+      provider.on("accountsChanged", accountsChanged);
+      provider.on("chainChanged", chainChanged);
+      provider.on("disconnect", disconnected);
       return () => {
-        provider.removeListener?.("accountsChanged", handler);
-        provider.removeListener?.("disconnect", handler);
+        provider.removeListener?.("accountsChanged", accountsChanged);
+        provider.removeListener?.("chainChanged", chainChanged);
+        provider.removeListener?.("disconnect", disconnected);
       };
     }
   }, []);
@@ -129,12 +149,12 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         error: null,
         busy: false,
       });
-    } catch {
+    } catch (error) {
       setState((s) => ({
         ...s,
         status: "rejected",
         busy: false,
-        error: "The wallet request was rejected or no compatible wallet was found.",
+        error: error instanceof Error ? error.message : "The wallet request was rejected or no compatible wallet was found.",
       }));
     }
   }, []);
@@ -160,10 +180,26 @@ export function WalletProvider({ children }: { children: ReactNode }) {
       return;
     }
     try {
-      await provider.request({
-        method: "wallet_switchEthereumChain",
-        params: [{ chainId: DEFAULT_NETWORK.chainIdHex }],
-      });
+      try {
+        await provider.request({
+          method: "wallet_switchEthereumChain",
+          params: [{ chainId: DEFAULT_NETWORK.chainIdHex }],
+        });
+      } catch (error) {
+        if (!(error && typeof error === "object" && "code" in error && error.code === 4902)) throw error;
+        await provider.request({
+          method: "wallet_addEthereumChain",
+          params: [
+            {
+              chainId: DEFAULT_NETWORK.chainIdHex,
+              chainName: DEFAULT_NETWORK.name,
+              nativeCurrency: DEFAULT_NETWORK.currency,
+              rpcUrls: [DEFAULT_NETWORK.rpcUrl],
+              blockExplorerUrls: DEFAULT_NETWORK.explorerUrl ? [DEFAULT_NETWORK.explorerUrl] : undefined,
+            },
+          ],
+        });
+      }
       const chainHex = (await provider.request({ method: "eth_chainId" })) as string;
       const chainId = parseInt(chainHex, 16);
       setState((s) => ({
@@ -172,12 +208,15 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         chainId,
         busy: false,
       }));
-    } catch {
+    } catch (error) {
       setState((s) => ({
         ...s,
         status: "wrong_network",
         busy: false,
-        error: `Network switch was not completed. Switch to ${DEFAULT_NETWORK.name} (chain ${DEFAULT_NETWORK.chainId}) in your wallet.`,
+        error:
+          error instanceof Error
+            ? error.message
+            : `Network switch was not completed. Switch to ${DEFAULT_NETWORK.name} (chain ${DEFAULT_NETWORK.chainId}) in your wallet.`,
       }));
     }
   }, []);
