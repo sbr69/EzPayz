@@ -1,60 +1,14 @@
 # Publishing the SDK — npm setup
 
-The `@ezpayz/sdk` package can be published two ways. **Option A** (private registry) is the current approach; **Option B** (public npm) is documented for later use.
+The `@ezpayz/sdk` package can be published two ways. **Option B** (public npm) is the intended approach going forward; **Option A** (private registry) is documented as an alternative for internal/private use.
+
+> **Note:** The SDK is not yet published to npm. Run `pnpm build` after cloning to generate `dist/` locally. When ready to publish, follow Option B below.
 
 ---
 
-## Option A — Private npm package via GitHub Packages (current)
+## Option B — Public npm package (recommended)
 
-GitHub Packages hosts scoped npm packages privately — only people with access to the GitHub repo can install the package. This is free and uses a GitHub Personal Access Token (PAT) for auth.
-
-### Setup (publisher — you, once)
-
-1. **Create a GitHub PAT** with `write:packages` scope:
-   - Go to https://github.com/settings/tokens (classic) or use a fine-grained token
-   - Select `write:packages` (this also grants `read:packages`)
-
-2. **Configure npm auth** — create or edit `~/.npmrc` (your home directory):
-   ```ini
-   @ezpayz:registry=https://npm.pkg.github.com
-   //npm.pkg.github.com/:_authToken=YOUR_GITHUB_PAT
-   ```
-   Replace `YOUR_GITHUB_PAT` with the token from step 1.
-
-3. **Publish:**
-   ```bash
-   cd packages/sdk
-   pnpm build
-   npm publish
-   ```
-   The package publishes to `https://npm.pkg.github.com` as `@ezpayz/sdk`.
-
-### Setup (consumer — the demo merchant app)
-
-The merchant must authenticate to install the private package:
-
-1. **Create a GitHub PAT** with `read:packages` scope (or reuse the same token).
-
-2. **Add `.npmrc`** in the merchant project root:
-   ```ini
-   @ezpayz:registry=https://npm.pkg.github.com
-   //npm.pkg.github.com/:_authToken=YOUR_GITHUB_PAT
-   ```
-
-3. **Install:**
-   ```bash
-   npm install @ezpayz/sdk
-   # or
-   pnpm add @ezpayz/sdk
-   ```
-
-> **Note:** The merchant needs access to the GitHub repo that owns the package. For a hackathon demo, make the repo public (or add the demo merchant's GitHub account as a collaborator) so the PAT can read the package.
-
----
-
-## Option B — Public npm package (for later)
-
-When ready to make the SDK publicly installable (no auth required), switch to the public npm registry:
+When ready to make the SDK publicly installable (no auth required), use the public npm registry:
 
 ### Setup (publisher)
 
@@ -65,13 +19,7 @@ When ready to make the SDK publicly installable (no auth required), switch to th
    npm login
    ```
 
-3. **Remove the private registry config** from `~/.npmrc` (or scope it differently):
-   ```ini
-   # Remove or comment out the @ezpayz registry line
-   # @ezpayz:registry=https://npm.pkg.github.com
-   ```
-
-4. **Publish:**
+3. **Build + publish:**
    ```bash
    cd packages/sdk
    pnpm build
@@ -88,6 +36,58 @@ npm install @ezpayz/sdk
 
 ---
 
+## Option A — Private npm package via GitHub Packages (alternative)
+
+For private/internal use only — GitHub Packages hosts scoped npm packages privately. Only people with access to the GitHub repo can install the package.
+
+### Setup (publisher)
+
+1. **Create a GitHub PAT** with `write:packages` scope.
+
+2. **Configure npm auth** — create or edit `~/.npmrc`:
+   ```ini
+   @ezpayz:registry=https://npm.pkg.github.com
+   //npm.pkg.github.com/:_authToken=YOUR_GITHUB_PAT
+   ```
+
+3. **Publish:**
+   ```bash
+   cd packages/sdk
+   pnpm build
+   npm publish
+   ```
+
+### Setup (consumer)
+
+The merchant must authenticate to install the private package:
+1. Create a GitHub PAT with `read:packages` scope.
+2. Add `.npmrc`:
+   ```ini
+   @ezpayz:registry=https://npm.pkg.github.com
+   //npm.pkg.github.com/:_authToken=YOUR_GITHUB_PAT
+   ```
+3. `npm install @ezpayz/sdk`
+
+---
+
+## Other packages — publishing status
+
+| Package | npm private flag | Publishable? | Notes |
+|---|---|---|---|
+| `@ezpayz/sdk` | `false` | ✅ Yes — Option B (public) recommended | ESM + IIFE browser bundle |
+| `@ezpayz/mcp` | `true` | ⚠️ Not yet — set to `false` when ready to publish | MCP server for AI agents |
+| `packages/contracts` | `true` | ❌ No — Foundry project, not an npm package | Contract source is in the repo |
+| `dist/` directories | gitignored | ⚠️ Not committed — run `pnpm build` after cloning | Build artifacts |
+
+### When ready to make everything public:
+1. Set `packages/mcp/package.json` → `"private": false"`
+2. Un-gitignore `dist/` (remove `dist/` from `.gitignore`) OR keep gitignored and document `pnpm build`
+3. Publish both SDK + MCP to public npm via Option B
+4. Keep `packages/contracts/package.json` as `"private": true"` (not an npm package)
+5. Keep `.env` gitignored (contains secrets — DATABASE_URL, RELAYER_PRIVATE_KEY, JWT_SECRET)
+
+---
+
 ## Building before publish
 
 Always build before publishing:
@@ -100,7 +100,7 @@ The `prepublishOnly` script in `package.json` runs `tsup` automatically, so `npm
 
 ## Versioning
 
-Bump the version in `packages/sdk/package.json` before each publish:
+Bump the version in `package.json` before each publish:
 ```bash
 npm version patch  # 0.1.0 → 0.1.1
 npm version minor  # 0.1.0 → 0.2.0
