@@ -1,5 +1,7 @@
 import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
 import { WalletProvider } from "@/contexts/WalletContext";
+import { Providers } from "@/providers";
+import { RealCheckout } from "@/features/checkout/RealCheckout";
 import { AppShell } from "@/components/layout/AppShell";
 import { ToastHost } from "@/components/ui/Feedback";
 import Landing from "@/features/marketing/Landing";
@@ -37,6 +39,7 @@ import Roadmap from "@/features/roadmap/Roadmap";
 
 export function App() {
   return (
+    <Providers>
     <WalletProvider>
       <HashRouter>
         <Routes>
@@ -90,6 +93,7 @@ export function App() {
           {/* Customer-facing experiences (standalone layout) */}
           <Route path="/checkout/:sessionId" element={<Checkout />} />
           <Route path="/l/:slug" element={<Checkout />} />
+          <Route path="/real-checkout/:slug" element={<RealCheckout />} />
           <Route path="/subscribe/:planId" element={<SubscriptionCheckout />} />
           <Route path="/receipt/:id" element={<ReceiptPage />} />
           <Route path="/customer/subscriptions/:id" element={<CustomerSubscriptionPage />} />
@@ -101,6 +105,7 @@ export function App() {
         <ToastHost />
       </HashRouter>
     </WalletProvider>
+    </Providers>
   );
 }
 
