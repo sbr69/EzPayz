@@ -106,7 +106,7 @@ export function PaymentLinkResolver() {
 
   if (!link || link.linkType === "fixed") return null;
 
-  // Customer-entered amount for customer_amount links.
+  // Customer-entered amount for customer_amount + reusable links.
   return (
     <CheckoutFrame>
       <Card className="overflow-hidden shadow-md">

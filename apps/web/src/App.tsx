@@ -1,4 +1,4 @@
-import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { WalletProvider } from "@/contexts/WalletContext";
 import { Providers } from "@/providers";
 import { RealCheckout } from "@/features/checkout/RealCheckout";
@@ -43,7 +43,7 @@ export function App() {
   return (
     <Providers>
     <WalletProvider>
-      <HashRouter>
+      <BrowserRouter>
         <Routes>
           <Route path="/" element={<Landing />} />
           <Route path="/sign-in" element={<SignIn />} />
@@ -51,6 +51,7 @@ export function App() {
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/onboarding" element={<Onboarding />} />
 
+          {/* Dashboard routes — auth guarded via AppShell (checks signedIn + JWT) */}
           <Route element={<AppShell />}>
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/payments" element={<PaymentsList />} />
@@ -106,7 +107,7 @@ export function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
         <ToastHost />
-      </HashRouter>
+      </BrowserRouter>
     </WalletProvider>
     </Providers>
   );

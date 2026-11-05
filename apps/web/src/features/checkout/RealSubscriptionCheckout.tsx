@@ -1,16 +1,18 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { motion } from "motion/react";
-import { useAccount, useSendTransaction } from "wagmi";
+import { useAccount, useSendTransaction, usePublicClient } from "wagmi";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { AlertCircle, ArrowUpRight, Loader2, Repeat, ShieldCheck } from "lucide-react";
 import { apiFetch } from "@/services/api/http";
+import { DEFAULT_NETWORK } from "@/config/app";
+
+const CHAIN_ID = DEFAULT_NETWORK.chainId;
+const EXPLORER = DEFAULT_NETWORK.explorerUrl ?? "https://explorer.testnet.whitechain.io";
 import { Button, Callout, Card, Divider } from "@/components/ui";
 import { DrawnCheck, EASE_OUT_QUART } from "@/components/ui/motion";
 import { CheckoutFrame } from "./CheckoutFrame";
 
-const CHAIN_ID = 1874;
-const EXPLORER = "https://explorer.testnet.whitechain.io";
 
 type SubCheckoutData = {
   sessionId: string;
@@ -45,6 +47,7 @@ export function RealSubscriptionCheckout() {
   const { slug = "" } = useParams<{ slug: string }>();
   const { address, chainId } = useAccount();
   const { sendTransactionAsync } = useSendTransaction();
+  const publicClient = usePublicClient();
   const [checkout, setCheckout] = useState<SubCheckoutData | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "approving" | "subscribing" | "recording" | "succeeded" | "failed">("loading");
   const [error, setError] = useState("");
@@ -81,6 +84,8 @@ export function RealSubscriptionCheckout() {
         data: approveData as `0x${string}`,
       });
       setApprovalTx(approveTx);
+      // Wait for the approve tx to be mined before proceeding.
+      if (publicClient) await publicClient.waitForTransactionReceipt({ hash: approveTx });
 
       // Step 2: createSubscription on the SubscriptionContract.
       setStatus("subscribing");
@@ -107,6 +112,8 @@ export function RealSubscriptionCheckout() {
         data: createData as `0x${string}`,
       });
       setActivationTx(createTx);
+      // Wait for the createSubscription tx to be mined before mirroring.
+      if (publicClient) await publicClient.waitForTransactionReceipt({ hash: createTx });
 
       // Step 3: mirror the subscription to the gateway via the PUBLIC activate endpoint
       // (no auth required — the checkout slug acts as authorization).

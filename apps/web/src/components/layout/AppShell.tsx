@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, NavLink, Navigate, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import {
   Bell,
@@ -412,6 +412,7 @@ function ProfileMenu() {
 
 export function AppShell() {
   useSyncRealData(); // Fetch real API data → populate Zustand store for all dashboard pages
+  const signedIn = useDemo((s) => s.signedIn);
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
@@ -421,6 +422,12 @@ export function AppShell() {
   const pushToast = useDemo((s) => s.pushToast);
   const location = useLocation();
   const merchant = useDemo((s) => s.data.merchant);
+
+  // Auth guard: redirect to sign-in if not signed in (and no JWT in localStorage).
+  const hasJwt = typeof window !== "undefined" && !!localStorage.getItem("wcp_token");
+  if (!signedIn && !hasJwt) {
+    return <Navigate to="/sign-in" replace />;
+  }
 
   useEffect(() => {
     setMobileOpen(false);

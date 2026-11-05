@@ -6,13 +6,14 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { AlertCircle, ArrowUpRight, Loader2, Receipt, ShieldCheck } from "lucide-react";
 import { apiFetch, API_URL } from "@/services/api/http";
 import { fmtAmount } from "@/lib/money";
+import { DEFAULT_NETWORK, TOKEN } from "@/config/app";
 import { Button, Callout, Card } from "@/components/ui";
 import { DrawnCheck, EASE_OUT_QUART } from "@/components/ui/motion";
 import { CheckoutFrame } from "./CheckoutFrame";
 
-const USDT = "0xcedfB56113143d55b2358b8CFbB0dEB5Ad2f55a7";
-const CHAIN_ID = 1874;
-const EXPLORER = "https://explorer.testnet.whitechain.io";
+const USDT = TOKEN.contract as `0x${string}`;
+const CHAIN_ID = DEFAULT_NETWORK.chainId;
+const EXPLORER = DEFAULT_NETWORK.explorerUrl ?? "https://explorer.testnet.whitechain.io";
 
 type CheckoutData = {
   paymentIntentId: string;
@@ -94,7 +95,7 @@ export function RealCheckout() {
 
       // Poll for settlement — use the PUBLIC checkout endpoint (no auth required).
       // GET /v1/payment-intents/:id requires authentication; the payer doesn't have the merchant's key.
-      for (let i = 0; i < 30; i++) {
+      for (let i = 0; i < 60; i++) {
         await new Promise((r) => setTimeout(r, 2000));
         const s = await apiFetch<{ status: string; txRef?: string }>(`/v1/checkout/${slug}`);
         if (s.status === "succeeded") {

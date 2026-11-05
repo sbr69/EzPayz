@@ -81,6 +81,34 @@ export class WhitechainClient {
   analytics = {
     overview: () => this.request("/v1/analytics/overview", { headers: this.headers() }),
   };
+
+  customers = {
+    create: (opts: { email: string; name?: string }) =>
+      this.request("/v1/customers", { method: "POST", headers: { ...this.headers(), "Content-Type": "application/json" }, body: JSON.stringify(opts) }),
+    list: () => this.request("/v1/customers?limit=100", { headers: this.headers() }),
+    get: (id: string) => this.request(`/v1/customers/${id}`, { headers: this.headers() }),
+  };
+
+  webhooks = {
+    create: (opts: { url: string; eventTypes: string[]; description?: string }) =>
+      this.request("/v1/webhooks", { method: "POST", headers: { ...this.headers("wh-" + Date.now()), "Content-Type": "application/json" }, body: JSON.stringify(opts) }),
+    list: () => this.request("/v1/webhooks?limit=100", { headers: this.headers() }),
+    events: () => this.request("/v1/webhooks/events?limit=100", { headers: this.headers() }),
+    replay: (eventId: string) => this.request(`/v1/webhooks/events/${eventId}/replay`, { method: "POST", headers: this.headers() }),
+  };
+
+  apiKeys = {
+    create: (opts: { name: string; environment?: string }) =>
+      this.request("/v1/api-keys", { method: "POST", headers: { ...this.headers("ak-" + Date.now()), "Content-Type": "application/json" }, body: JSON.stringify({ name: opts.name, environment: opts.environment ?? "testnet" }) }),
+    list: () => this.request("/v1/api-keys", { headers: this.headers() }),
+    revoke: (id: string) => this.request(`/v1/api-keys/${id}/revoke`, { method: "POST", headers: this.headers() }),
+  };
+
+  plans = {
+    create: (opts: { name: string; amount: string; interval?: string; maxChargePerCycle: string; cumulativeLimit: string; description?: string }) =>
+      this.request("/v1/plans", { method: "POST", headers: { ...this.headers("pl-" + Date.now()), "Content-Type": "application/json" }, body: JSON.stringify({ ...opts, interval: opts.interval ?? "monthly" }) }),
+    list: () => this.request("/v1/plans?limit=100", { headers: this.headers() }),
+  };
 }
 
 export class WhitechainError extends Error {
