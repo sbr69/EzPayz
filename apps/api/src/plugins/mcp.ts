@@ -1,5 +1,4 @@
 import type { FastifyInstance } from "fastify";
-import { createMcpFastifyApp } from "@modelcontextprotocol/fastify";
 import { toNodeHandler } from "@modelcontextprotocol/node";
 import { createMcpHandler } from "@modelcontextprotocol/server";
 
@@ -10,9 +9,9 @@ import { createMcpHandler } from "@modelcontextprotocol/server";
  * to connect to the gateway's MCP server over HTTP. Each request gets a fresh
  * McpServer instance (per-request factory pattern).
  *
- * Auth: MCP clients authenticate by passing the merchant's secret API key as a
- * Bearer token in the Authorization header. The tool handlers use it for gateway
- * API calls (read from GATEWAY_SECRET_KEY env var or forwarded auth).
+ * Auth: the tool handlers read GATEWAY_SECRET_KEY from the process env.
+ * For per-client auth in the future, the Authorization header from the MCP
+ * client can be forwarded via ctx.http.authInfo.
  *
  * For local stdio use (Claude Desktop subprocess), use `packages/mcp` directly:
  *   node packages/mcp/dist/index.js
@@ -26,7 +25,6 @@ export async function mountMcp(parentApp: FastifyInstance): Promise<void> {
     return createServer();
   });
 
-  const mcpApp = createMcpFastifyApp();
   const nodeHandler = toNodeHandler(handler);
 
   parentApp.all("/mcp", async (request, reply) => {
