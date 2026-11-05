@@ -3,6 +3,7 @@ import { prisma } from "../db/client";
 import { publicClient, getRelayerWalletClient, getRelayerAccount, CHAIN } from "../web3/client";
 import { USDT_ABI } from "../web3/abi";
 import type { RelayPaymentJob } from "../queues";
+import { emitEvent } from "./webhook";
 
 /**
  * Relayer + observer (combined for the e2e): submits transferWithAuthorization
@@ -61,6 +62,14 @@ export async function relayAndSettle(job: RelayPaymentJob): Promise<{ txHash: st
   await prisma.relayerTransaction.updateMany({
     where: { txRef: txHash },
     data: { status: settled ? "confirmed" : "failed" },
+  });
+
+  // Emit webhook event (transactional outbox + signed dispatch via the webhook queue).
+  await emitEvent({
+    merchantId: job.merchantId,
+    type: settled ? "payment.succeeded" : "payment.failed",
+    resourceId: job.paymentIntentId,
+    payload: { id: job.paymentIntentId, amount: job.value, txRef: txHash, status: settled ? "succeeded" : "failed" },
   });
 
   return { txHash, settled };

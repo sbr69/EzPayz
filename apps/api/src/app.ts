@@ -14,6 +14,12 @@ import { merchantRoutes } from "./routes/v1/merchants";
 import { apiKeyRoutes } from "./routes/v1/apiKeys";
 import { paymentIntentRoutes } from "./routes/v1/paymentIntents";
 import { checkoutRoutes } from "./routes/v1/checkout";
+import { webhookRoutes } from "./routes/v1/webhooks";
+import { paymentLinkRoutes } from "./routes/v1/paymentLinks";
+import { invoiceRoutes } from "./routes/v1/invoices";
+import { exceptionRoutes } from "./routes/v1/exceptions";
+import { fulfilmentRoutes } from "./routes/v1/fulfilment";
+import { analyticsRoutes } from "./routes/v1/analytics";
 
 export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({
@@ -38,6 +44,12 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(apiKeyRoutes, { prefix: "/v1/api-keys" });
   await app.register(paymentIntentRoutes, { prefix: "/v1/payment-intents" });
   await app.register(checkoutRoutes, { prefix: "/v1/checkout" });
+  await app.register(webhookRoutes, { prefix: "/v1/webhooks" });
+  await app.register(paymentLinkRoutes, { prefix: "/v1/payment-links" });
+  await app.register(invoiceRoutes, { prefix: "/v1/invoices" });
+  await app.register(exceptionRoutes, { prefix: "/v1/exceptions" });
+  await app.register(fulfilmentRoutes, { prefix: "/v1/fulfilment" });
+  await app.register(analyticsRoutes, { prefix: "/v1/analytics" });
 
   return app;
 }
