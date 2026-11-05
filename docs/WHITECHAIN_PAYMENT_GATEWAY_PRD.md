@@ -353,14 +353,14 @@ Cancellation and ERC-20 allowance revocation are separate operations:
 | Transaction | Gas payer in MVP |
 |---|---|
 | One-time EIP-3009 authorization submission | Gateway relayer; payer signs typed data but does not submit a gas-paying transaction. |
-| Initial subscription token approval | Customer normally pays WBT gas. |
-| Subscription creation/activation | Customer normally pays WBT gas unless a compatible sponsored mechanism is separately implemented. |
+| Initial subscription token approval | Relayer pays WBT gas (via EIP-2612 Permit — customer signs off-chain). |
+| Subscription creation/activation | Relayer pays WBT gas (via createSubscriptionBySig — customer signs EIP-712 off-chain). |
 | Automatic subscription renewal | Gateway relayer pays WBT gas. |
-| Subscription cancellation | Customer normally pays WBT gas. |
-| Allowance revocation (`approve(0)`) | Customer normally pays WBT gas. |
+| Subscription cancellation | Relayer pays WBT gas (via cancelBySig — customer signs EIP-712 off-chain). |
+| Allowance revocation (`approve(0)`) | Customer normally pays WBT gas (not part of the subscription lifecycle — manual cleanup only). |
 | Merchant refund | Merchant-authorized; relayer sponsorship is conditional on verified support and implementation. Otherwise merchant submits and pays WBT gas. |
 
-The subscription setup and cancellation path is **not fully gasless in the MVP**. Do not market it as a no-transaction/no-WBT experience. The Whitechain Scale demo should use the one-time EIP-3009 flow to demonstrate the payer gasless experience unless gasless subscription setup is separately implemented.
+The subscription lifecycle is now **fully gasless** via EIP-712 BySig functions + EIP-2612 Permit. The customer signs 2 messages at signup (Permit + createSubscriptionBySig) and 1 at cancel (cancelBySig). The relayer submits all transactions and pays WBT gas. The customer never submits a transaction or holds WBT.
 
 ### 11.4.1 Subscription hosted checkout (merchant-site integration)
 

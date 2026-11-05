@@ -306,7 +306,7 @@ The merchant offers subscriptions **on their own website** via the hosted checko
 1. The customer activates the subscription on-chain themselves (approve + createSubscription).
 2. You record it server-side via `POST /v1/subscriptions` with the on-chain `subId`.
 
-> **Gas disclosure**: subscription setup is NOT gasless. The customer pays WBT for the initial `approve()` + `createSubscription()`. Only renewals are gasless (relayer-sponsored). The widget discloses this clearly.
+> **Fully gasless**: subscription setup, renewals, and cancellation are all gasless. The customer signs 2 EIP-712 messages at signup (Permit + createSubscriptionBySig) and 1 at cancel (cancelBySig). The relayer submits all transactions and pays WBT gas. The customer never submits a transaction or holds WBT.
 
 ---
 

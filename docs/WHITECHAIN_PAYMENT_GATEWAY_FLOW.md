@@ -39,7 +39,7 @@ The platform operates shared infrastructure: merchant accounts, payment intents,
 | One-time payment gas | Gateway relayer pays WBT gas |
 | Subscription authorization | Customer grants a capped ERC-20 allowance to the subscription contract |
 | Subscription execution | Backend scheduler triggers relayer; relayer calls the subscription contract; contract uses `transferFrom` directly to merchant |
-| Subscription initial approval/activation gas | Customer normally pays WBT gas |
+| Subscription initial approval/activation gas | Relayer pays WBT gas (EIP-2612 Permit + createSubscriptionBySig) |
 | Subscription cancellation | Customer submits on-chain cancellation and normally pays WBT gas; allowance revocation is a separate transaction |
 | Refunds | Merchant-authorized transfer back to payer; gateway relayer sponsors gas where token authorization permits |
 | PayeeShield signing | Gateway-managed delegated signing mechanism, not a merchant's wallet signing every invoice |
@@ -488,7 +488,7 @@ Subscriptions are offered to customers **through the merchant's own website** vi
 1. Merchant creates a plan via the SDK/API (`POST /v1/plans`) — interval, amount (human-readable), per-cycle cap, cumulative cap, expiry, retry policy.
 2. Merchant backend creates a subscription checkout session (`POST /v1/subscriptions/checkout`) → returns `{ subscriptionId, clientSecret, checkoutUrl }`.
 3. Merchant frontend mounts `<WhitechainSubscriptionCheckout clientSecret={...} />`.
-4. The widget displays the plan terms: amount, interval, per-cycle cap, cumulative limit, expiry, merchant payout address, cancellation method, and the gas cost disclosure (customer pays WBT for initial approve + createSubscription; renewals are gasless).
+4. The widget displays the plan terms: amount, interval, per-cycle cap, cumulative limit, expiry, merchant payout address, cancellation method, and the gasless disclosure (customer signs 2 messages — Permit + createSubscriptionBySig — and submits 0 transactions; the relayer pays all gas).
 5. Customer connects wallet, approves the bounded allowance, and calls `createSubscription(...)` on-chain.
 6. Gateway observes the on-chain `SubscriptionCreated` event (or the widget reports it) and mirrors the subscription record.
 7. The gateway scheduler handles all renewals — the merchant does not build renewal logic.
@@ -551,7 +551,7 @@ The merchant can configure a retry policy, but it cannot exceed or bypass the cu
 1. Customer opens subscription management.
 2. Customer selects Cancel.
 3. Wallet submits a call to the subscription contract to cancel the subscription.
-4. Customer normally pays WBT gas for this transaction in the MVP.
+4. Relayer pays WBT gas (customer signs cancelBySig off-chain).
 5. Contract marks the subscription cancelled immediately and prevents any future charge for it.
 6. Backend observes the cancellation event and stops scheduling future renewals.
 7. Customer is advised to separately revoke any remaining ERC-20 allowance to the subscription contract, usually by approving zero and paying WBT gas.
