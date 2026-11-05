@@ -25,9 +25,9 @@ const variants: Record<Variant, string> = {
 };
 
 const sizes: Record<Size, string> = {
-  sm: "h-10 px-4 text-[15px] gap-1.5 rounded-md",
-  md: "h-10 px-4 text-[15px] gap-2 rounded-md",
-  lg: "h-12 px-6 text-[15px] gap-2 rounded-md",
+  sm: "h-12 px-5 text-[17px] gap-2 rounded-lg",
+  md: "h-12 px-5 text-[17px] gap-2.5 rounded-lg",
+  lg: "h-14 px-7 text-[18px] gap-2.5 rounded-lg",
 };
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -80,7 +80,7 @@ export function IconButton({
       aria-label={label}
       title={label}
       className={cn(
-        "inline-flex h-8 w-8 items-center justify-center rounded-md border border-transparent text-ink-3 transition-colors",
+        "inline-flex h-10 w-10 items-center justify-center rounded-lg border border-transparent text-ink-3 transition-colors",
         "hover:border-line hover:bg-surface hover:text-ink disabled:opacity-50",
         className,
       )}
@@ -127,13 +127,13 @@ export function CardHeader({
   return (
     <div
       className={cn(
-        "flex flex-wrap items-start justify-between gap-3 border-b border-line px-5 py-3.5",
+        "flex flex-wrap items-start justify-between gap-4 border-b border-line px-6 py-5",
         className,
       )}
     >
       <div className="min-w-0">
-        <h3 className="text-[15px] font-semibold tracking-[-0.01em] text-ink">{title}</h3>
-        {description ? <p className="mt-0.5 text-[14px] text-ink-3">{description}</p> : null}
+        <h3 className="text-[18px] font-semibold tracking-[-0.01em] text-ink">{title}</h3>
+        {description ? <p className="mt-1 text-[16px] text-ink-3">{description}</p> : null}
       </div>
       {actions ? <div className="flex shrink-0 items-center gap-2">{actions}</div> : null}
     </div>
@@ -141,7 +141,7 @@ export function CardHeader({
 }
 
 export function CardBody({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cn("px-5 py-4", className)}>{children}</div>;
+  return <div className={cn("px-6 py-5", className)}>{children}</div>;
 }
 
 /* ---------------------------------- Fields --------------------------------- */
@@ -166,23 +166,23 @@ export function Field({
   return (
     <div className={cn("space-y-1.5", className)}>
       {label ? (
-        <label htmlFor={htmlFor} className="block text-[14px] font-medium text-ink-2">
+        <label htmlFor={htmlFor} className="block text-[15px] font-medium text-ink-2">
           {label}
           {required ? <span className="ml-0.5 text-danger">*</span> : null}
         </label>
       ) : null}
       {children}
       {error ? (
-        <p className="text-[14px] font-medium text-danger">{error}</p>
+        <p className="text-[15px] font-medium text-danger">{error}</p>
       ) : hint ? (
-        <p className="text-[14px] leading-relaxed text-ink-3">{hint}</p>
+        <p className="text-[15px] leading-relaxed text-ink-3">{hint}</p>
       ) : null}
     </div>
   );
 }
 
 const controlBase =
-  "w-full rounded-md border bg-surface px-3 text-[15px] text-ink placeholder:text-ink-4 transition-colors " +
+  "w-full rounded-lg border bg-surface px-4 text-[17px] text-ink placeholder:text-ink-4 transition-colors " +
   "focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/15 disabled:bg-canvas-alt disabled:text-ink-4";
 
 export function Input({
@@ -194,7 +194,7 @@ export function Input({
     <input
       {...rest}
       aria-invalid={invalid || undefined}
-      className={cn(controlBase, "h-9", invalid ? "border-danger" : "border-line-strong", className)}
+      className={cn(controlBase, "h-12", invalid ? "border-danger" : "border-line-strong", className)}
     />
   );
 }
@@ -221,7 +221,7 @@ export function Select({
   return (
     <select
       {...rest}
-      className={cn(controlBase, "h-9 cursor-pointer appearance-none border-line-strong bg-[right_0.6rem_center] bg-no-repeat pr-8", className)}
+      className={cn(controlBase, "h-12 cursor-pointer appearance-none border-line-strong bg-[right_0.75rem_center] bg-no-repeat pr-10", className)}
       style={{
         backgroundImage:
           "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7470' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")",
@@ -257,8 +257,8 @@ export function Checkbox({
         className="mt-0.5 h-4 w-4 shrink-0 cursor-pointer rounded border-line-strong text-accent accent-[#0d7a6f]"
       />
       <span className="min-w-0">
-        <span className="block text-[15px] font-medium text-ink">{label}</span>
-        {description ? <span className="block text-[14px] leading-relaxed text-ink-3">{description}</span> : null}
+        <span className="block text-[17px] font-medium text-ink">{label}</span>
+        {description ? <span className="block text-[16px] leading-relaxed text-ink-3">{description}</span> : null}
       </span>
     </label>
   );
@@ -316,7 +316,7 @@ export function PageHeader({
   return (
     <div className="mb-5">
       {breadcrumbs?.length ? (
-        <nav className="mb-2 flex items-center gap-1.5 text-[14px] text-ink-3">
+        <nav className="mb-2 flex items-center gap-1.5 text-[15px] text-ink-3">
           {breadcrumbs.map((b, i) => (
             <span key={b.label} className="flex items-center gap-1.5">
               {b.to ? (
@@ -333,8 +333,8 @@ export function PageHeader({
       ) : null}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-[24px] font-semibold leading-tight tracking-[-0.02em] text-ink">{title}</h1>
-          {description ? <p className="mt-1 max-w-2xl text-[15px] leading-relaxed text-ink-3">{description}</p> : null}
+          <h1 className="text-[32px] font-semibold leading-tight tracking-[-0.02em] text-ink">{title}</h1>
+          {description ? <p className="mt-1.5 max-w-2xl text-[17px] leading-relaxed text-ink-3">{description}</p> : null}
           {meta ? <div className="mt-2.5 flex flex-wrap items-center gap-2">{meta}</div> : null}
         </div>
         {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
@@ -359,7 +359,7 @@ export function Tabs({
           key={t.id}
           onClick={() => onChange(t.id)}
           className={cn(
-            "-mb-px whitespace-nowrap border-b-2 px-3 py-2 text-[15px] font-medium transition-colors",
+            "-mb-px whitespace-nowrap border-b-2 px-4 py-3 text-[17px] font-medium transition-colors",
             value === t.id
               ? "border-accent text-ink"
               : "border-transparent text-ink-3 hover:border-line-strong hover:text-ink",
@@ -395,7 +395,7 @@ export function Pill({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 rounded border px-1.5 py-0.5 text-[13px] font-medium leading-4",
+        "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-[15px] font-medium leading-5",
         tones[tone],
         className,
       )}
@@ -430,8 +430,8 @@ export function Callout({
       <div className="flex gap-2.5">
         {icon ? <span className="mt-0.5 shrink-0">{icon}</span> : null}
         <div className="min-w-0 space-y-1">
-          {title ? <p className="text-[15px] font-semibold">{title}</p> : null}
-          {children ? <div className="text-[14px] leading-relaxed opacity-90">{children}</div> : null}
+          {title ? <p className="text-[16px] font-semibold">{title}</p> : null}
+          {children ? <div className="text-[15px] leading-relaxed opacity-90">{children}</div> : null}
         </div>
       </div>
     </div>
@@ -455,8 +455,8 @@ export function KeyValue({
 }) {
   return (
     <div className={cn("flex items-start justify-between gap-4 py-2", className)}>
-      <dt className="shrink-0 text-[14px] text-ink-3">{label}</dt>
-      <dd className="flex min-w-0 items-center gap-1.5 text-right text-[14px] font-medium text-ink">
+      <dt className="shrink-0 text-[16px] text-ink-3">{label}</dt>
+      <dd className="flex min-w-0 items-center gap-1.5 text-right text-[16px] font-medium text-ink">
         <span className="min-w-0 break-words">{children}</span>
         {copy}
       </dd>
@@ -478,8 +478,8 @@ export function SectionTitle({
   return (
     <div className={cn("mb-3 flex flex-wrap items-end justify-between gap-3", className)}>
       <div>
-        <h2 className="text-[17px] font-semibold tracking-[-0.01em] text-ink">{children}</h2>
-        {description ? <p className="mt-0.5 text-[14px] text-ink-3">{description}</p> : null}
+        <h2 className="text-[22px] font-semibold tracking-[-0.01em] text-ink">{children}</h2>
+        {description ? <p className="mt-1 text-[16px] text-ink-3">{description}</p> : null}
       </div>
       {actions}
     </div>
@@ -489,9 +489,9 @@ export function SectionTitle({
 export function Stat({ label, value, sub }: { label: string; value: ReactNode; sub?: ReactNode }) {
   return (
     <div>
-      <p className="text-[13px] font-medium uppercase tracking-wide text-ink-4">{label}</p>
-      <p className="mt-1 text-[17px] font-semibold text-ink tnum">{value}</p>
-      {sub ? <p className="text-[14px] text-ink-3">{sub}</p> : null}
+      <p className="text-[15px] font-medium uppercase tracking-wide text-ink-4">{label}</p>
+      <p className="mt-1.5 text-[22px] font-semibold text-ink tnum">{value}</p>
+      {sub ? <p className="text-[16px] text-ink-3">{sub}</p> : null}
     </div>
   );
 }

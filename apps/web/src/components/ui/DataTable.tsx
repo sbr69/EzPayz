@@ -102,7 +102,7 @@ export function DataTable<T>({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-2 border-b border-line px-4 py-3">
+      <div className="flex flex-wrap items-center gap-3 border-b border-line px-5 py-4">
         {searchValue ? (
           <div className="relative min-w-[180px] flex-1 sm:max-w-xs">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-ink-4" />
@@ -113,7 +113,7 @@ export function DataTable<T>({
                 setPage(0);
               }}
               placeholder={searchPlaceholder}
-              className="h-8 pl-8 text-[15px]"
+              className="h-12 pl-10 text-[17px]"
               aria-label="Search table"
             />
           </div>
@@ -126,7 +126,7 @@ export function DataTable<T>({
               setFilterState((s) => ({ ...s, [f.key]: e.target.value }));
               setPage(0);
             }}
-            className="h-8 w-auto min-w-[130px] text-[14px]"
+            className="h-12 w-auto min-w-[150px] text-[16px]"
             aria-label={f.label}
           >
             {f.options.map((o) => (
@@ -163,7 +163,7 @@ export function DataTable<T>({
                       key={c.key}
                       scope="col"
                       className={cn(
-                        "px-4 py-2.5 text-[13px] font-semibold uppercase tracking-wide text-ink-4",
+                        "px-5 py-4 text-[15px] font-semibold uppercase tracking-wide text-ink-4",
                         c.align === "right" && "text-right",
                         c.hideOnMobile && "hidden lg:table-cell",
                       )}
@@ -218,8 +218,8 @@ export function DataTable<T>({
                     <td
                       key={c.key}
                       className={cn(
-                        "px-4 align-middle text-[15px] text-ink-2",
-                        dense ? "py-2" : "py-3",
+                        "px-5 align-middle text-[17px] text-ink-2",
+                        dense ? "py-3" : "py-4",
                         c.align === "right" && "text-right",
                         c.hideOnMobile && "hidden lg:table-cell",
                         c.className,

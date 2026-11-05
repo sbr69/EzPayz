@@ -52,12 +52,18 @@
     background-color: var(--color-canvas);
     color: var(--color-ink);
     font-family: var(--font-sans);
-    font-size: 15px;
+    font-size: 17px;
   }
   *:focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
     border-radius: 4px;
+  }
+
+  @media (min-width: 1024px) {
+    #root {
+      font-size: 1.0625rem;
+    }
   }
   ::selection {
     background: #cfe8e3;
@@ -90,7 +96,7 @@
 /* Recharts polish */
 .recharts-cartesian-axis-tick text {
   fill: var(--color-ink-3);
-  font-size: 13px;
+  font-size: 14px;
 }
 .recharts-default-tooltip {
   border-radius: 8px !important;
