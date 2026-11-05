@@ -1,4 +1,5 @@
 import type { FastifyRequest, FastifyReply } from "fastify";
+import { resolveApiKey } from "../services/apiKey";
 
 // Augment Fastify with the authenticate decorator + merchantId on the request.
 // `jwt` is declared here so `app.jwt.sign(...)` typechecks without the @fastify/jwt
@@ -18,15 +19,30 @@ declare module "fastify" {
  * to the request. On failure, replies 401. PRD §8.1, §17.6, §23.1.
  */
 export const authenticate = async (req: FastifyRequest, reply: FastifyReply): Promise<void> => {
-  try {
-    await (req as unknown as { jwtVerify: () => Promise<unknown> }).jwtVerify();
-    const payload = ((req as unknown as { user?: Record<string, unknown> }).user ?? {}) as { sub?: string };
-    if (!payload.sub) {
-      reply.code(401).send({ error: { code: "unauthorized", message: "Token missing subject" } });
-      return;
-    }
-    req.merchantId = payload.sub;
-  } catch {
-    reply.code(401).send({ error: { code: "unauthorized", message: "Invalid or missing token" } });
+  const auth = req.headers.authorization;
+  const token = auth?.startsWith("Bearer ") ? auth.slice(7) : undefined;
+  if (!token) {
+    reply.code(401).send({ error: { code: "unauthorized", message: "Missing token or API key" } });
+    return;
   }
+  // Try JWT first (tokens have 3 dot-separated parts).
+  if (token.split(".").length === 3) {
+    try {
+      await (req as unknown as { jwtVerify: () => Promise<unknown> }).jwtVerify();
+      const payload = ((req as unknown as { user?: Record<string, unknown> }).user ?? {}) as { sub?: string };
+      if (payload.sub) {
+        req.merchantId = payload.sub;
+        return;
+      }
+    } catch {
+      // fall through to API key
+    }
+  }
+  // Try API key (publishable or secret).
+  const resolved = await resolveApiKey(token);
+  if (resolved) {
+    req.merchantId = resolved.merchantId;
+    return;
+  }
+  reply.code(401).send({ error: { code: "unauthorized", message: "Invalid token or API key" } });
 };
