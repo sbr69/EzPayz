@@ -107,18 +107,17 @@ export function WhitechainCheckout(props: WhitechainCheckoutProps): React.ReactE
       const authBody = await authRes.json();
       if (!authRes.ok) throw new Error(authBody?.error?.message ?? "Authorization failed");
       setStatus("submitted");
-      // Poll for settlement.
+      // Poll for settlement — use the PUBLIC checkout endpoint (no auth required).
       for (let i = 0; i < 30; i++) {
         await new Promise((r) => setTimeout(r, 2000));
-        const sRes = await fetch(`${apiUrl}/v1/payment-intents/${checkout.paymentIntentId}`, { headers: {} });
+        const sRes = await fetch(`${apiUrl}/v1/checkout/${checkoutSlug}`);
         const s = await sRes.json();
-        const st = s.paymentIntent?.status;
-        if (st === "succeeded") {
+        if (s.status === "succeeded") {
           setStatus("succeeded");
-          onSuccess?.({ paymentIntentId: checkout.paymentIntentId, txRef: s.paymentIntent?.txRef });
+          onSuccess?.({ paymentIntentId: checkout.paymentIntentId, txRef: s.txRef });
           return;
         }
-        if (st === "failed") throw new Error("Payment failed");
+        if (s.status === "failed") throw new Error("Payment failed");
       }
       throw new Error("Payment timed out");
     } catch (e) {

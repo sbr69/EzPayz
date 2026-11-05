@@ -84,6 +84,9 @@ export function open(opts: BrowserCheckoutOptions): () => void {
         payBtn.textContent = "Sign in wallet…";
         try {
           const now = Math.floor(Date.now() / 1000);
+          const eth = (window as unknown as { ethereum: { request: (a: { method: string; params: unknown[] }) => Promise<string[]> } }).ethereum;
+          const accounts = await eth.request({ method: "eth_requestAccounts", params: [] });
+          const fromAddress = accounts[0];
           const nonce = "0x" + Array.from(crypto.getRandomValues(new Uint8Array(32))).map((b) => b.toString(16).padStart(2, "0")).join("");
           const signature = await signTypedDataWithMetaMask({
             domain: { name: "Tether USD", version: "1", chainId: data.chainId, verifyingContract: data.token.address },
@@ -99,7 +102,7 @@ export function open(opts: BrowserCheckoutOptions): () => void {
             },
             primaryType: "TransferWithAuthorization",
             message: {
-              from: (await (window as unknown as { ethereum: { request: (a: { method: string; params: unknown[] }) => Promise<string[]> } }).ethereum.request({ method: "eth_requestAccounts", params: [] }))[0],
+              from: fromAddress,
               to: data.merchant.payoutWallet,
               value: String(BigInt(data.amount)),
               validAfter: String(now - 60),
@@ -111,20 +114,20 @@ export function open(opts: BrowserCheckoutOptions): () => void {
           await fetch(`${opts.apiUrl}/v1/checkout/${opts.checkoutSlug}/authorize`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ from: signature, to: data.merchant.payoutWallet, value: data.amount, validAfter: String(now - 60), validBefore: String(now + 600), nonce, signature }),
+            body: JSON.stringify({ from: fromAddress, to: data.merchant.payoutWallet, value: data.amount, validAfter: String(now - 60), validBefore: String(now + 600), nonce, signature }),
           });
           payBtn.textContent = "Confirming on-chain…";
-          // Poll for settlement.
+          // Poll for settlement — use the PUBLIC checkout endpoint (no auth required).
           for (let i = 0; i < 30; i++) {
             await new Promise((r) => setTimeout(r, 2000));
-            const sr = await fetch(`${opts.apiUrl}/v1/payment-intents/${data.paymentIntentId}`).then((r) => r.json());
-            if (sr.paymentIntent?.status === "succeeded") {
+            const sr = await fetch(`${opts.apiUrl}/v1/checkout/${opts.checkoutSlug}`).then((r) => r.json());
+            if (sr.status === "succeeded") {
               modal.innerHTML = `
                 <div style="text-align:center">
                   <div style="width:48px;height:48px;margin:0 auto 12px;border-radius:50%;background:#22c55e;display:flex;align-items:center;justify-content:center;color:#fff;font-size:24px">✓</div>
                   <h2 style="margin:0;font-size:20px">Payment succeeded</h2>
                   <p style="color:#666;font-size:14px;margin:4px 0 16px">${amount} ${data.token.symbol}</p>
-                  ${sr.paymentIntent.txRef ? `<a href="https://explorer.testnet.whitechain.io/tx/${sr.paymentIntent.txRef}" target="_blank" style="font-size:13px;color:#0ea5e9">View transaction →</a>` : ""}
+                  ${sr.txRef ? `<a href="https://explorer.testnet.whitechain.io/tx/${sr.txRef}" target="_blank" style="font-size:13px;color:#0ea5e9">View transaction →</a>` : ""}
                   <br><br>
                   ${data.successUrl ? `<button id="wcp-return" style="padding:10px 20px;font-size:14px;cursor:pointer;border-radius:8px;border:none;background:#0ea5e9;color:#fff">Return to merchant</button>` : ""}
                 </div>

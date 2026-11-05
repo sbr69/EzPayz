@@ -1,9 +1,10 @@
 import { useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowLeft, Info } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Button, Callout, Card, Checkbox, Field, Input } from "@/components/ui";
 import { useDemo } from "@/store/demoStore";
 import { isEmail } from "@/lib/money";
+import { apiFetch } from "@/services/api/http";
 
 function AuthLayout({
   title,
@@ -50,8 +51,8 @@ function AuthLayout({
 export function SignIn() {
   const signIn = useDemo((s) => s.signIn);
   const navigate = useNavigate();
-  const [email, setEmail] = useState("billing@northwind-labs.example");
-  const [password, setPassword] = useState("demo-password");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -68,16 +69,26 @@ export function SignIn() {
     }
     setError(null);
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 750));
-    signIn(email);
-    setLoading(false);
-    navigate("/dashboard");
+    try {
+      const res = await apiFetch<{ merchantId: string; token: string }>("/v1/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ businessEmail: email, password }),
+      });
+      localStorage.setItem("wcp_token", res.token);
+      localStorage.setItem("wcp_merchant_id", res.merchantId);
+      signIn(email);
+      setLoading(false);
+      navigate("/dashboard");
+    } catch (e) {
+      setError((e as Error).message);
+      setLoading(false);
+    }
   }
 
   return (
     <AuthLayout
       title="Sign in to your workspace"
-      subtitle="Use the preconfigured demo merchant account to explore the gateway."
+      subtitle="Access your merchant dashboard, payments, and settings."
       footer={
         <>
           Don&apos;t have an account?{" "}
@@ -99,12 +110,7 @@ export function SignIn() {
               invalid={Boolean(error) && !isEmail(email)}
             />
           </Field>
-          <Field
-            label="Password"
-            required
-            htmlFor="si-password"
-            hint="Any password of 6+ characters works in the demo."
-          >
+          <Field label="Password" required htmlFor="si-password">
             <Input
               id="si-password"
               type="password"
@@ -128,10 +134,6 @@ export function SignIn() {
           </Button>
         </form>
       </Card>
-      <Callout className="mt-4" tone="info" title="Authentication is simulated" icon={<Info className="h-4 w-4" />}>
-        There is no authentication service behind this form. No credentials are transmitted, validated or
-        stored — the demo session is kept in your browser only.
-      </Callout>
     </AuthLayout>
   );
 }
@@ -151,16 +153,26 @@ export function SignUp() {
       name: form.name.trim().length < 2 ? "Enter your business name" : null,
       email: !isEmail(form.email) ? "Enter a valid email address" : null,
       password: form.password.length < 8 ? "Use at least 8 characters" : null,
-      accept: accept ? null : "You need to accept the demo terms to continue",
+      accept: accept ? null : "You need to accept the terms to continue",
     };
     setErrors(next);
     if (Object.values(next).some(Boolean)) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 900));
-    signIn(form.email);
-    setStep(0);
-    setLoading(false);
-    navigate("/onboarding");
+    try {
+      const res = await apiFetch<{ merchantId: string; token: string }>("/v1/auth/register", {
+        method: "POST",
+        body: JSON.stringify({ businessName: form.name, businessEmail: form.email, password: form.password }),
+      });
+      localStorage.setItem("wcp_token", res.token);
+      localStorage.setItem("wcp_merchant_id", res.merchantId);
+      signIn(form.email);
+      setStep(0);
+      setLoading(false);
+      navigate("/onboarding");
+    } catch (e) {
+      setErrors({ ...next, email: (e as Error).message });
+      setLoading(false);
+    }
   }
 
   return (
@@ -209,8 +221,8 @@ export function SignUp() {
           <Checkbox
             checked={accept}
             onChange={setAccept}
-            label="I understand this is a frontend demo"
-            description="No accounts are created, no emails are sent, and no blockchain transactions are submitted."
+            label="I accept the terms of service"
+            description="By creating an account you agree to the gateway terms. This is a testnet MVP — no real funds are at risk."
           />
           {errors.accept ? <p className="text-[12px] font-medium text-danger">{errors.accept}</p> : null}
           <Button type="submit" variant="primary" size="lg" className="w-full" loading={loading}>
@@ -218,9 +230,6 @@ export function SignUp() {
           </Button>
         </form>
       </Card>
-      <Callout className="mt-4" tone="info" title="No account is created">
-        Sign-up is a simulated flow that leads into onboarding. Nothing leaves your browser.
-      </Callout>
     </AuthLayout>
   );
 }
@@ -257,9 +266,8 @@ export function ForgotPassword() {
       <Card className="p-5">
         {sent ? (
           <div className="space-y-4">
-            <Callout tone="positive" title="Reset link queued (demo)">
-              No email was sent — this frontend has no mail transport. In a real deployment the link would
-              arrive at <strong>{email}</strong>.
+            <Callout tone="info" title="Password reset not implemented">
+              Password reset is not available in the MVP. Contact your gateway administrator to reset your password.
             </Callout>
             <Link to="/sign-in">
               <Button variant="secondary" className="w-full">

@@ -85,16 +85,17 @@ export function RealCheckout() {
       });
       setStatus("submitted");
 
-      // Poll for settlement.
+      // Poll for settlement — use the PUBLIC checkout endpoint (no auth required).
+      // GET /v1/payment-intents/:id requires authentication; the payer doesn't have the merchant's key.
       for (let i = 0; i < 30; i++) {
         await new Promise((r) => setTimeout(r, 2000));
-        const s = await apiFetch<{ paymentIntent: { status: string; txRef?: string }; displayAmount?: string }>(`/v1/payment-intents/${checkout.paymentIntentId}`);
-        if (s.paymentIntent?.status === "succeeded") {
-          setTxRef(s.paymentIntent.txRef ?? null);
+        const s = await apiFetch<{ status: string; txRef?: string }>(`/v1/checkout/${slug}`);
+        if (s.status === "succeeded") {
+          setTxRef(s.txRef ?? null);
           setStatus("succeeded");
           return;
         }
-        if (s.paymentIntent?.status === "failed") throw new Error("Payment failed on-chain");
+        if (s.status === "failed") throw new Error("Payment failed on-chain");
       }
       throw new Error("Payment timed out");
     } catch (e) {

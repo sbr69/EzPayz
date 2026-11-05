@@ -35,6 +35,7 @@ export async function checkoutRoutes(app: FastifyInstance): Promise<void> {
       expiry: paymentIntent.expiresAt,
       payeeShield: paymentIntent.payeeShieldJson,
       status: paymentIntent.status,
+      txRef: paymentIntent.txRef,
       successUrl: paymentIntent.successUrl,
       cancelUrl: paymentIntent.cancelUrl,
     });
