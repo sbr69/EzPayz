@@ -8,6 +8,7 @@ import { env, isProd } from "./config";
 import { errorHandlerPlugin } from "./plugins/errorHandler";
 import { authenticate, requireSecretKey } from "./plugins/auth";
 import { idempotency } from "./plugins/idempotency";
+import { mountMcp } from "./plugins/mcp";
 import { healthRoutes } from "./routes/v1/health";
 import { authRoutes } from "./routes/v1/auth";
 import { merchantRoutes } from "./routes/v1/merchants";
@@ -61,6 +62,9 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(usageRoutes, { prefix: "/v1/usage" });
   await app.register(refundRoutes, { prefix: "/v1/refunds" });
   await app.register(customerRoutes, { prefix: "/v1/customers" });
+
+  // MCP server — Streamable HTTP at /mcp (for remote MCP clients).
+  await mountMcp(app);
 
   return app;
 }
