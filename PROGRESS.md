@@ -256,6 +256,13 @@ Each tool has: Zod v4 input schema, annotations (`readOnlyHint`, `destructiveHin
 
 **Shared server factory:** `src/server.ts` — `createServer()` returns a fully configured `McpServer` with all tools + resources registered. Used by both stdio and HTTP transports.
 
+**Verified end-to-end:** Both transports tested and working:
+- HTTP (`/mcp` on Fastify): initialize ✅, tools/list (11 tools) ✅, resources/list (8 resources) ✅, tools/call (get_analytics, list_payments — returns real gateway data) ✅, resources/read (whitechain://status — returns live status) ✅
+- stdio (subprocess): initialize ✅, tools/list ✅
+- Zod v4 input schemas (raw shape form per v2 SDK API)
+- Error handling: `isError: true` tool results for recoverable errors (LLM self-corrects)
+- Tool annotations: `readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`
+
 ---
 
 ## What's left to implement

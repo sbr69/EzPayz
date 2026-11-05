@@ -334,6 +334,86 @@ Refunds are merchant-authorized transfers from the merchant wallet to the origin
 
 ---
 
+## 6. MCP server (for AI agents)
+
+The gateway includes an MCP (Model Context Protocol) server that exposes tools + documentation to AI agents like Claude Desktop, Cursor, and VS Code. An AI agent connected to this server can understand the gateway, read the full developer docs, and perform operations on behalf of a developer/merchant.
+
+### Two connection modes
+
+**Local (stdio — for Claude Desktop / Cursor):**
+
+```bash
+cd packages/mcp && pnpm build
+```
+
+Add to `claude_desktop_config.json`:
+```json
+{
+  "mcpServers": {
+    "whitechain": {
+      "command": "node",
+      "args": ["packages/mcp/dist/index.js"],
+      "env": {
+        "GATEWAY_SECRET_KEY": "wcp_sec_...",
+        "GATEWAY_API_URL": "http://localhost:3000"
+      }
+    }
+  }
+}
+```
+
+**Remote (HTTP — for any MCP client):**
+
+The MCP server is mounted at `/mcp` on the gateway API. Connect via `mcp-remote`:
+```json
+{
+  "mcpServers": {
+    "whitechain": {
+      "command": "npx",
+      "args": ["mcp-remote", "http://localhost:3000/mcp", "--header", "Authorization: Bearer ${AUTH_HEADER}"],
+      "env": { "AUTH_HEADER": "wcp_sec_..." }
+    }
+  }
+}
+```
+
+### What the AI agent can do
+
+**Read documentation (resources):**
+- `whitechain://docs/how-to-use` — full integration guide
+- `whitechain://docs/prd` — product requirements document
+- `whitechain://docs/flow` — end-to-end payment flow
+- `whitechain://docs/eip-3009` — EIP-3009 verification report
+- `whitechain://docs/api-reference` — complete REST API reference
+- `whitechain://docs/sdk-guide` — SDK installation + usage
+- `whitechain://status` — live gateway status
+
+**Perform operations (tools — 11 available):**
+- `create_payment_intent` — create a gasless USDT payment intent
+- `list_payments` / `get_payment` — query payments
+- `create_payment_link` — create a reusable payment link
+- `create_refund` / `list_refunds` — manage refunds
+- `list_customers` — search customers
+- `list_subscriptions` / `create_plan` — manage subscriptions
+- `get_analytics` — analytics overview
+- `verify_webhook_signature` — verify a webhook HMAC signature
+
+### Environment variables
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `GATEWAY_SECRET_KEY` | Yes | — | Merchant secret API key (`wcp_sec_...`) |
+| `GATEWAY_API_URL` | No | `http://localhost:3000` | Gateway API URL |
+
+### Example prompt
+
+Once connected, ask the AI agent:
+> "Create a 10.00 USDT payment intent for 'Pro plan' and give me the checkout URL."
+
+The agent will call the `create_payment_intent` tool and return the checkout URL + clientSecret.
+
+---
+
 ## Full example — a merchant website
 
 ```tsx
