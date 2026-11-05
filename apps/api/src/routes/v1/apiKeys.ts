@@ -9,7 +9,7 @@ const createSchema = z.object({
 
 export async function apiKeyRoutes(app: FastifyInstance): Promise<void> {
   // POST /v1/api-keys — create a publishable + secret pair. The secret is shown ONCE.
-  app.post("/", { preHandler: [app.authenticate] }, async (req, reply) => {
+  app.post("/", { preHandler: [app.authenticate, app.requireSecretKey] }, async (req, reply) => {
     const parsed = createSchema.safeParse(req.body);
     if (!parsed.success) {
       return reply.code(400).send({
@@ -45,7 +45,7 @@ export async function apiKeyRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /v1/api-keys/:id/revoke
-  app.post("/:id/revoke", { preHandler: [app.authenticate] }, async (req, reply) => {
+  app.post("/:id/revoke", { preHandler: [app.authenticate, app.requireSecretKey] }, async (req, reply) => {
     const id = (req.params as { id: string }).id;
     try {
       await revokeApiKey(req.merchantId!, id);

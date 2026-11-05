@@ -106,15 +106,15 @@ This proves the EIP-3009 mechanism end-to-end (sign → submit → settle → no
 
 **Test-USDT source (resolved):** the owner supplied a funded test wallet holding test USDT + WBT. The Whitechain faucet itself dispenses WBT only.
 
-## 5. Confirmation / finality policy (Phase 0.5) — proposed
+## 5. Confirmation / finality policy — confirmed
 
-Block time ~1s. Proposed tunable thresholds (to be encoded in `apps/api/src/config/settlement.ts`):
+Block time ~1s. Thresholds encoded in `apps/api/src/config/settlement.ts`:
 
 - `processing` — transaction hash returned by relayer/submission.
-- `confirmed` — included in 1 block (~1–2s).
-- `finalized` — default **5 blocks** (~5s), configurable. Settlement to `succeeded` requires `finalized` (or merchant-configurable lower threshold for low-value orders).
+- `confirmed` — included in **1 block** (~1–2s).
+- `finalized` — **5 blocks** (~5s), configurable. Settlement to `succeeded` requires `finalized`.
 
-Reorg handling: Whitechain Sepolia is treated as a shallow-reorg EVM testnet; the observer will re-validate on reorg and never mark `succeeded` prematurely. This is a proposed default pending owner confirmation.
+Reorg handling: Whitechain Sepolia is treated as a shallow-reorg EVM testnet; the observer will re-validate on reorg and never mark `succeeded` prematurely. Confirmed by the owner: default `confirmed=1`, `finalized=5` blocks.
 
 ## 6. Go / no-go
 

@@ -43,10 +43,16 @@ The platform operates shared infrastructure: merchant accounts, payment intents,
 | Subscription cancellation | Customer submits on-chain cancellation and normally pays WBT gas; allowance revocation is a separate transaction |
 | Refunds | Merchant-authorized transfer back to payer; gateway relayer sponsors gas where token authorization permits |
 | PayeeShield signing | Gateway-managed delegated signing mechanism, not a merchant's wallet signing every invoice |
-| Receipts | Paid receipt is emailed after successful payment; no automatic email for an unpaid request is assumed in this flow |
+| Receipts | Paid receipt is available as a downloadable PDF after successful payment (checkout success page + dashboard). Email delivery is deferred for the MVP (stubbed). No automatic email for an unpaid request. |
 | Payment links | Fixed amount, customer-entered amount and reusable links |
 | Renewal failures | Merchant-configurable retry policy, within customer authorization and contract limits |
-| SDK / integration | JavaScript/TypeScript npm SDK, React checkout widget, Node.js backend middleware, REST APIs and webhooks |
+| SDK / integration | JavaScript/TypeScript npm SDK (private registry for MVP; public publish documented for later), React checkout widget, React subscription checkout widget, Node.js backend middleware, REST APIs and webhooks |
+| API credentials | Secret key (server, full write) + publishable key (browser, read-only scope) + short-lived `clientSecret` per checkout/subscription session |
+| Amounts | Human-readable decimal strings at the public API (`"10.00"`); base units internally and on-chain (USDT 6 decimals) |
+| Return URLs | `successUrl`/`cancelUrl` on payment intents; checkout redirects after settlement (UX only; webhook is source of truth) |
+| Finality | `confirmed` = 1 block (~1–2s), `finalized` = 5 blocks (~5s), configurable |
+| Subscription integration | Hosted checkout widget on merchant site (Stripe Billing model); gateway manages renewals/cancellations |
+| Refund signing | Merchant signs EIP-3009 in dashboard browser via Wagmi (MVP); backend-signing deferred |
 | Scope | Every agreed MVP feature is intended to work in the hackathon MVP; future features are separated below |
 
 ### 1.2 Important product boundary
@@ -146,7 +152,7 @@ The merchant may configure:
 
 ## 5. Developer integration flow
 
-The intended integration is approximately 20 lines for a basic checkout, with the developer's secret API key held on the server.
+The intended integration is a minimal setup — a server-side call to create a payment intent (using the secret key) and a frontend mount of the checkout widget (using a short-lived `clientSecret`, never the secret key). The exact line count varies by integration style and is not fixed at a specific number. The developer's secret API key is held only on the server; the browser receives only a publishable key and short-lived session tokens.
 
 ### 5.1 Basic integration sequence
 
@@ -159,23 +165,47 @@ The intended integration is approximately 20 lines for a basic checkout, with th
 7. Gateway verifies settlement and delivers a signed webhook to the merchant backend.
 8. Merchant backend verifies the webhook signature and processes it idempotently.
 
-Illustrative shape only; exact package names and method signatures are implementation decisions:
+Illustrative shape only; exact package names and method signatures are implementation decisions. Amounts are human-readable decimal strings at the public API; the SDK converts to base units internally.
 
 ```ts
-// Server-side only
+// Server-side only — secret key
 const payment = await gateway.paymentIntents.create({
-  amount: "10.00",
+  amount: "10.00",            // human-readable; SDK converts to 10000000 base units (USDT 6 decimals)
   currency: "USDT",
-  description: "Premium plan"
+  description: "Premium plan",
+  successUrl: "https://merchant.com/thankyou",
+  cancelUrl: "https://merchant.com/cart",
+  metadata: { orderId: "4821" },
 });
 
-// Client-side: no secret API key
-<WhitechainCheckout checkoutId={payment.checkoutId} />
+// Client-side — clientSecret only, never the secret key
+<WhitechainCheckout clientSecret={payment.clientSecret} />
 ```
 
 ### 5.2 Developer responsibilities
 
 The gateway handles payment creation, authorization flow, relaying, settlement monitoring and webhook delivery. The merchant remains responsible for granting the purchased product/service after receiving and verifying `payment.succeeded`, applying its own access-control rules and handling fulfilment.
+
+### 5.3 Credential and token model
+
+The integration uses three credential tiers, mirroring Stripe/Razorpay:
+
+| Credential | Where used | Scope | Lifetime |
+|---|---|---|---|
+| Secret key (`sk_...`) | Merchant server only | Full write: create intents, refunds, webhooks, plans, settings | Long-lived; hashed at rest; shown once |
+| Publishable key (`pk_...`) | Merchant browser (SDK init) | Read-only: resolve public checkout links, read a payment intent by ID | Long-lived; browser-safe |
+| `clientSecret` | Merchant browser (checkout widget) | Single checkout/subscription session only | Short-lived (5–15 min), signed by gateway |
+
+The browser **never** holds the secret key. When the merchant server creates a payment intent (or subscription checkout session), the gateway returns a `clientSecret` bound to that session. The checkout widget authenticates with the `clientSecret`. A leaked `clientSecret` expires in minutes and is scoped to one session — it cannot create refunds or read other merchants' data.
+
+### 5.4 Return URLs
+
+Payment intent creation accepts optional `successUrl` / `cancelUrl`. After the hosted checkout reaches a terminal state:
+
+- `succeeded` → redirect to `successUrl?paymentIntentId=...&status=succeeded` + show the success page with tx hash, explorer link, and downloadable PDF receipt.
+- `failed` / `expired` → redirect to `cancelUrl?paymentIntentId=...&status=failed`.
+
+The redirect is **UX only**. The merchant must still fulfil based on the verified `payment.succeeded` webhook — the browser redirect must never be trusted as proof of payment (a customer can be redirected without the payment actually settling, or the redirect can be lost).
 
 ---
 
@@ -218,26 +248,27 @@ sequenceDiagram
     Chain-->>Relayer: Transaction hash / receipt
     Chain-->>API: Transfer event / receipt via monitor
     API->>API: Verify token, chain, from, to, amount and execution
-    API-->>Checkout: Payment status
+    API-->>Checkout: Payment status + downloadable receipt PDF
     API-->>Merchant: payment.succeeded webhook
+    Checkout-->>Customer: Redirect to successUrl (UX only; webhook is authoritative)
 ```
 
 ### 6.2 Payment-intent creation
 
 1. Customer selects a product or service on the merchant's website.
-2. Merchant backend creates a payment intent through the SDK/REST API.
-3. Gateway authenticates the merchant and validates the amount, token, chain, payout wallet, description and idempotency key.
+2. Merchant backend creates a payment intent through the SDK/REST API, passing a human-readable `amount` (e.g. `"10.00"`), optional `successUrl`/`cancelUrl`, and optional `metadata`.
+3. Gateway authenticates the merchant (secret key), validates the amount (converts to base units), token, chain, payout wallet, description and idempotency key.
 4. Gateway creates a unique payment intent and checkout session.
-5. Gateway records the expected payer/payment parameters and expiration policy.
+5. Gateway records the expected payer/payment parameters, expiration policy, and return URLs.
 6. PayeeShield signs the canonical payment request using the gateway-managed delegated signing mechanism described in Section 9.
-7. Gateway returns a client-safe checkout reference or hosted checkout URL.
+7. Gateway returns `{ paymentIntentId, clientSecret, checkoutUrl, checkoutSlug, payeeShield }`. The `clientSecret` is a short-lived signed token the browser widget uses; the secret key never reaches the browser.
 
 The payment intent is not considered paid at this stage.
 
 ### 6.3 Customer checkout and wallet connection
 
 1. Customer opens the hosted checkout or React widget.
-2. Checkout displays merchant name, product/description, amount, USDT token, Whitechain network, payout destination/verified merchant details and expiry.
+2. Checkout displays merchant name, product/description, amount (formatted human-readable, e.g. `10.00 USDT`), USDT token, Whitechain network, payout destination/verified merchant details and expiry.
 3. Customer connects MetaMask or another compatible external EVM wallet.
 4. Checkout checks the connected chain and requests a network switch to Whitechain Sepolia if required.
 5. Checkout verifies the payer's USDT balance is sufficient for the payment.
@@ -313,12 +344,13 @@ After verified settlement:
 2. Merchant dashboard updates.
 3. Gateway creates/updates the customer record within that merchant's isolated workspace.
 4. Gateway creates the paid receipt/invoice record.
-5. Gateway sends the customer a paid receipt email if an email address was supplied and email delivery is enabled.
+5. Gateway generates the downloadable paid receipt (PDF) — available on the checkout success page and in the dashboard. Email delivery is deferred for the MVP (stubbed).
 6. Gateway emits `payment.succeeded` to the merchant's webhook endpoint.
 7. DeliveryGuard creates or updates the fulfilment record.
 8. Transaction hash and explorer URL appear in the merchant dashboard and receipt.
+9. Checkout shows the success page (tx hash + explorer link + PDF download) and, if `successUrl` was provided, redirects the customer there with `?paymentIntentId=...&status=succeeded` (UX only; the webhook is the source of truth).
 
-Email delivery and webhook delivery are independent of settlement. A failed email or webhook must not reverse or downgrade a successful payment.
+Webhook delivery is independent of settlement. A failed webhook must not reverse or downgrade a successful payment. Email is deferred for the MVP.
 
 ---
 
@@ -362,10 +394,10 @@ The merchant can inspect, copy, disable and expire links. Each link should have 
 3. Gateway generates the canonical invoice payload and signs it through PayeeShield.
 4. Customer pays via checkout.
 5. After settlement, gateway marks the invoice `paid` and creates the paid receipt.
-6. Gateway emails the paid receipt to the customer, if an email address is available and email delivery is configured.
+6. Gateway generates the downloadable paid receipt (PDF). Email delivery is deferred for the MVP.
 7. Merchant can view/download the receipt from the dashboard.
 
-The confirmed email choice is **B: email the paid receipt after successful payment**. This flow does not assume that an unpaid invoice/request is automatically emailed. Any future pre-payment invoice email/reminder feature must be explicitly added to scope.
+The confirmed receipt choice is **B: downloadable paid receipt after successful payment** (email deferred for MVP). Any future pre-payment invoice email/reminder feature must be explicitly added to scope.
 
 ---
 
@@ -449,6 +481,21 @@ The customer-facing plan details must match the contract parameters. Merchant co
 
 The token allowance should be capped to the amount the customer has authorized, not unlimited. The subscription contract must additionally enforce each subscription's on-chain limits. ERC-20 allowance is generally granted to a spender contract for an owner; it is not itself a complete per-subscription policy engine.
 
+### 10.2.1 Subscription hosted checkout (merchant-site integration)
+
+Subscriptions are offered to customers **through the merchant's own website** via a hosted checkout widget, mirroring the one-time payment pattern (Stripe Billing / Razorpay Subscriptions):
+
+1. Merchant creates a plan via the SDK/API (`POST /v1/plans`) — interval, amount (human-readable), per-cycle cap, cumulative cap, expiry, retry policy.
+2. Merchant backend creates a subscription checkout session (`POST /v1/subscriptions/checkout`) → returns `{ subscriptionId, clientSecret, checkoutUrl }`.
+3. Merchant frontend mounts `<WhitechainSubscriptionCheckout clientSecret={...} />`.
+4. The widget displays the plan terms: amount, interval, per-cycle cap, cumulative limit, expiry, merchant payout address, cancellation method, and the gas cost disclosure (customer pays WBT for initial approve + createSubscription; renewals are gasless).
+5. Customer connects wallet, approves the bounded allowance, and calls `createSubscription(...)` on-chain.
+6. Gateway observes the on-chain `SubscriptionCreated` event (or the widget reports it) and mirrors the subscription record.
+7. The gateway scheduler handles all renewals — the merchant does not build renewal logic.
+8. Cancellation is available both in the merchant's site (via the widget) and in the gateway dashboard.
+
+This means a developer can offer recurring billing with the same integration shape as one-time payments: server creates a session, frontend mounts a widget, gateway handles the lifecycle.
+
 ### 10.3 Renewal scheduler and relayer execution
 
 1. Scheduler queries active subscriptions whose next billing time is due.
@@ -470,7 +517,7 @@ The token allowance should be capped to the amount the customer has authorized, 
 9. Relayer pays WBT gas.
 10. Blockchain monitor verifies the contract event and token transfer.
 11. Backend updates renewal status and sends `subscription.renewed` or the corresponding failure event.
-12. Paid receipt/renewal confirmation email is sent if configured.
+12. Paid receipt PDF is generated if configured (email deferred for MVP).
 
 The subscription contract is the final enforcement point. The backend scheduler is not trusted to enforce spending limits by itself.
 
@@ -528,15 +575,20 @@ ERC-20 allowance is typically shared by owner and spender contract, not naturall
 4. Backend verifies that the payment settled, refund amount is positive and cumulative refunds will not exceed the original successful payment amount.
 5. Backend creates a refund record with a unique ID and idempotency key.
 
-### 11.2 Gas-sponsored refund where supported
+### 11.2 Gas-sponsored refund where supported (MVP signing path)
 
-1. Merchant reviews and authorizes the refund using the connected merchant wallet.
-2. If the exact token supports EIP-3009, merchant signs a `TransferWithAuthorization` from the merchant payout wallet to the original payer for the exact refund amount.
-3. Backend validates merchant identity, recipient, amount, token, chain, nonce, validity window and refund eligibility.
-4. GasGuard checks refund sponsorship policy and budget.
-5. Relayer submits the authorization and pays WBT gas.
-6. Blockchain monitor verifies the USDT transfer from merchant to original payer.
-7. Refund status changes to `succeeded` only after verified settlement.
+For the MVP, the merchant signs the refund EIP-3009 authorization **in the gateway dashboard browser** via an integrated Wagmi/RainbowKit wallet connector.
+
+1. Merchant connects their payout wallet in the dashboard (wallet-control verified).
+2. Merchant reviews and initiates the refund (full or partial) on a succeeded payment.
+3. If the exact token supports EIP-3009, the dashboard prompts the connected wallet to sign a `TransferWithAuthorization` from the merchant payout wallet to the original payer for the exact refund amount.
+4. Backend validates merchant identity, recipient, amount, token, chain, nonce, validity window and refund eligibility.
+5. GasGuard checks refund sponsorship policy and budget.
+6. Relayer submits the authorization and pays WBT gas.
+7. Blockchain monitor verifies the USDT transfer from merchant to original payer.
+8. Refund status changes to `succeeded` only after verified settlement.
+
+The merchant backend-signing path (key never leaves the merchant server) is the production-recommended hardened approach and is **deferred** for the MVP.
 
 ### 11.3 Fallback where authorization is unsupported
 
@@ -548,7 +600,7 @@ After verified settlement:
 
 - Dashboard displays the refund and transaction hash.
 - Gateway emits `refund.succeeded` webhook.
-- Customer receives a refund confirmation if email is available.
+- A downloadable refund receipt PDF is available in the dashboard (email deferred for MVP).
 - Original payment shows the cumulative refunded and remaining refundable amount.
 
 Refunds are not reversals. The merchant must hold enough USDT in the payout wallet to fund the refund. Gateway does not guarantee merchant liquidity.
@@ -629,11 +681,10 @@ Suggested event types:
 
 Events may be delivered more than once and may arrive out of order. Merchant integrations must deduplicate by event ID and fetch the latest payment/subscription state from the API when ordering matters.
 
-### 14.3 Email behavior
+### 14.3 Email behavior (deferred for MVP)
 
-- Paid receipt email is sent after verified successful payment.
-- Refund confirmation email is sent after verified refund settlement.
-- Subscription renewal/cancellation/failure emails are sent according to merchant/customer notification settings.
+- Email delivery is **not wired for the MVP** (stubbed — logged, no SMTP). The downloadable PDF receipt is the primary receipt mechanism.
+- When email is wired in a later phase: paid receipt email after verified successful payment; refund confirmation after verified refund settlement; subscription renewal/cancellation/failure emails per notification settings.
 - Email delivery failure is a notification exception, not a payment exception that reverses settlement.
 
 ---
@@ -789,7 +840,7 @@ The selected external-wallet approach avoids asking the payer to pay WBT for a s
 - Reusable link creates distinct intents for different customers.
 - Disabled/expired link cannot create a new payable intent.
 - QR opens the exact hosted URL and retains link identity.
-- Paid receipt is generated/emailed only after verified settlement.
+- Paid receipt PDF is generated after verified successful payment (email deferred for MVP).
 
 ### 19.4 Subscription
 
@@ -835,7 +886,7 @@ The demo should show both merchant and payer views and at least one complete rea
 6. **Gasless payment:** Customer signs the EIP-3009 authorization; relayer pays WBT gas and submits it.
 7. **On-chain settlement:** Show the USDT transfer to merchant in Whitechain explorer.
 8. **Merchant confirmation:** Show payment success, transaction hash and customer record in dashboard.
-9. **Paid receipt/webhook:** Show receipt email and merchant webhook received.
+9. **Paid receipt/webhook:** Show downloadable paid receipt PDF and merchant webhook received. (Email deferred for MVP.)
 10. **Beyond first payment:** Demonstrate either a partial refund (preferred for the gateway lifecycle) or a subscription renewal, ideally with a second payer/merchant view if time allows.
 11. **Operational protection:** Briefly show GasGuard policy or a blocked out-of-policy relayer attempt.
 
@@ -870,13 +921,13 @@ The product and user-facing flow are decided. The following are engineering choi
 3. **Subscription allowance topology:** Choose one shared subscription spender with strict internal per-subscription accounting, or isolated subscription spender architecture. Document the aggregate allowance implications.
 4. **PayeeShield key management:** Select a KMS/HSM or equivalent service and define per-merchant key provisioning, delegation consent, rotation and revocation.
 5. **Merchant wallet verification:** Choose the exact wallet-signature challenge and wallet-change approval flow.
-6. **Refund gas sponsorship:** Confirm whether the token supports EIP-3009 from merchant wallets. If not, implement the clearly disclosed merchant-paid-gas fallback.
-7. **Confirmation/finality thresholds:** Select when the UI says processing, confirmed and finalized, based on Whitechain's actual transaction lifecycle and the desired merchant risk policy.
+6. **Refund gas sponsorship:** **Decided.** The token supports EIP-3009 (verified in `docs/EIP3009_VERIFICATION.md`). Merchant signs the refund EIP-3009 in the dashboard browser via Wagmi for the MVP; backend-signing deferred as the production-hardened path.
+7. **Confirmation/finality thresholds:** **Decided.** `confirmed` = 1 block (~1–2s), `finalized` = 5 blocks (~5s), configurable in `apps/api/src/config/settlement.ts`. Whitechain Sepolia treated as shallow-reorg EVM testnet.
 8. **Scheduler retry semantics:** Select default maximum attempts, backoff, grace period and missed-cycle behavior; merchant customization cannot exceed contract authorization.
 9. **Time semantics:** Define subscription hourly/daily/monthly schedule behavior, UTC/time-zone handling, month-end dates, daylight-saving behavior and exact charge windows.
-10. **Email and webhook operations:** Choose email provider, webhook retry schedule, outbox implementation and event-retention period.
+10. **Email and webhook operations:** **Decided (email deferred).** Email is stubbed for the MVP (logged, no SMTP); the downloadable PDF receipt is the primary receipt mechanism. Webhook: HMAC-SHA256 signed delivery + BullMQ retries + outbox, already implemented. Email will be wired in a later phase.
 11. **Relayer operations:** Choose key custody, WBT replenishment process, gas budget thresholds and emergency stop authority.
-12. **SDK/API contract:** Finalize package name, method signatures, API versioning, error codes and idempotency requirements.
+12. **SDK/API contract:** **Decided.** Package name `@ezpayz/sdk`. Private npm registry for MVP (Option A); public publish (Option B) documented for later. Human-readable amounts (`"10.00"`) at the public API; base units internally. Secret + publishable + clientSecret credential model. Return URLs supported.
 
 No new feature should be presented as available until its dependency is verified and its end-to-end test passes.
 

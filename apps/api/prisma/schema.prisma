@@ -364,6 +364,11 @@ model PaymentIntent {
   fulfilmentId     String?
   checkoutUrl      String          @default("")
   receiptEmail     EmailDeliveryState @default(not_applicable)
+  // Return URLs (UX-only redirect after settlement; webhook is source of truth). PRD §17.6, FLOW §5.4.
+  successUrl       String?
+  cancelUrl        String?
+  // Merchant-supplied metadata (order ID, etc.) — stored as JSON, never sent on-chain. PRD §17.6.
+  metadataJson     Json?
   // PayeeShield record inline (JSON) — one per intent/invoice.
   payeeShieldJson  Json?
 
@@ -398,6 +403,22 @@ model CheckoutSession {
   createdAt  DateTime @default(now())
 
   @@index([paymentId])
+}
+
+// Subscription checkout session — for the hosted subscription widget on a merchant's site.
+// Created by POST /v1/subscriptions/checkout; the widget fetches plan details via GET /v1/subscription-checkout/:slug.
+// PRD §11.4.1, FLOW §10.2.1.
+model SubscriptionCheckoutSession {
+  id         String   @id @default(cuid())
+  planId     String
+  merchantId String
+  hostedSlug String   @unique
+  status     String   @default("open") // open | completed | expired
+  expiresAt  DateTime?
+  createdAt  DateTime @default(now())
+
+  @@index([planId])
+  @@index([merchantId])
 }
 
 model PaymentLink {

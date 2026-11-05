@@ -12,7 +12,7 @@ const createSchema = z.object({
 
 export async function webhookRoutes(app: FastifyInstance): Promise<void> {
   // POST /v1/webhooks — register an endpoint. The signing secret is generated + shown once.
-  app.post("/", { preHandler: [app.authenticate] }, async (req, reply) => {
+  app.post("/", { preHandler: [app.authenticate, app.requireSecretKey] }, async (req, reply) => {
     const parsed = createSchema.safeParse(req.body);
     if (!parsed.success) {
       return reply.code(400).send({ error: { code: "validation_error", message: parsed.error.issues.map((i) => i.message).join("; ") } });
@@ -56,7 +56,7 @@ export async function webhookRoutes(app: FastifyInstance): Promise<void> {
   });
 
   // POST /v1/webhooks/events/:id/replay — re-dispatch an event.
-  app.post("/events/:id/replay", { preHandler: [app.authenticate] }, async (req, reply) => {
+  app.post("/events/:id/replay", { preHandler: [app.authenticate, app.requireSecretKey] }, async (req, reply) => {
     const id = (req.params as { id: string }).id;
     const ev = await prisma.webhookEvent.findFirst({ where: { id, merchantId: req.merchantId! } });
     if (!ev) return reply.code(404).send({ error: { code: "not_found", message: "Webhook event not found" } });

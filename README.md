@@ -117,22 +117,36 @@ pnpm dev:web    # Vite frontend on :5173
 
 ## SDK
 
+The SDK is built (`tsup` → `dist/`) and ready to publish. See `packages/sdk/NPM_PUBLISH.md` for registry setup (Option A: GitHub Packages private / Option B: public npm).
+
 ```ts
-import { WhitechainClient } from "@ezpayz/sdk";
+import { WhitechainClient, formatBaseUnits } from "@ezpayz/sdk";
 
 const client = new WhitechainClient(secretKey, "http://localhost:3000");
-const intent = await client.paymentIntents.create({ amount: "10000", description: "Pro plan" });
+// Amounts are human-readable decimals — the gateway converts to base units internally
+const intent = await client.paymentIntents.create({
+  amount: "10.00",
+  description: "Pro plan",
+  successUrl: "https://yourapp.com/thankyou",
+  idempotencyKey: "order-123",
+});
+// → { id, clientSecret, checkoutSlug, amount: "10.00", amountBaseUnits: "10000000", payeeShield }
 ```
 
-React widget:
+React widgets:
 ```tsx
-import { WhitechainCheckout } from "@ezpayz/sdk";
-// <WhitechainCheckout checkoutSlug={slug} apiUrl="http://localhost:3000" signTypedData={...} />
+import { WhitechainCheckout, WhitechainSubscriptionCheckout } from "@ezpayz/sdk";
+// One-time checkout (gasless for the payer)
+// <WhitechainCheckout checkoutSlug={slug} apiUrl="..." signTypedData={...} />
+// Subscription checkout (customer pays WBT for setup; renewals are gasless)
+// <WhitechainSubscriptionCheckout checkoutSlug={slug} apiUrl="..." payerAddress={...} signTypedData={...} sendTransaction={...} />
 ```
 
-Webhook verification:
+Amount helpers + webhook verification:
 ```ts
-import { verifyWebhookSignature } from "@ezpayz/sdk";
+import { formatBaseUnits, parseHumanAmount, verifyWebhookSignature } from "@ezpayz/sdk";
+formatBaseUnits("10000000")    // → "10.00"
+parseHumanAmount("10.00")      // → "10000000"
 const valid = verifyWebhookSignature(secret, rawBody, signature);
 ```
 
@@ -142,25 +156,29 @@ const valid = verifyWebhookSignature(secret, rawBody, signature);
 
 - `POST /v1/auth/register` · `POST /v1/auth/login` (JWT)
 - `POST /v1/api-keys` (publishable + secret, shown once)
-- `POST /v1/payment-intents` (auth + idempotency) · `GET /v1/payment-intents/:id`
+- `POST /v1/payment-intents` (auth + idempotency, accepts `amount`/`successUrl`/`cancelUrl`/`metadata`) · `GET /v1/payment-intents/:id`
 - `GET /v1/checkout/:slug` (public, PayeeShield-signed) · `POST /v1/checkout/:slug/authorize` (EIP-3009)
-- `POST /v1/payment-links` · `POST /v1/invoices` · `POST /v1/refunds` · `POST /v1/refunds/:id/authorize`
-- `POST /v1/plans` · `POST /v1/subscriptions` · `POST /v1/subscriptions/:id/renew-now` · `POST /v1/usage`
+- `GET /v1/checkout/subscription/:slug` (public, plan details for subscription widget)
+- `POST /v1/payment-links` · `POST /v1/invoices` · `GET /v1/invoices/:id/pdf` (downloadable receipt PDF)
+- `POST /v1/refunds` · `POST /v1/refunds/:id/authorize` (merchant-signed EIP-3009)
+- `POST /v1/plans` · `POST /v1/subscriptions/checkout` (hosted checkout session) · `POST /v1/subscriptions` · `POST /v1/subscriptions/:id/renew-now` · `POST /v1/usage`
 - `GET /v1/analytics/overview` · `GET /v1/webhooks` · `GET /v1/exceptions` · `GET /v1/fulfilment`
 - `GET /health` · `GET /v1/status`
 
-Auth: `Authorization: Bearer <JWT>` (dashboard) or `Bearer <secret API key>` (SDK).
+Auth: `Authorization: Bearer <JWT>` (dashboard), `Bearer <secret key>` (full write, server-only), or `Bearer <publishable key>` (read-only, browser-safe). Write routes require a secret key or JWT — publishable keys are blocked by `requireSecretKey`. Payment intent creation returns a short-lived `clientSecret` (15 min, signed) for the browser widget.
 
 ---
 
 ## Current limitations (hackathon MVP)
 
-- Email is stubbed (logged, no SMTP).
-- PayeeShield uses a single gateway signing key (per-merchant keys deferred).
+- Email is stubbed (logged, no SMTP). The downloadable PDF receipt (`GET /v1/invoices/:id/pdf`) is the primary receipt mechanism. Email will be wired in a later phase.
+- PayeeShield uses a single gateway signing key (per-merchant keys deferred — confirmed for MVP).
 - Relayer key in `.env` (not a KMS/HSM).
-- The dashboard UI largely runs on the mock adapter; the **real checkout** is at `/real-checkout/:slug`. Full dashboard wiring is incremental.
+- The dashboard list/analytics pages run on the mock adapter. The **real checkout** (`/real-checkout/:slug`), **real subscription checkout** (`/real-subscription-checkout/:slug`), and **real refund signing** (`RealRefundSign`) are wired to the live API. Full dashboard wiring is incremental.
 - Webhook signing secret stored as plaintext (MVP; encrypt at rest for production).
 - Monthly interval = 30-day approximation on-chain (backend scheduler handles real calendar timing).
+- Refund backend-signing deferred (browser Wagmi signing for MVP; backend-signing documented as the production path).
+- SDK published to private registry (Option A: GitHub Packages). Public npm (Option B) documented in `packages/sdk/NPM_PUBLISH.md` for later.
 
 ---
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { formatBaseUnits } from "./amount";
 
 /**
  * <WhitechainCheckout/> — React widget that completes a gasless USDT payment.
@@ -127,14 +128,14 @@ export function WhitechainCheckout(props: WhitechainCheckoutProps): React.ReactE
 
   return React.createElement("div", { style: { padding: "1rem", border: "1px solid #ddd", borderRadius: "8px", fontFamily: "sans-serif" } },
     React.createElement("h3", null, checkout.merchant.displayName),
-    React.createElement("p", null, `Amount: ${(Number(checkout.amount) / 1e6).toFixed(2)} ${checkout.token.symbol}`),
+    React.createElement("p", null, `Amount: ${formatBaseUnits(checkout.amount)} ${checkout.token.symbol}`),
     React.createElement("p", null, checkout.description),
     React.createElement("p", { style: { fontSize: "0.8rem", color: "#666" } }, `To: ${checkout.merchant.payoutWallet.slice(0, 10)}…`),
     React.createElement("button", {
       onClick: handlePay,
       disabled: status === "authorizing" || status === "submitted",
       style: { padding: "0.5rem 1rem", marginTop: "0.5rem", cursor: "pointer" },
-    }, status === "authorizing" ? "Sign in wallet…" : status === "submitted" ? "Confirming…" : `Pay ${(Number(checkout.amount) / 1e6).toFixed(2)} USDT`),
+    }, status === "authorizing" ? "Sign in wallet…" : status === "submitted" ? "Confirming…" : `Pay ${formatBaseUnits(checkout.amount)} USDT`),
     status === "succeeded" && React.createElement("p", { style: { color: "green" } }, "Payment succeeded!"),
   );
 }

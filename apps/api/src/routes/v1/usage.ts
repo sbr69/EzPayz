@@ -10,7 +10,7 @@ const recordSchema = z.object({
 
 /** Usage billing: merchant reports usage; amount = units * plan.unitPrice (billed at the next renewal). PRD §11.6, FLOW §10.4. */
 export async function usageRoutes(app: FastifyInstance): Promise<void> {
-  app.post("/", { preHandler: [app.authenticate] }, async (req, reply) => {
+  app.post("/", { preHandler: [app.authenticate, app.requireSecretKey] }, async (req, reply) => {
     const parsed = recordSchema.safeParse(req.body);
     if (!parsed.success) {
       return reply.code(400).send({ error: { code: "validation_error", message: parsed.error.issues.map((i) => i.message).join("; ") } });

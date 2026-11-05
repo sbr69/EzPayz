@@ -2,16 +2,20 @@ import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { prisma } from "../../db/client";
 import { createInvoice } from "../../services/invoice";
+import { generateInvoicePdfBuffer } from "../../services/invoicePdf";
+import { parseHumanAmount, formatBaseUnits } from "../../utils/amount";
+
+const decimalPrice = z.string().regex(/^\d+(\.\d{1,6})?$/, "unitPrice must be a decimal string like \"5.00\" (max 6 decimal places)");
 
 const createSchema = z.object({
   customerEmail: z.string().email(),
   title: z.string().min(1),
   description: z.string().default(""),
-  lineItems: z.array(z.object({ description: z.string(), quantity: z.number().int().min(1), unitPrice: z.string().regex(/^\d+$/) })).min(1),
+  lineItems: z.array(z.object({ description: z.string(), quantity: z.number().int().min(1), unitPrice: decimalPrice })).min(1),
 });
 
 export async function invoiceRoutes(app: FastifyInstance): Promise<void> {
-  app.post("/", { preHandler: [app.authenticate] }, async (req, reply) => {
+  app.post("/", { preHandler: [app.authenticate, app.requireSecretKey] }, async (req, reply) => {
     const parsed = createSchema.safeParse(req.body);
     if (!parsed.success) {
       return reply.code(400).send({ error: { code: "validation_error", message: parsed.error.issues.map((i) => i.message).join("; ") } });
@@ -27,9 +31,9 @@ export async function invoiceRoutes(app: FastifyInstance): Promise<void> {
       customerEmail: parsed.data.customerEmail,
       title: parsed.data.title,
       description: parsed.data.description,
-      lineItems: parsed.data.lineItems,
+      lineItems: parsed.data.lineItems.map((li) => ({ ...li, unitPrice: parseHumanAmount(li.unitPrice) })),
     });
-    return reply.code(201).send({ id: invoice.id, total: invoice.total, status: invoice.status });
+    return reply.code(201).send({ id: invoice.id, total: invoice.total, displayTotal: formatBaseUnits(invoice.total), status: invoice.status });
   });
 
   app.get("/", { preHandler: [app.authenticate] }, async (req) => {
@@ -46,6 +50,16 @@ export async function invoiceRoutes(app: FastifyInstance): Promise<void> {
     const id = (req.params as { id: string }).id;
     const invoice = await prisma.invoice.findFirst({ where: { id, merchantId: req.merchantId! }, include: { lineItems: true } });
     if (!invoice) return reply.code(404).send({ error: { code: "not_found", message: "Invoice not found" } });
-    return { invoice };
+    return { invoice, displayTotal: formatBaseUnits(invoice.total) };
+  });
+
+  // GET /v1/invoices/:id/pdf — downloadable paid receipt PDF. PRD §13.1, FLOW §6.7.
+  app.get("/:id/pdf", { preHandler: [app.authenticate] }, async (req, reply) => {
+    const id = (req.params as { id: string }).id;
+    const pdf = await generateInvoicePdfBuffer(id, req.merchantId!);
+    if (!pdf) return reply.code(404).send({ error: { code: "not_found", message: "Invoice not found" } });
+    reply.type("application/pdf");
+    reply.header("Content-Disposition", `attachment; filename="receipt-${id}.pdf"`);
+    return reply.send(pdf);
   });
 }

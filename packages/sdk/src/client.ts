@@ -1,7 +1,10 @@
 /**
- * @whitechain-pay/sdk — server client.
+ * @ezpayz/sdk — server client.
  * Authenticated with the merchant's secret API key (Bearer). Methods mirror the REST API.
- * PRD §17.4, §17.6.
+ *
+ * Amounts are human-readable decimal strings at the public API (e.g. "10.00" for 10 USDT).
+ * The gateway converts to base units (USDT 6 decimals) internally; the SDK passes the
+ * human-readable string as-is to the API. PRD §7.2, §17.6.
  */
 export class WhitechainClient {
   constructor(private secretKey: string, private apiUrl: string) {}
@@ -25,11 +28,18 @@ export class WhitechainClient {
   }
 
   paymentIntents = {
-    create: (opts: { amount: string; description: string; customerEmail?: string; idempotencyKey?: string }) =>
+    create: (opts: { amount: string; description: string; customerEmail?: string; successUrl?: string; cancelUrl?: string; metadata?: Record<string, string>; idempotencyKey?: string }) =>
       this.request("/v1/payment-intents", {
         method: "POST",
         headers: this.headers(opts.idempotencyKey),
-        body: JSON.stringify({ amount: opts.amount, description: opts.description, customerEmail: opts.customerEmail }),
+        body: JSON.stringify({
+          amount: opts.amount,
+          description: opts.description,
+          customerEmail: opts.customerEmail,
+          successUrl: opts.successUrl,
+          cancelUrl: opts.cancelUrl,
+          metadata: opts.metadata,
+        }),
       }),
     get: (id: string) => this.request(`/v1/payment-intents/${id}`, { headers: this.headers() }),
   };
@@ -64,6 +74,8 @@ export class WhitechainClient {
     create: (opts: { onChainSubscriptionId: string; planId: string; payerWallet: string }) =>
       this.request("/v1/subscriptions", { method: "POST", headers: this.headers(), body: JSON.stringify(opts) }),
     get: (id: string) => this.request(`/v1/subscriptions/${id}`, { headers: this.headers() }),
+    checkout: (opts: { planId: string }) =>
+      this.request("/v1/subscriptions/checkout", { method: "POST", headers: this.headers(), body: JSON.stringify({ planId: opts.planId }) }),
   };
 
   analytics = {

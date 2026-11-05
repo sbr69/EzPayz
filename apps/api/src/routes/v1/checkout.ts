@@ -5,11 +5,14 @@ import { env } from "../../config";
 import { getCheckoutSession } from "../../services/paymentIntent";
 import { validateAndBindAuthorization, markAuthorized } from "../../services/authorize";
 import { getRelayerQueue, type RelayPaymentJob } from "../../queues";
+import { formatBaseUnits } from "../../utils/amount";
+import { getSubscriptionCheckoutSession } from "../../services/subscriptionCheckout";
+import { SUBSCRIPTION_CONTRACT_ADDRESS } from "../../config/contracts";
 
 /**
  * Public checkout endpoint (no auth) — the SDK widget fetches the PayeeShield-signed
  * payment request here to display + verify merchant/amount/token/chain/recipient/expiry.
- * PRD §9, §17.5, FLOW §6.3.
+ * PRD §9, §17.5, FLOW §6.3. Also hosts the public subscription checkout session endpoint.
  */
 export async function checkoutRoutes(app: FastifyInstance): Promise<void> {
   app.get("/:slug", async (req, reply) => {
@@ -24,6 +27,7 @@ export async function checkoutRoutes(app: FastifyInstance): Promise<void> {
       paymentIntentId: paymentIntent.id,
       merchant: { displayName: merchant?.displayName ?? "", payoutWallet: paymentIntent.payoutWallet },
       amount: paymentIntent.amount,
+      displayAmount: formatBaseUnits(paymentIntent.amount),
       token: { symbol: paymentIntent.token, address: env.USDT_ADDRESS, decimals: 6 },
       chainId: env.WHITECHAIN_CHAIN_ID,
       network: paymentIntent.network,
@@ -31,6 +35,8 @@ export async function checkoutRoutes(app: FastifyInstance): Promise<void> {
       expiry: paymentIntent.expiresAt,
       payeeShield: paymentIntent.payeeShieldJson,
       status: paymentIntent.status,
+      successUrl: paymentIntent.successUrl,
+      cancelUrl: paymentIntent.cancelUrl,
     });
   });
 
@@ -91,5 +97,27 @@ export async function checkoutRoutes(app: FastifyInstance): Promise<void> {
       }
       throw e;
     }
+  });
+
+  // GET /v1/checkout/subscription/:slug — public fetch of a subscription checkout session + plan details.
+  // The <WhitechainSubscriptionCheckout/> widget uses this to display plan terms before the customer
+  // approves allowance + creates the subscription on-chain. PRD §11.4.1, FLOW §10.2.1.
+  app.get("/subscription/:slug", async (req, reply) => {
+    const slug = (req.params as { slug: string }).slug;
+    const result = await getSubscriptionCheckoutSession(slug);
+    if (!result) {
+      return reply.code(404).send({ error: { code: "not_found", message: "Subscription checkout session not found or expired" } });
+    }
+    const { session, plan, merchant } = result;
+    return reply.send({
+      sessionId: session.id,
+      plan,
+      merchant,
+      chainId: env.WHITECHAIN_CHAIN_ID,
+      subscriptionContract: SUBSCRIPTION_CONTRACT_ADDRESS,
+      token: { symbol: "USDT", address: env.USDT_ADDRESS, decimals: 6 },
+      status: session.status,
+      expiresAt: session.expiresAt,
+    });
   });
 }

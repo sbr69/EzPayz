@@ -6,7 +6,7 @@ import jwt from "@fastify/jwt";
 import sensible from "@fastify/sensible";
 import { env, isProd } from "./config";
 import { errorHandlerPlugin } from "./plugins/errorHandler";
-import { authenticate } from "./plugins/auth";
+import { authenticate, requireSecretKey } from "./plugins/auth";
 import { idempotency } from "./plugins/idempotency";
 import { healthRoutes } from "./routes/v1/health";
 import { authRoutes } from "./routes/v1/auth";
@@ -38,6 +38,7 @@ export async function buildApp(): Promise<FastifyInstance> {
   await app.register(jwt, { secret: env.JWT_SECRET });
 
   app.decorate("authenticate", authenticate);
+  app.decorate("requireSecretKey", requireSecretKey);
   app.decorate("idempotency", idempotency);
   await app.register(errorHandlerPlugin);
 

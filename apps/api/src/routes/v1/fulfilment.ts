@@ -19,7 +19,7 @@ export async function fulfilmentRoutes(app: FastifyInstance): Promise<void> {
     return { orders };
   });
 
-  app.post("/:id/events", { preHandler: [app.authenticate] }, async (req, reply) => {
+  app.post("/:id/events", { preHandler: [app.authenticate, app.requireSecretKey] }, async (req, reply) => {
     const id = (req.params as { id: string }).id;
     const parsed = eventSchema.safeParse(req.body);
     if (!parsed.success) {

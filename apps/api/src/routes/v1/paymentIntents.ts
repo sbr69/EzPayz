@@ -3,12 +3,16 @@ import { z } from "zod";
 import { prisma } from "../../db/client";
 import { createPaymentIntent, getPaymentIntentForMerchant } from "../../services/paymentIntent";
 import { recordIdempotency } from "../../plugins/idempotency";
+import { parseHumanAmount, formatBaseUnits } from "../../utils/amount";
 
 const createSchema = z.object({
-  amount: z.string().regex(/^\d+$/, "amount must be integer base-unit string"),
+  amount: z.string().regex(/^\d+(\.\d{1,6})?$/, "amount must be a decimal string like \"10.00\" (max 6 decimal places)"),
   description: z.string().min(1),
   customerEmail: z.string().email().optional(),
   expiresAt: z.string().datetime().optional(),
+  successUrl: z.string().url().optional(),
+  cancelUrl: z.string().url().optional(),
+  metadata: z.record(z.string(), z.string()).optional(),
 });
 
 export async function paymentIntentRoutes(app: FastifyInstance): Promise<void> {
@@ -16,7 +20,7 @@ export async function paymentIntentRoutes(app: FastifyInstance): Promise<void> {
   // Idempotent (Idempotency-Key required).
   app.post(
     "/",
-    { preHandler: [app.authenticate, app.idempotency] },
+    { preHandler: [app.authenticate, app.requireSecretKey, app.idempotency] },
     async (req, reply) => {
       const parsed = createSchema.safeParse(req.body);
       if (!parsed.success) {
@@ -30,14 +34,18 @@ export async function paymentIntentRoutes(app: FastifyInstance): Promise<void> {
         return reply.code(400).send({ error: { code: "no_payout_wallet", message: "Merchant has no payout wallet set" } });
       }
 
-      const { intentId, checkoutSlug, payeeShield } = await createPaymentIntent({
+      const amountBaseUnits = parseHumanAmount(parsed.data.amount);
+      const { intentId, checkoutSlug, clientSecret, payeeShield } = await createPaymentIntent({
         merchantId: req.merchantId!,
         merchantDisplayName: merchant.displayName,
         merchantPayoutWallet: merchant.payoutWallet,
-        amount: parsed.data.amount,
+        amount: amountBaseUnits,
         description: parsed.data.description,
         customerEmail: parsed.data.customerEmail,
         expiresAt: parsed.data.expiresAt ? new Date(parsed.data.expiresAt) : undefined,
+        successUrl: parsed.data.successUrl,
+        cancelUrl: parsed.data.cancelUrl,
+        metadata: parsed.data.metadata,
       });
 
       // Record the idempotency key → resource (so replays return the same intentId).
@@ -46,8 +54,11 @@ export async function paymentIntentRoutes(app: FastifyInstance): Promise<void> {
 
       return reply.code(201).send({
         id: intentId,
+        clientSecret,
         checkoutUrl: `/checkout/${checkoutSlug}`,
         checkoutSlug,
+        amount: parsed.data.amount,
+        amountBaseUnits,
         payeeShield: { payload: payeeShield.payload, signature: payeeShield.signature, signingAddress: payeeShield.signingAddress, keyId: payeeShield.keyId },
       });
     }
@@ -58,6 +69,10 @@ export async function paymentIntentRoutes(app: FastifyInstance): Promise<void> {
     const id = (req.params as { id: string }).id;
     const intent = await getPaymentIntentForMerchant(req.merchantId!, id);
     if (!intent) return reply.code(404).send({ error: { code: "not_found", message: "Payment intent not found" } });
-    return reply.send({ paymentIntent: intent });
+    return reply.send({
+      paymentIntent: intent,
+      displayAmount: formatBaseUnits(intent.amount),
+      displayRefundedAmount: formatBaseUnits(intent.refundedAmount || "0"),
+    });
   });
 }

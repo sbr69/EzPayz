@@ -2,12 +2,17 @@ import { randomBytes } from "node:crypto";
 import { prisma } from "../db/client";
 import { Prisma } from "../db/generated";
 import { signPaymentRequest, type SignedPaymentRequest } from "./payeeShield";
+import { generateClientSecret } from "../utils/clientSecret";
+import { env } from "../config";
 
 /**
  * Creates a one-time payment intent + PayeeShield-signed request + checkout session.
  * PRD §9, §17.5, FLOW §6. The intent starts in `created` and advances through the
  * state machine (PLAN 4.10) as the payer authorizes + the relayer submits + the
  * observer verifies settlement.
+ *
+ * Returns a `clientSecret` — a short-lived (15 min) signed token the browser widget
+ * uses instead of the merchant's secret API key. PRD §17.3, §17.6.
  */
 export async function createPaymentIntent(opts: {
   merchantId: string;
@@ -17,7 +22,10 @@ export async function createPaymentIntent(opts: {
   description: string;
   customerEmail?: string;
   expiresAt?: Date;
-}): Promise<{ intentId: string; checkoutSlug: string; payeeShield: SignedPaymentRequest }> {
+  successUrl?: string;
+  cancelUrl?: string;
+  metadata?: Record<string, string>;
+}): Promise<{ intentId: string; checkoutSlug: string; clientSecret: string; payeeShield: SignedPaymentRequest }> {
   const expiresAt = opts.expiresAt ?? new Date(Date.now() + 15 * 60 * 1000); // 15 min default
   const expiryIso = expiresAt.toISOString();
   const nonce = "0x" + randomBytes(16).toString("hex");
@@ -36,6 +44,9 @@ export async function createPaymentIntent(opts: {
       expiresAt,
       authorizationRef: nonce,
       checkoutUrl: "",
+      successUrl: opts.successUrl,
+      cancelUrl: opts.cancelUrl,
+      metadataJson: opts.metadata ?? undefined,
     },
   });
 
@@ -61,7 +72,12 @@ export async function createPaymentIntent(opts: {
   });
   await prisma.paymentIntent.update({ where: { id: intent.id }, data: { checkoutUrl: `/checkout/${slug}` } });
 
-  return { intentId: intent.id, checkoutSlug: slug, payeeShield };
+  const clientSecret = generateClientSecret(
+    { paymentIntentId: intent.id, checkoutSlug: slug, merchantId: opts.merchantId },
+    env.JWT_SECRET
+  );
+
+  return { intentId: intent.id, checkoutSlug: slug, clientSecret, payeeShield };
 }
 
 /** Tenant-isolated fetch of a payment intent (includes timeline). */

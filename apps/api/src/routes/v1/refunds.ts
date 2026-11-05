@@ -3,10 +3,11 @@ import { z } from "zod";
 import { prisma } from "../../db/client";
 import { createRefund, validateRefundAuthorization, type RefundAuth } from "../../services/refund";
 import { getRelayerQueue } from "../../queues";
+import { parseHumanAmount } from "../../utils/amount";
 
 const createSchema = z.object({
   paymentId: z.string().min(1),
-  amount: z.string().regex(/^\d+$/),
+  amount: z.string().regex(/^\d+(\.\d{1,6})?$/, "amount must be a decimal string like \"5.00\" (max 6 decimal places)"),
   reason: z.string().default(""),
 });
 
@@ -22,13 +23,14 @@ const authorizeSchema = z.object({
 
 export async function refundRoutes(app: FastifyInstance): Promise<void> {
   // POST /v1/refunds — create a refund (eligibility checked against the settled payment).
-  app.post("/", { preHandler: [app.authenticate] }, async (req, reply) => {
+  app.post("/", { preHandler: [app.authenticate, app.requireSecretKey] }, async (req, reply) => {
     const parsed = createSchema.safeParse(req.body);
     if (!parsed.success) {
       return reply.code(400).send({ error: { code: "validation_error", message: parsed.error.issues.map((i) => i.message).join("; ") } });
     }
     try {
-      const refund = await createRefund({ merchantId: req.merchantId!, ...parsed.data });
+      const amountBaseUnits = parseHumanAmount(parsed.data.amount);
+      const refund = await createRefund({ merchantId: req.merchantId!, paymentId: parsed.data.paymentId, amount: amountBaseUnits, reason: parsed.data.reason });
       return reply.code(201).send({ id: refund.id, status: refund.status, amount: refund.amount });
     } catch (e) {
       const err = e as { statusCode?: number; code?: string; message?: string };
@@ -51,7 +53,7 @@ export async function refundRoutes(app: FastifyInstance): Promise<void> {
 
   // POST /v1/refunds/:id/authorize — merchant submits the EIP-3009 signed authorization
   // for the refund transfer (merchant payout → original payer). Relayer sponsors gas.
-  app.post("/:id/authorize", { preHandler: [app.authenticate] }, async (req, reply) => {
+  app.post("/:id/authorize", { preHandler: [app.authenticate, app.requireSecretKey] }, async (req, reply) => {
     const id = (req.params as { id: string }).id;
     const parsed = authorizeSchema.safeParse(req.body);
     if (!parsed.success) {

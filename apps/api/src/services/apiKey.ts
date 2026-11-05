@@ -45,20 +45,21 @@ export async function revokeApiKey(merchantId: string, id: string): Promise<void
 }
 
 /**
- * Resolves a publishable or secret key to its merchant. Used by the SDK/REST apiKeyGuard
- * (wired in Phase 4). PRD §17.6, §23.1 — secrets are hashed at rest; lookup is by hash.
+ * Resolves a publishable or secret key to its merchant + key type. Used by the auth
+ * plugin to enforce scope: publishable keys are read-only (browser-safe), secret keys
+ * have full write access. PRD §17.6, §23.1 — secrets are hashed at rest; lookup is by hash.
  */
 export async function resolveApiKey(
   provided: string
-): Promise<{ merchantId: string; environment: Environment } | null> {
+): Promise<{ merchantId: string; environment: Environment; keyType: "publishable" | "secret" } | null> {
   const byPub = await prisma.merchantApiKey.findUnique({ where: { publishable: provided } });
   if (byPub && byPub.status === "active") {
-    return { merchantId: byPub.merchantId, environment: byPub.environment };
+    return { merchantId: byPub.merchantId, environment: byPub.environment, keyType: "publishable" };
   }
   const hash = createHash("sha256").update(provided).digest("hex");
   const bySecret = await prisma.merchantApiKey.findFirst({ where: { secretHash: hash, status: "active" } });
   if (bySecret) {
-    return { merchantId: bySecret.merchantId, environment: bySecret.environment };
+    return { merchantId: bySecret.merchantId, environment: bySecret.environment, keyType: "secret" };
   }
   return null;
 }

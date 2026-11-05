@@ -1,35 +1,40 @@
 # How to Use — EzPayz
 
-A developer guide to integrating the EzPayz into your website. Accept gasless USDT payments, recurring subscriptions, and refunds on Whitechain Sepolia — with a typed SDK, a React checkout widget, and signed webhooks.
+A developer guide to integrating the EzPayz into your website. Accept gasless USDT payments, recurring subscriptions, and refunds on Whitechain Sepolia — with a typed SDK, React checkout widgets, signed webhooks, downloadable receipts, and amount helpers.
 
 ---
 
 ## Overview
 
 The gateway lets a merchant:
-1. **Create a payment intent** (server-side, via the SDK) for a specific USDT amount.
-2. **Show a checkout** to the customer (the React widget or your own UI).
+1. **Create a payment intent** (server-side, via the SDK) for a specific USDT amount — using a **human-readable** amount like `"10.00"`.
+2. **Show a checkout** to the customer (the React widget or the gateway's hosted checkout page).
 3. The customer **signs an EIP-3009 authorization** with their wallet (MetaMask) — they pay **no gas**.
 4. The gateway **relayer submits the transaction on-chain** (paying the WBT gas) + verifies settlement.
 5. The merchant receives **USDT directly** to their payout wallet (non-custodial).
-6. The merchant gets a **signed webhook** when the payment settles.
+6. The merchant gets a **signed webhook** when the payment settles + a **downloadable receipt PDF**.
+7. The customer is **redirected** to the merchant's `successUrl` (if provided).
 
-The same flow supports **recurring subscriptions** (via an on-chain contract) and **refunds** (merchant signs, relayer sponsors).
+The same flow supports **recurring subscriptions** (via a hosted checkout widget + on-chain contract) and **refunds** (merchant signs in the dashboard via Wagmi, relayer sponsors).
 
 ---
 
 ## Prerequisites
 
 1. **A merchant account** on the gateway (register at `/v1/auth/register` or via the dashboard).
-2. **API keys**: after registering, create a key pair (`POST /v1/api-keys`) — you get a **publishable** key (browser-safe) + a **secret** key (server-only, shown once).
+2. **API keys**: after registering, create a key pair (`POST /v1/api-keys`) — you get:
+   - A **publishable key** (`pk_...`) — browser-safe, read-only scope (resolve checkout links, read payment intents by ID).
+   - A **secret key** (`sk_...`) — server-only, full write access. Shown once; hashed at rest.
 3. **A Whitechain Sepolia wallet** for your payout (where USDT arrives) — configured as the merchant's `payoutWallet`.
-4. **The gateway running**: `pnpm dev` (API on :3000) + `pnpm worker` (relayer/webhook workers). (Or the deployed URLs in production.)
+4. **The gateway running**: `pnpm dev` (API on :3000) + `pnpm worker` (relayer/webhook workers).
+
+> **Security model**: the secret key never reaches the browser. When a payment intent is created (server-side), the gateway returns a short-lived **`clientSecret`** (15 min, signed) that the browser widget uses instead. A leaked `clientSecret` expires in minutes and is scoped to one checkout session.
 
 ---
 
 ## 1. Server-side integration (Node.js)
 
-Install the SDK (from the monorepo, or `npm install @ezpayz/sdk` once published):
+Install the SDK (see `packages/sdk/NPM_PUBLISH.md` for registry setup — Option A: GitHub Packages private, Option B: public npm):
 
 ```bash
 pnpm add @ezpayz/sdk viem
@@ -41,50 +46,70 @@ Create a payment intent on your server (using the **secret** key):
 import { WhitechainClient } from "@ezpayz/sdk";
 
 const client = new WhitechainClient(
-  process.env.WHITECHAIN_SECRET_KEY!,     // your secret API key
+  process.env.WHITECHAIN_SECRET_KEY!,     // your secret API key (server-only)
   "http://localhost:3000"                  // the gateway API URL
 );
 
-// Create a payment intent for 10 USDT (10 * 10^6 base units)
+// Create a payment intent for 10.00 USDT (human-readable; the gateway converts to base units internally)
 const intent = await client.paymentIntents.create({
-  amount: "10000000",                      // base units (USDT has 6 decimals)
+  amount: "10.00",                         // human-readable decimal (USDT has 6 decimals)
   description: "Pro plan subscription",
   customerEmail: "customer@example.com",
-  idempotencyKey: "order-12345",           // optional, prevents duplicates
+  successUrl: "https://yourapp.com/thankyou",   // optional — redirect after payment
+  cancelUrl: "https://yourapp.com/cart",        // optional — redirect on failure
+  metadata: { orderId: "12345" },               // optional — merchant reconciliation data
+  idempotencyKey: "order-12345",                // optional, prevents duplicates
 });
 
 console.log(intent);
-// { id: "pay_...", checkoutUrl: "/checkout/ck_...", checkoutSlug: "ck_...", payeeShield: {...} }
+// { id: "pay_...", clientSecret: "cs_...", checkoutUrl: "/checkout/ck_...", checkoutSlug: "ck_...", amount: "10.00", amountBaseUnits: "10000000", payeeShield: {...} }
 ```
 
-The `checkoutSlug` is what you pass to the frontend widget. The `idempotencyKey` ensures creating the same intent twice returns the same result (no duplicate charges).
+The `clientSecret` is a short-lived (15 min) signed token — pass it to the frontend widget. The `idempotencyKey` ensures creating the same intent twice returns the same result (no duplicate charges). The `amount` is echoed back in human-readable form; `amountBaseUnits` is the internal representation.
+
+> **Amounts**: all public API amount fields accept human-readable decimal strings (`"10.00"`, `"0.50"`, `"0.01"`). The gateway converts to base units (USDT 6 decimals) internally. EIP-3009 authorization `value` fields are always base units (they're cryptographically bound to the contract). Use the SDK's `formatBaseUnits()` / `parseHumanAmount()` helpers for display.
 
 ### Other server-side methods
 
 ```ts
 // Payment links (reusable URLs)
-const link = await client.paymentLinks.create({ title: "Buy a coffee", amount: "2000000" });
+const link = await client.paymentLinks.create({ title: "Buy a coffee", amount: "2.00" });
 
-// Invoices
+// Invoices (with downloadable PDF receipt)
 const invoice = await client.invoices.create({
   customerEmail: "customer@example.com",
   title: "Consulting — January",
-  lineItems: [{ description: "10 hours dev", quantity: 10, unitPrice: "5000000" }],
+  lineItems: [{ description: "10 hours dev", quantity: 10, unitPrice: "5.00" }],
 });
+// Download the paid receipt PDF: GET /v1/invoices/{invoiceId}/pdf
 
-// Refunds (full or partial)
-const refund = await client.refunds.create({ paymentId: intent.id, amount: "5000000", reason: "partial refund" });
+// Refunds (full or partial — human-readable amount)
+const refund = await client.refunds.create({ paymentId: intent.id, amount: "5.00", reason: "partial refund" });
 
 // Analytics
 const overview = await client.analytics.overview();
 
-// Subscriptions (after the customer activates on-chain)
+// Subscriptions — create a hosted checkout session (returns clientSecret for the widget)
+const subCheckout = await client.subscriptions.checkout({ planId: "plan_..." });
+// { sessionId: "scs_...", checkoutSlug: "sc_...", clientSecret: "cs_..." }
+
+// Subscriptions — record a mirror after the customer activates on-chain
 const sub = await client.subscriptions.create({
   onChainSubscriptionId: "0x...", // the bytes32 subId from the on-chain createSubscription
   planId: "plan_...",
   payerWallet: "0x...",
 });
 ```
+
+### Downloadable invoice PDF
+
+After a payment settles, the gateway generates a downloadable receipt PDF:
+```ts
+// Direct download link (browser or server)
+// GET /v1/invoices/{invoiceId}/pdf
+// → application/pdf attachment
+```
+The PDF includes merchant name, line items, total, status, paid date, and on-chain transaction hash. Email delivery is deferred for the MVP (stubbed); the PDF is the primary receipt mechanism.
 
 ---
 
@@ -244,41 +269,57 @@ The webhook payload includes the event type, the resource ID, the amount, + the 
 
 ## 4. Subscriptions
 
-Subscriptions use the deployed `SubscriptionContract` on Whitechain Sepolia. The flow:
+Subscriptions use the deployed `SubscriptionContract` on Whitechain Sepolia. There are two integration paths:
+
+### Path A — Hosted checkout widget (recommended, Stripe Billing model)
+
+The merchant offers subscriptions **on their own website** via the hosted checkout widget:
 
 1. **Create a plan** (server-side):
    ```ts
-   // POST /v1/plans { name: "Pro Monthly", amount: "10000000", interval: "monthly", maxChargePerCycle: "10000000", cumulativeLimit: "100000000" }
+   // POST /v1/plans { name: "Pro Monthly", amount: "10.00", interval: "monthly", maxChargePerCycle: "10.00", cumulativeLimit: "100.00" }
    ```
 
-2. **The customer activates on-chain** (via their wallet): they `approve` the SubscriptionContract as a spender (up to the cumulative cap) + call `createSubscription(...)` on the contract. This costs the customer WBT gas (one-time setup).
-
-3. **Record the subscription** (server-side):
+2. **Create a subscription checkout session** (server-side):
    ```ts
-   const sub = await client.subscriptions.create({
-     onChainSubscriptionId: "0x...", // the bytes32 from the on-chain createSubscription
-     planId: "plan_...",
-     payerWallet: "0x...",
-   });
+   const session = await client.subscriptions.checkout({ planId: "plan_..." });
+   // → { sessionId, checkoutSlug, clientSecret }
    ```
-   The backend reads `getSubscription()` from the contract + verifies the terms match the plan.
 
-4. **The scheduler renews automatically**: the gateway worker polls for due subscriptions + the relayer calls `charge()` on the contract (paying WBT gas). The customer pays nothing for renewals.
+3. **Mount the widget** (client-side, using the `checkoutSlug`):
+   The gateway's hosted page at `/#/real-subscription-checkout/<checkoutSlug>` handles the full flow:
+   - Displays plan terms (amount, interval, caps, expiry, merchant payout).
+   - Customer connects wallet → approves bounded ERC-20 allowance → calls `createSubscription(...)` on-chain.
+   - Customer pays WBT gas for the initial approve + create (one-time setup).
+   - Gateway mirrors the subscription + handles all renewals.
 
-5. **Webhook**: you get `subscription.renewed` (or `subscription.renewal_failed`) on each cycle.
+4. **The scheduler renews automatically** (gasless): the relayer calls `charge()` on the contract (paying WBT gas). The customer pays nothing for renewals.
 
-6. **Cancellation**: the customer calls `cancel()` on the contract (on-chain) + you can mark it cancelled via `POST /v1/subscriptions/:id/cancel`.
+5. **Webhook**: you get `subscription.renewal_succeeded` (or `subscription.renewal_failed`) on each cycle.
+
+6. **Cancellation**: the customer calls `cancel()` on the contract (on-chain) + you can mark it cancelled via `POST /v1/subscriptions/:id/cancel`. The customer must also call `approve(contract, 0)` to revoke unused allowance.
+
+### Path B — Manual on-chain activation (advanced)
+
+1. The customer activates the subscription on-chain themselves (approve + createSubscription).
+2. You record it server-side via `POST /v1/subscriptions` with the on-chain `subId`.
+
+> **Gas disclosure**: subscription setup is NOT gasless. The customer pays WBT for the initial `approve()` + `createSubscription()`. Only renewals are gasless (relayer-sponsored). The widget discloses this clearly.
 
 ---
 
 ## 5. Refunds
 
-1. **Create a refund** (server-side):
+Refunds are merchant-authorized transfers from the merchant wallet to the original payer. The MVP signing path is **browser-based** (Wagmi in the gateway dashboard):
+
+1. **Create a refund** (server-side or dashboard):
    ```ts
-   const refund = await client.refunds.create({ paymentId: "pay_...", amount: "5000000", reason: "partial" });
+   const refund = await client.refunds.create({ paymentId: "pay_...", amount: "5.00", reason: "partial" });
    ```
 
-2. **The merchant authorizes the refund** (signs EIP-3009): the merchant's payout wallet signs a `TransferWithAuthorization(from=merchant, to=original payer, amount=refund)`. Submit it:
+2. **The merchant authorizes the refund in the dashboard**: the merchant connects their payout wallet via RainbowKit in the gateway dashboard. The dashboard prompts the wallet to sign an EIP-3009 `TransferWithAuthorization(from=merchant, to=original payer, value=refund)`. This is handled by the `RealRefundSign` component — no code needed from the merchant.
+
+   Alternatively, submit the signed authorization programmatically:
    ```ts
    // POST /v1/refunds/:id/authorize { from, to, value, validAfter, validBefore, nonce, signature }
    ```
@@ -287,25 +328,30 @@ Subscriptions use the deployed `SubscriptionContract` on Whitechain Sepolia. The
 
 4. **Webhook**: you get `refund.succeeded`. The original payment's status flips to `refunded` or `partially_refunded`.
 
+> **MVP signing path**: browser (Wagmi in dashboard). The production-recommended approach is backend-signing (key never leaves the merchant server) — documented as a future enhancement.
+
 ---
 
-## Full example — a merchant website in ~30 lines
+## Full example — a merchant website
 
 ```tsx
-// server.ts — create a payment intent when the customer checks out
+// server.ts — create a payment intent when the customer checks out (secret key, server-only)
 import { WhitechainClient } from "@ezpayz/sdk";
-const client = new WhitechainClient(process.env.SECRET_KEY!, "https://your-gateway.com");
+const client = new WhitechainClient(process.env.WHITECHAIN_SECRET_KEY!, "http://localhost:3000");
 
 app.post("/checkout", async (req, res) => {
   const intent = await client.paymentIntents.create({
-    amount: "10000000", // 10 USDT
+    amount: "10.00",                     // human-readable
     description: "Order #" + req.body.orderId,
+    successUrl: "https://yourapp.com/thankyou",
+    cancelUrl: "https://yourapp.com/cart",
+    metadata: { orderId: req.body.orderId },
     idempotencyKey: req.body.orderId,
   });
-  res.json({ checkoutSlug: intent.checkoutSlug });
+  res.json({ checkoutSlug: intent.checkoutSlug, clientSecret: intent.clientSecret });
 });
 
-// Checkout.tsx — the customer pays
+// Checkout.tsx — the customer pays (clientSecret only, never the secret key)
 import { useSignTypedData } from "wagmi";
 import { WhitechainCheckout } from "@ezpayz/sdk";
 
@@ -314,14 +360,14 @@ function Checkout({ slug }: { slug: string }) {
   return (
     <WhitechainCheckout
       checkoutSlug={slug}
-      apiUrl="https://your-gateway.com"
+      apiUrl="http://localhost:3000"
       signTypedData={signTypedDataAsync}
-      onSuccess={(r) => alert("Paid! tx: " + r.txRef)}
+      onSuccess={(r) => console.log("Paid!", r.paymentIntentId, r.txRef)}
     />
   );
 }
 
-// webhooks.ts — confirm the order
+// webhooks.ts — confirm the order (signed webhook, source of truth)
 import { verifyWebhookSignature } from "@ezpayz/sdk";
 app.post("/webhooks", (req, res) => {
   if (!verifyWebhookSignature(SECRET, req.rawBody, req.headers["x-whitechain-signature"])) return res.status(401).end();
@@ -331,6 +377,8 @@ app.post("/webhooks", (req, res) => {
 });
 ```
 
+The integration has three parts: server creates the intent (secret key) → frontend mounts the widget (clientSecret) → server verifies the webhook (signed). The browser redirect to `successUrl` is UX-only — the webhook is the authoritative settlement signal.
+
 ---
 
 ## Pros and cons
@@ -338,28 +386,36 @@ app.post("/webhooks", (req, res) => {
 ### Pros
 
 - **Gasless for the payer**: the customer signs an EIP-3009 authorization + pays **zero gas**. The gateway relayer pays the WBT gas. This removes the biggest UX friction in crypto payments.
+- **Human-readable amounts**: the public API accepts `"10.00"` (not `10000000` base units). The SDK converts internally. Developers never reason about 6-decimal token math at the API boundary.
 - **Non-custodial**: USDT moves directly payer → merchant wallet. The gateway never holds funds. No custodial risk.
+- **Publishable + secret key model**: the browser gets a publishable key (read-only) + a short-lived `clientSecret` per checkout session — never the secret key. Mirrors Stripe/Razorpay.
+- **Return URLs**: `successUrl`/`cancelUrl` on payment intents — the checkout redirects the customer back to the merchant's site after settlement (UX-only; the webhook is the source of truth).
+- **Downloadable receipt PDF**: server-rendered invoice/receipt PDF available on the checkout success page + dashboard (`GET /v1/invoices/:id/pdf`).
+- **Hosted subscription checkout**: developers can offer subscriptions on their own site via the `<WhitechainSubscriptionCheckout/>` widget — same integration shape as one-time payments.
+- **Refund signing via Wagmi**: merchants sign refund EIP-3009 authorizations in the dashboard via RainbowKit — no merchant backend needed for refunds.
 - **Recurring on-chain**: subscriptions are enforced by a deployed, source-verified smart contract with per-cycle + cumulative caps — not just an off-chain schedule. The customer's exposure is bounded.
 - **PayeeShield**: every payment request is signed by the gateway (EIP-712). The checkout widget verifies the signature before asking the customer to sign — protecting against tampered amounts/recipients.
 - **GasGuard**: the relayer's pre-submission policy checks (chain/token allowlist, budgets, pause) prevent abuse of the sponsored-gas flow.
-- **Typed SDK + React widget**: a developer can integrate in ~30 lines (server client + `<WhitechainCheckout/>` + webhook verify).
+- **Typed SDK + React widgets**: a developer can integrate with a server client + `<WhitechainCheckout/>` + webhook verify.
 - **Signed webhooks with retries**: HMAC-SHA256 signed delivery + BullMQ retries + a replay endpoint.
 - **Tenant isolation**: every merchant's data is scoped by `merchantId` — one merchant cannot read another's payments/customers.
 - **Idempotency**: all write endpoints accept an `Idempotency-Key` — safe retries, no duplicate charges.
-- **Fast finality**: Whitechain Sepolia ~1s blocks → settlement in ~5s.
+- **Configurable finality**: `confirmed` = 1 block (~1–2s), `finalized` = 5 blocks (~5s), configurable in `apps/api/src/config/settlement.ts`.
 - **EVM-compatible**: standard viem/wagmi tooling works; no Whitechain-specific SDK needed.
 
 ### Cons
 
 - **Testnet only (hackathon MVP)**: deployed on Whitechain Sepolia, not mainnet. Not production-ready.
-- **Email is stubbed**: receipts/refund confirmations are logged, not actually sent (no SMTP wired).
+- **Email is stubbed**: receipts/refund confirmations are logged, not actually sent (no SMTP wired). The downloadable PDF receipt is the primary receipt mechanism. Email will be wired in a later phase.
 - **Single PayeeShield key**: one gateway-wide signing key (per-merchant keys deferred). If compromised, all requests are forgeable until rotated.
 - **Relayer key in `.env`**: the relayer's private key is stored in an environment variable (not a KMS/HSM). Acceptable for a hackathon, not for production.
 - **Webhook signing secret stored as plaintext** in the database (MVP; should be encrypted at rest).
-- **Dashboard UI is partially mock**: the real checkout (`/real-checkout/:slug`) is wired to the live API, but the merchant dashboard pages still run on the mock adapter. Full dashboard wiring is incremental.
+- **Dashboard UI is partially mock**: the real checkout (`/real-checkout/:slug`), real subscription checkout (`/real-subscription-checkout/:slug`), and real refund signing (`RealRefundSign`) are wired to the live API, but the merchant dashboard list/analytics pages still run on the mock adapter. Full dashboard wiring is incremental.
 - **No deploy yet**: the gateway runs locally. Vercel/Render deploy is pending (the owner is testing locally first).
 - **Monthly interval = 30-day approximation on-chain**: the contract uses 2592000s for monthly; the backend scheduler handles real calendar timing, but the on-chain `nextDueTime` advances by 30 days.
 - **WalletConnect not configured**: the RainbowKit config uses a placeholder projectId — MetaMask/injected works, but WalletConnect connections don't (until a real projectId is set).
 - **GasGuard is minimal**: currently checks chain/token allowlist + global pause. Per-tx gas estimation, per-merchant rate limits, and nonce/replay protection are deferred.
 - **Requires an external wallet**: the gasless flow still needs the customer to have an EVM wallet (MetaMask) to sign the EIP-3009 authorization. No embedded/account-abstraction wallet-less flow yet.
 - **Single-token (USDT only)**: the gateway is built for the required test USDT. Multi-token support isn't implemented.
+- **Refund backend-signing deferred**: the MVP uses browser-based Wagmi signing for refunds. The production-recommended backend-signing path (key never leaves merchant server) is documented but not implemented.
+- **SDK published to private registry (Option A)**: the SDK is published to GitHub Packages (private). Public npm publishing (Option B) is documented in `packages/sdk/NPM_PUBLISH.md` for later use.
