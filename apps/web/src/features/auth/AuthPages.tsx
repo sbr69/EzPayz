@@ -39,9 +39,7 @@ function AuthLayout({
         />
         <div className="relative">
           <Link to="/" className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-white/15 text-[18px] font-bold text-white backdrop-blur">
-              W
-            </span>
+            <img src="/logo.png" alt="EzPayz" className="h-8 w-8 rounded-[10px] object-cover" />
             <span className="text-[20px] font-semibold tracking-[-0.01em]">EzPayz</span>
           </Link>
         </div>
@@ -84,9 +82,7 @@ function AuthLayout({
       <main className="relative flex flex-1 flex-col">
         <header className="flex items-center justify-between px-5 py-5 sm:px-8">
           <Link to="/" className="flex items-center gap-2.5 lg:hidden">
-            <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-gradient-to-br from-[#118a7e] to-accent text-[18px] font-bold text-white shadow-xs">
-              W
-            </span>
+            <img src="/logo.png" alt="EzPayz" className="h-8 w-8 rounded-[10px] object-cover shadow-xs" />
             <span className="text-[18px] font-semibold tracking-[-0.01em] text-ink">EzPayz</span>
           </Link>
           <Link

@@ -36,9 +36,9 @@ function Logo({ collapsed }: { collapsed?: boolean }) {
       <motion.span
         whileHover={{ rotate: -6, scale: 1.05 }}
         transition={{ type: "spring", stiffness: 400, damping: 15 }}
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br from-[#118a7e] to-accent text-[20px] font-bold text-white shadow-xs"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] overflow-hidden shadow-xs"
       >
-        W
+        <img src="/logo.png" alt="EzPayz" className="h-full w-full object-cover" />
       </motion.span>
       {!collapsed ? (
         <span className="min-w-0">

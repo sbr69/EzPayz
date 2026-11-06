@@ -26,13 +26,13 @@ export function CheckoutFrame({
       <FadeIn className={`relative mx-auto w-full ${width} px-6 py-10 sm:py-14`}>
         <div className="mb-5 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <motion.span
+            <motion.img
+              src="/logo.png"
+              alt="EzPayz"
               whileHover={{ rotate: -6, scale: 1.05 }}
               transition={{ type: "spring", stiffness: 400, damping: 15 }}
-              className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-gradient-to-br from-[#118a7e] to-accent text-[18px] font-bold text-white shadow-xs"
-            >
-              W
-            </motion.span>
+              className="h-8 w-8 rounded-[10px] object-cover shadow-xs"
+            />
             <div>
               <p className="text-[18px] font-semibold leading-tight text-ink">EzPayz Checkout</p>
               <p className="text-[13px] leading-tight text-ink-4">
