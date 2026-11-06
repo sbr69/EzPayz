@@ -1,6 +1,6 @@
 {
   "name": "@ezpayz/mcp",
-  "private": true,
+  "private": false,
   "version": "0.1.0",
   "type": "module",
   "description": "MCP server for the EzPayz — exposes tools + docs resources to AI agents.",

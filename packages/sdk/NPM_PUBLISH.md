@@ -74,17 +74,11 @@ The merchant must authenticate to install the private package:
 
 | Package | npm private flag | Publishable? | Notes |
 |---|---|---|---|
-| `@ezpayz/sdk` | `false` | ✅ Yes — Option B (public) recommended | ESM + IIFE browser bundle |
-| `@ezpayz/mcp` | `true` | ⚠️ Not yet — set to `false` when ready to publish | MCP server for AI agents |
-| `packages/contracts` | `true` | ❌ No — Foundry project, not an npm package | Contract source is in the repo |
-| `dist/` directories | gitignored | ⚠️ Not committed — run `pnpm build` after cloning | Build artifacts |
-
-### When ready to make everything public:
-1. Set `packages/mcp/package.json` → `"private": false"`
-2. Un-gitignore `dist/` (remove `dist/` from `.gitignore`) OR keep gitignored and document `pnpm build`
-3. Publish both SDK + MCP to public npm via Option B
-4. Keep `packages/contracts/package.json` as `"private": true"` (not an npm package)
-5. Keep `.env` gitignored (contains secrets — DATABASE_URL, RELAYER_PRIVATE_KEY, JWT_SECRET)
+| `@ezpayz/sdk` | `false` | ✅ Yes — public | ESM + IIFE browser bundle |
+| `@ezpayz/mcp` | `false` | ✅ Yes — public | MCP server for AI agents |
+| `@ezpayz/contracts` | `false` | ✅ Public (source visible) | Foundry project — Solidity source, not an npm package |
+| `dist/` directories | gitignored | Run `pnpm build` after cloning | Build artifacts (standard practice — not committed) |
+| `.env` | gitignored | ❌ Never commit | Contains secrets (DATABASE_URL, RELAYER_PRIVATE_KEY, JWT_SECRET) |
 
 ---
 
