@@ -1,5 +1,5 @@
-// Real API client for the local gateway (http://localhost:3000).
-const API_URL = (import.meta.env.VITE_API_URL as string) || "http://localhost:3000";
+// API client — defaults to the deployed Render API, overridden by VITE_API_URL for local dev.
+const API_URL = (import.meta.env.VITE_API_URL as string) || "https://ezpayz-api.onrender.com";
 
 /** Reads the JWT from localStorage — set by AuthPages.tsx on login/register. */
 function getToken(): string | undefined {

@@ -1,0 +1,10 @@
+{
+  "name": "ezpayz",
+  "buildCommand": "pnpm install && pnpm --filter @ezpayz/web build",
+  "outputDirectory": "apps/web/dist",
+  "installCommand": "pnpm install",
+  "framework": null,
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
