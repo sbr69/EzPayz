@@ -1,6 +1,6 @@
 import "./config";
 import { Worker } from "bullmq";
-import { getRedisConnection } from "./queues/connection";
+import { createWorkerConnection } from "./queues/connection";
 import { relayAndSettle } from "./services/relayer";
 import { renewAndSettle } from "./services/renewal";
 import { calculateUsageCharge } from "./services/usageBilling";
@@ -94,7 +94,7 @@ const relayerWorker = new Worker(
     }
     throw new Error(`Unknown relayer job name: ${job.name}`);
   },
-  { connection: getRedisConnection(), concurrency: 1 }
+  { connection: createWorkerConnection(), concurrency: 1 }
 );
 
 const webhookWorker = new Worker(
@@ -107,7 +107,7 @@ const webhookWorker = new Worker(
     }
     throw new Error(`Unknown webhook job name: ${job.name}`);
   },
-  { connection: getRedisConnection(), concurrency: 2 }
+  { connection: createWorkerConnection(), concurrency: 2 }
 );
 
 const emailWorker = new Worker(
@@ -120,7 +120,7 @@ const emailWorker = new Worker(
     }
     throw new Error(`Unknown email job name: ${job.name}`);
   },
-  { connection: getRedisConnection(), concurrency: 2 }
+  { connection: createWorkerConnection(), concurrency: 2 }
 );
 
 relayerWorker.on("completed", (job) => console.log(`[relayer] completed job ${job.id}`));
