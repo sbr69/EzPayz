@@ -47,9 +47,8 @@ export async function buildApp(): Promise<FastifyInstance> {
   app.decorate("idempotency", idempotency);
   await app.register(errorHandlerPlugin);
 
-  // Health check — Render CLI on Windows converts "/health" to "/Program Files/Git/health".
-  // This route matches the corrupted path so the health check passes.
-  app.get("/health", async () => ({ status: "ok" }));
+  // Health check workaround — Render CLI on Windows converts "/health" to "/Program Files/Git/health".
+  // The actual /health route is registered by healthRoutes below; this handles the corrupted path only.
   app.get("/Program Files/Git/health", async () => ({ status: "ok" }));
 
   // Routes
