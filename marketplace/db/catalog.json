@@ -1,0 +1,98 @@
+[
+  {
+    "slug": "oat-stoneware-mugs",
+    "name": "Oat Stoneware Mugs",
+    "description": "Rounded handles and a soft oat glaze make these cups a natural choice for the morning table.",
+    "category": "Table & Kitchen",
+    "image": "/images/oat-stoneware-mugs.webp",
+    "price": 6400000
+  },
+  {
+    "slug": "reed-vase",
+    "name": "Reed Vase",
+    "description": "A tall, tapered silhouette that gives dried stems and grasses room to stand.",
+    "category": "Home Accents",
+    "image": "/images/reed-vase.webp",
+    "price": 7200000
+  },
+  {
+    "slug": "hearth-candle",
+    "name": "Hearth Candle",
+    "description": "A candle in a simple glass jar, made for a quiet corner of the room.",
+    "category": "Home Accents",
+    "image": "/images/hearth-candle.webp",
+    "price": 4300000
+  },
+  {
+    "slug": "herringbone-throw",
+    "name": "Herringbone Throw",
+    "description": "A pale herringbone weave with just enough texture to leave folded over the back of a chair.",
+    "category": "Textiles",
+    "image": "/images/herringbone-throw.webp",
+    "price": 8900000
+  },
+  {
+    "slug": "sage-nesting-bowls",
+    "name": "Sage Nesting Bowls",
+    "description": "Speckled bowls in soft, earthy shades. They stack neatly on an open kitchen shelf.",
+    "category": "Table & Kitchen",
+    "image": "/images/sage-nesting-bowls.webp",
+    "price": 8100000
+  },
+  {
+    "slug": "woven-market-basket",
+    "name": "Woven Market Basket",
+    "description": "A textured basket with a wide opening for blankets, books, and the things you reach for often.",
+    "category": "Home Accents",
+    "image": "/images/woven-market-basket.webp",
+    "price": 7500000
+  },
+  {
+    "slug": "monstera",
+    "name": "Potted Monstera",
+    "description": "Split green leaves and a simple pot bring some height to a bright room.",
+    "category": "Plants",
+    "image": "/images/monstera.webp",
+    "price": 9600000
+  },
+  {
+    "slug": "rattan-shade",
+    "name": "Rattan Shade",
+    "description": "An open rattan weave filters lamplight into soft stripes.",
+    "category": "Home Accents",
+    "image": "/images/rattan-shade.webp",
+    "price": 9300000
+  },
+  {
+    "slug": "clay-espresso-mug",
+    "name": "Clay Espresso Mug",
+    "description": "A small, clay-colored mug with a smooth glaze and a rounded handle.",
+    "category": "Table & Kitchen",
+    "image": "/images/clay-espresso-mug.webp",
+    "price": 3600000
+  },
+  {
+    "slug": "jade-pouring-vessel",
+    "name": "Jade Pouring Vessel",
+    "description": "A dark green ceramic vessel with a slim neck and an angular handle.",
+    "category": "Table & Kitchen",
+    "image": "/images/jade-pouring-vessel.webp",
+    "price": 6600000
+  },
+  {
+    "slug": "linen-sofa-throw",
+    "name": "Linen Sofa Throw",
+    "description": "A relaxed, neutral throw with a loose drape for the foot of a bed or the arm of a sofa.",
+    "category": "Textiles",
+    "image": "/images/linen-sofa-throw.webp",
+    "price": 9700000
+  },
+  {
+    "slug": "window-garden",
+    "name": "Window Garden",
+    "description": "Small potted plants with compact leaves, sized for a narrow shelf or windowsill.",
+    "category": "Plants",
+    "image": "/images/window-garden.webp",
+    "price": 5600000
+  }
+]
