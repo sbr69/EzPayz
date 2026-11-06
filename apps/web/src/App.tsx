@@ -24,6 +24,7 @@ import { ExceptionDetail, ExceptionsList } from "@/features/exceptions/Exception
 import Analytics from "@/features/analytics/Analytics";
 import GasGuard from "@/features/gasguard/GasGuard";
 import { ApiKeysPage, DeveloperOverview, EventsPage, WebhooksPage } from "@/features/developers/DeveloperPages";
+import { X402Page } from "@/features/developers/x402/X402Page";
 import { ApiReference, Quickstart } from "@/features/developers/DocsPages";
 import {
   BusinessSettings,
@@ -81,6 +82,7 @@ export function App() {
             <Route path="/developers/api-keys" element={<ApiKeysPage />} />
             <Route path="/developers/webhooks" element={<WebhooksPage />} />
             <Route path="/developers/events" element={<EventsPage />} />
+            <Route path="/developers/x402" element={<X402Page />} />
             <Route path="/developers/quickstart" element={<Quickstart />} />
             <Route path="/developers/api-reference" element={<ApiReference />} />
             <Route path="/settings/business" element={<BusinessSettings />} />
