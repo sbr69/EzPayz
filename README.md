@@ -41,9 +41,10 @@ EIP-3009 verification: [docs/EIP3009_VERIFICATION.md](docs/EIP3009_VERIFICATION.
 
 ```
 apps/web        React dashboard + hosted checkout. Auth is real (JWT from /v1/auth/login, auto-attached by apiFetch). Dashboard syncs real data from the API via useSyncRealData hook. Real checkout, subscription checkout, refund signing, onboarding wallet verify — all wired to the live API via wagmi/RainbowKit.
-apps/api        Fastify REST API + auth + business logic + BullMQ workers (relayer/observer/webhook/email/scheduler) + MCP server at /mcp
-packages/contracts   Foundry/Solidity — SubscriptionContract (deployed + verified)
-packages/sdk    @ezpayz/sdk — typed server client + <WhitechainCheckout/> widget + webhook middleware
+apps/api        Fastify REST API + auth + business logic + BullMQ workers (relayer/observer/webhook/email/scheduler) + MCP server at /mcp + x402 facilitator at /v1/x402
+packages/contracts   Foundry/Solidity — SubscriptionContract v2 (deployed + verified, BySig + Permit)
+packages/sdk    @ezpayz/sdk@0.1.2 — typed server client + <WhitechainCheckout/> widget + webhook middleware + x402Fetch() for AI agents
+packages/x402   @ezpayz/x402@0.1.0 — x402 payment middleware (Express + Fastify) for merchants
 packages/mcp    @ezpayz/mcp — MCP server (11 tools + 8 resources) for AI agents (Claude Desktop, Cursor, VS Code). stdio + HTTP transports.
 docs/           PRD, FLOW, PLAN, EIP-3009 verification
 ```
@@ -160,6 +161,36 @@ const valid = verifyWebhookSignature(secret, rawBody, signature);
 
 ---
 
+## x402 — AI Agent Payments
+
+EzPayz implements the x402 protocol for gasless AI agent micropayments via HTTP 402.
+
+**Merchant side** (one line of middleware):
+```bash
+npm install @ezpayz/x402
+```
+```ts
+import { ezPayzPaymentMiddleware } from "@ezpayz/x402";
+app.use(ezPayzPaymentMiddleware({
+  facilitatorUrl: "https://ezpayz-api.onrender.com/v1/x402",
+  secretKey: "wcp_sec_...",
+  routes: { "GET /api/data": { price: "0.01", payTo: "0xYourWallet" } },
+}));
+```
+
+**AI agent side** (automatic payment):
+```bash
+npm install @ezpayz/sdk
+```
+```ts
+import { x402Fetch } from "@ezpayz/sdk";
+const res = await x402Fetch("https://api.example.com/api/data", { privateKey: "0x..." });
+```
+
+Flow: agent GET → 402 → sign EIP-3009 (gasless) → retry with proof → facilitator verifies → content served → relayer settles on-chain → merchant receives USDT.
+
+---
+
 ## MCP server
 
 The gateway includes an MCP (Model Context Protocol) server at `packages/mcp/` that exposes tools + documentation to AI agents. See `packages/mcp/README.md` for full setup.
@@ -195,6 +226,7 @@ cd packages/mcp && pnpm build
 - `POST /v1/customers` · `GET /v1/customers` (paginated + email search) · `GET /v1/customers/:id`
 - `GET /v1/merchants/me` · `PATCH /v1/merchants/me` (profile update) · `GET /v1/merchants/wallet/challenge` · `POST /v1/merchants/wallet/verify` (personal_sign verification)
 - `GET /v1/analytics/overview` · `GET /v1/webhooks` (paginated) · `GET /v1/webhooks/events` (paginated) · `GET /v1/exceptions` (paginated) · `GET /v1/fulfilment` (paginated)
+- `GET /v1/x402/supported` · `POST /v1/x402/verify` · `POST /v1/x402/settle` (x402 facilitator for AI agent payments)
 - `GET /health` · `GET /v1/status`
 
 All list endpoints support cursor pagination: `?limit=20&cursor=<lastItemId>` → `{ data, hasMore, nextCursor }`.
@@ -206,14 +238,23 @@ Auth: `Authorization: Bearer <JWT>` (dashboard), `Bearer <secret key>` (full wri
 
 ## Current limitations (hackathon MVP)
 
-- Email is stubbed (logged, no SMTP). The downloadable PDF receipt is the primary receipt mechanism — public `GET /v1/checkout/:slug/receipt.pdf` (no auth required). Email will be wired in a later phase.
-- PayeeShield uses a single gateway signing key (per-merchant keys deferred — confirmed for MVP).
+- Email is stubbed (logged, no SMTP). The downloadable PDF receipt is the primary receipt mechanism. Email will be wired in a later phase.
+- PayeeShield uses a single gateway signing key (per-merchant keys deferred).
 - Relayer key in `.env` (not a KMS/HSM).
-- Dashboard fully wired to the live API: auth is real (JWT stored in localStorage), `apiFetch` auto-attaches the JWT, `useSyncRealData` hook syncs all list data from the API on dashboard mount. The real checkout, real subscription checkout, real refund signing, onboarding wallet verify, and dashboard data are all fully wired.
-- Webhook signing secret stored as plaintext (MVP; encrypt at rest for production). Webhook retries with exponential backoff (max 5).
-- Monthly interval = 30-day approximation on-chain (backend scheduler handles real calendar timing).
-- Refund backend-signing deferred (browser Wagmi signing for MVP; backend-signing documented as the production path).
-- SDK built locally (`pnpm build` → `dist/`); gitignored — run build after cloning. Not yet published to npm. Standalone browser bundle built but not yet served via a CDN URL.
+- Render free tier — API sleeps after 15 min of inactivity. First request takes ~60s to wake.
+- Webhook signing secret encrypted at rest (AES-256-GCM). Webhook retries with exponential backoff (max 5).
+- Monthly interval = 30-day approximation on-chain.
+- Refund backend-signing deferred (browser Wagmi signing for MVP).
+- SDK (`@ezpayz/sdk@0.1.2`) + x402 middleware (`@ezpayz/x402@0.1.0`) published on npm.
+
+## Deployment
+
+| Component | URL |
+|---|---|
+| **API + Workers + MCP** | `https://ezpayz-api.onrender.com` |
+| **Dashboard + Checkout** | `https://ezpayz.vercel.app` |
+| **npm SDK** | `npm install @ezpayz/sdk` |
+| **npm x402** | `npm install @ezpayz/x402` |
 
 ---
 

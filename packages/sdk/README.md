@@ -79,9 +79,13 @@ parseHumanAmount("10.00")    // → "10000000" (human-readable → base units)
 
 | Export | Description |
 |---|---|
-| `WhitechainClient` | Server-side client (secret key). Payment intents, links, invoices, refunds, subscriptions, analytics. |
+| `WhitechainClient` | Server-side client (secret key). Payment intents, links, invoices, refunds, subscriptions, analytics, products, webhooks, API keys, plans, usage. |
 | `WhitechainCheckout` | React widget for gasless one-time USDT checkout. |
+| `WhitechainSubscriptionCheckout` | React widget for gasless subscription checkout (Permit + createSubscriptionBySig). |
 | `WhitechainError` | Structured error class with `code`, `message`, `statusCode`. |
+| `verifyWebhookSignature` | HMAC-SHA256 webhook signature verification. |
+| `formatBaseUnits` / `parseHumanAmount` | Amount conversion helpers (human-readable ↔ base units). |
+| `x402Fetch` | Drop-in `fetch()` replacement for AI agents — auto-handles HTTP 402 payments via gasless EIP-3009. |
 | `verifyWebhookSignature` | HMAC-SHA256 webhook signature verification. |
 | `formatBaseUnits` / `parseHumanAmount` | Amount conversion helpers (human-readable ↔ base units). |
 

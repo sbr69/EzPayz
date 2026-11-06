@@ -1,7 +1,7 @@
 # Progress — EzPayz
 
-**Last updated:** 31 October 2026
-**Status:** Feature-complete MVP + Phase 10-14 + Phase 15 (remaining limitations fixed). All 15 phases built. Full developer flow verified end-to-end. Local (no deploy yet). All known limitations from Phase 14 audit resolved except email (deferred) + settings pages requiring migrations (notification/security/gas-guard).
+**Last updated:** 6 November 2026
+**Status:** Feature-complete MVP + Phase 10-15 + Phase 16 (x402 payment protocol). Deployed on Render (API) + Vercel (frontend) + npm (SDK + x402). Full developer flow verified end-to-end including x402 AI agent payments.
 
 ---
 
@@ -322,6 +322,36 @@ Senior-developer codebase audit identified 16 remaining gaps. Fixed in two batch
 - Dashboard data synced from real API via `useSyncRealData` hook (fetches on AppShell mount). Write operations go through the real API + auto-refresh on mutations.
 - Webhook retry with exponential backoff (max 5 retries, then stops).
 - Monthly interval = 30-day approximation on-chain.
-- **Subscriptions are FULLY GASLESS** via EIP-712 BySig + EIP-2612 Permit (v2 contract deployed at `0xc0Bc1f…2c40`). Customer signs 2 messages at signup, 1 at cancel. Zero WBT needed. Relayer pays all gas.
+- **Subscriptions are FULLY GASLESS** via EIP-712 BySig + EIP-2612 Permit. Customer signs 2 messages at signup, 1 at cancel. Zero WBT needed. Relayer pays all gas.
 - Refund backend-signing deferred (browser Wagmi signing for MVP).
-- SDK built locally (`pnpm build` → `dist/`); gitignored — run build after cloning. Not yet published to npm.
+- SDK published on npm (`@ezpayz/sdk@0.1.2` — includes `x402Fetch`). x402 middleware package (`@ezpayz/x402@0.1.0`).
+
+### Deployment
+- **Render API**: `https://ezpayz-api.onrender.com` — API + workers (combined process, free tier)
+- **Vercel Frontend**: `https://ezpayz.vercel.app` — dashboard + hosted checkout
+- **npm**: `@ezpayz/sdk@0.1.2` + `@ezpayz/x402@0.1.0`
+- **MCP server**: mounted at `https://ezpayz-api.onrender.com/mcp`
+
+### Phase 16 — x402 Payment Protocol ✅
+
+Implemented x402-compatible facilitator for gasless AI agent payments via HTTP 402:
+
+**Facilitator endpoints** (`apps/api/src/routes/v1/x402.ts`):
+- `GET /v1/x402/supported` — returns Whitechain Sepolia + USDT + EIP-3009 scheme
+- `POST /v1/x402/verify` — verifies EIP-3009 signature, checks authorizationState, validates amount/recipient/expiry
+- `POST /v1/x402/settle` — submits via relayer, waits for receipt, creates payment record, emits webhook
+
+**`@ezpayz/x402` npm package** (`packages/x402/`):
+- `ezPayzPaymentMiddleware` — Express/Connect middleware (one line to protect routes)
+- `ezPayzFastifyPlugin` — Fastify plugin
+- `generatePaymentRequirements` — x402 format for Whitechain
+- `priceToBaseUnits` — USD to USDT base units (6 decimals)
+
+**`x402Fetch()` in `@ezpayz/sdk`** (`packages/sdk/src/x402.ts`):
+- Drop-in `fetch()` replacement for AI agents
+- Detects 402 → reads requirements → signs EIP-3009 (gasless) → retries with X-PAYMENT header
+- No WBT needed by the AI agent — EzPayz relayer submits on-chain
+
+**E2E verified**: AI agent signed EIP-3009 → facilitator verified → relayer settled on-chain (tx `0x33045aa7…`) → payment recorded + webhook emitted.
+
+**Flow**: AI agent GET → 402 → sign EIP-3009 → retry with proof → merchant verifies via facilitator → serve content → settle via relayer → merchant receives USDT.

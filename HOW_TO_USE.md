@@ -463,6 +463,89 @@ The integration has three parts: server creates the intent (secret key) → fron
 
 ---
 
+## 7. x402 — AI Agent Payments (HTTP 402)
+
+EzPayz implements the x402 payment protocol, enabling AI agents to pay for API access via gasless USDT micropayments. No accounts, no API keys for the agent, no WBT gas needed.
+
+### How it works
+
+```
+1. AI agent → GET /api/data (no payment header)
+2. Merchant's x402 middleware → 402 Payment Required + X-PAYMENT-REQUIREMENTS
+3. AI agent signs EIP-3009 TransferWithAuthorization (gasless, off-chain)
+4. AI agent → GET /api/data + X-PAYMENT header (signed authorization)
+5. Merchant middleware → POST /v1/x402/verify (EzPayz facilitator verifies)
+6. Valid → merchant serves content
+7. Merchant middleware → POST /v1/x402/settle (EzPayz relayer submits on-chain)
+8. Merchant receives USDT → webhook emitted
+```
+
+### Merchant side — protect your API (one line)
+
+Install the middleware:
+```bash
+npm install @ezpayz/x402
+```
+
+Add to your Express server:
+```ts
+import { ezPayzPaymentMiddleware } from "@ezpayz/x402";
+
+app.use(ezPayzPaymentMiddleware({
+  facilitatorUrl: "https://ezpayz-api.onrender.com/v1/x402",
+  secretKey: "wcp_sec_...",  // your EzPayz secret API key
+  routes: {
+    "GET /api/data": { price: "0.01", payTo: "0xYourWallet" },
+  },
+}));
+```
+
+Or Fastify:
+```ts
+import { ezPayzFastifyPlugin } from "@ezpayz/x402";
+await app.register(ezPayzFastifyPlugin, {
+  facilitatorUrl: "https://ezpayz-api.onrender.com/v1/x402",
+  secretKey: "wcp_sec_...",
+  routes: { "GET /api/data": { price: "0.01", payTo: "0xYourWallet" } },
+});
+```
+
+### AI agent side — automatic payment
+
+Install the SDK:
+```bash
+npm install @ezpayz/sdk
+```
+
+Use `x402Fetch` instead of `fetch`:
+```ts
+import { x402Fetch } from "@ezpayz/sdk";
+
+const res = await x402Fetch("https://api.example.com/api/data", {
+  privateKey: "0x...",  // AI agent's wallet private key
+});
+const data = await res.json();
+// Payment was automatic — agent signed EIP-3009, EzPayz relayer settled on-chain
+```
+
+### Facilitator endpoints
+
+| Endpoint | Auth | Description |
+|---|---|---|
+| `GET /v1/x402/supported` | Any | Returns Whitechain Sepolia + USDT + EIP-3009 scheme |
+| `POST /v1/x402/verify` | Any | Verifies EIP-3009 signature + authorizationState + amount/recipient |
+| `POST /v1/x402/settle` | Secret | Submits via relayer, creates payment record, emits webhook |
+
+### Key features
+
+- **Gasless for AI agents**: the agent signs an EIP-3009 authorization off-chain. No WBT needed. The EzPayz relayer pays gas.
+- **No account needed**: AI agents don't sign up or get API keys. They just sign a payment authorization.
+- **Same merchant account**: x402 payments flow through the same merchant account + settlement records as regular checkout payments.
+- **Webhook integration**: `payment.succeeded` webhook emitted with `source: "x402"` in the payload.
+- **Micropayments**: supports any amount down to $0.000001 (1 base unit of USDT).
+
+---
+
 ## Pros and cons
 
 ### Pros
@@ -484,6 +567,8 @@ The integration has three parts: server creates the intent (secret key) → fron
 - **Idempotency**: all write endpoints accept an `Idempotency-Key` — safe retries, no duplicate charges.
 - **Configurable finality**: `confirmed` = 1 block (~1–2s), `finalized` = 5 blocks (~5s), configurable in `apps/api/src/config/settlement.ts`.
 - **EVM-compatible**: standard viem/wagmi tooling works; no Whitechain-specific SDK needed.
+- **x402 AI agent payments**: AI agents pay for API access via HTTP 402 — gasless EIP-3009, no account needed. Merchants add one line of middleware. Agents use `x402Fetch()`.
+- **Deployed + public**: API on Render (`ezpayz-api.onrender.com`), frontend on Vercel (`ezpayz.vercel.app`), SDK + x402 on npm (`@ezpayz/sdk`, `@ezpayz/x402`).
 
 ### Cons
 
@@ -491,13 +576,13 @@ The integration has three parts: server creates the intent (secret key) → fron
 - **Email is stubbed**: receipts/refund confirmations are logged, not actually sent (no SMTP wired). The downloadable PDF receipt is the primary receipt mechanism. Email will be wired in a later phase.
 - **Single PayeeShield key**: one gateway-wide signing key (per-merchant keys deferred). If compromised, all requests are forgeable until rotated.
 - **Relayer key in `.env`**: the relayer's private key is stored in an environment variable (not a KMS/HSM). Acceptable for a hackathon, not for production.
-- **Webhook signing secret stored as plaintext** in the database (MVP; should be encrypted at rest).
-- **Dashboard fully wired to live API**: auth is real (JWT from `POST /v1/auth/login` stored in `localStorage("wcp_token")`). `apiFetch` auto-attaches the JWT as a Bearer header on every request. The `useSyncRealData` hook fetches merchant profile + all list data (payments, refunds, subscriptions, exceptions, invoices, plans, links, webhooks, fulfilment) from the real API on dashboard mount and populates the Zustand store. All dashboard pages display real data. The real checkout, real subscription checkout, real refund signing, and onboarding wallet verification are fully wired to the live API.
-- **No deploy yet**: the gateway runs locally. Vercel/Render deploy is pending (the owner is testing locally first).
-- **Monthly interval = 30-day approximation on-chain**: the contract uses 2592000s for monthly; the backend scheduler handles real calendar timing, but the on-chain `nextDueTime` advances by 30 days.
-- **WalletConnect not configured**: the RainbowKit config uses a placeholder projectId — MetaMask/injected works, but WalletConnect connections don't (until a real projectId is set).
-- **GasGuard is minimal**: currently checks chain/token allowlist + global pause. Per-tx gas estimation, per-merchant rate limits, and nonce/replay protection are deferred.
-- **Requires an external wallet**: the gasless flow still needs the customer to have an EVM wallet (MetaMask) to sign the EIP-3009 authorization. No embedded/account-abstraction wallet-less flow yet.
-- **Single-token (USDT only)**: the gateway is built for the required test USDT. Multi-token support isn't implemented.
-- **Refund backend-signing deferred**: the MVP uses browser-based Wagmi signing for refunds. The production-recommended backend-signing path (key never leaves merchant server) is documented but not implemented.
-- **SDK built locally, not published**: the SDK builds to `dist/` via `pnpm build` (ESM + IIFE browser bundle). `dist/` is gitignored — run `pnpm build` after cloning. Publishing to a private npm registry (GitHub Packages) is documented in `packages/sdk/NPM_PUBLISH.md` but not yet executed. Public npm publishing (Option B) is documented for later.
+- **Webhook signing secret encrypted at rest** (AES-256-GCM, `utils/crypto.ts`).
+- **Render free tier**: the API sleeps after 15 min of inactivity. First request takes ~60s to wake. Upgrade to paid ($7/month) for always-on.
+- **Dashboard fully wired to live API**: auth is real (JWT stored in localStorage). `useSyncRealData` fetches all data from the API. All settings pages wired.
+- **Monthly interval = 30-day approximation on-chain**: the contract uses 2592000s for monthly; the backend scheduler handles real calendar timing.
+- **WalletConnect not configured**: the RainbowKit config uses a placeholder projectId — MetaMask/injected works, but WalletConnect connections don't.
+- **GasGuard is minimal**: currently checks chain/token allowlist + global pause. Per-tx gas estimation, per-merchant rate limits deferred.
+- **Requires an external wallet**: the gasless flow needs an EVM wallet (MetaMask) to sign. No embedded wallet yet.
+- **Single-token (USDT only)**: multi-token support isn't implemented.
+- **Refund backend-signing deferred**: browser Wagmi signing for MVP.
+- **SDK + x402 published on npm**: `@ezpayz/sdk@0.1.2` (includes `x402Fetch`) + `@ezpayz/x402@0.1.0`.
