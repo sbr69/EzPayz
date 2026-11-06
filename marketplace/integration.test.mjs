@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createHmac } from 'node:crypto';
 import { once } from 'node:events';
 import { createServer } from 'node:http';
+import { DatabaseSync } from 'node:sqlite';
 import test from 'node:test';
 import { createMarketplace } from './server.mjs';
 
@@ -36,8 +37,9 @@ test('order uses one hosted checkout, verifies settlement, then allows merchant 
   }).listen(0, '127.0.0.1');
   t.after(() => gateway.close());
   await once(gateway, 'listening');
+  const database = 'file:marketplace-integration?mode=memory&cache=shared';
   const app = createMarketplace({
-    database: ':memory:', password,
+    database, password,
     products: [{ id: 'tea', name: 'Tea', price: '2.50' }],
     gateway: {
       apiUrl: 'http://127.0.0.1:' + gateway.address().port,
@@ -63,6 +65,12 @@ test('order uses one hosted checkout, verifies settlement, then allows merchant 
     assert.equal(response.status, 303);
     assert.equal(response.headers.get('location'), 'https://checkout.example/real-checkout/ck_0123456789abcdef');
   }
+  const legacyDb = new DatabaseSync(database);
+  legacyDb.prepare('UPDATE orders SET checkout_url = ? WHERE payment_id = ?').run(
+    'https://checkout.example/#/real-checkout/ck_0123456789abcdef', intent.id,
+  );
+  legacyDb.close();
+  assert.equal((await start()).headers.get('location'), 'https://checkout.example/real-checkout/ck_0123456789abcdef');
   assert.equal(createCount, 1);
   assert.equal(submittedAmount, '2.50');
   assert.equal(intent.metadataJson.orderId, path.split('/').at(-1));
@@ -73,7 +81,9 @@ test('order uses one hosted checkout, verifies settlement, then allows merchant 
     method: 'POST', redirect: 'manual', headers: { authorization },
     body: new URLSearchParams({ token }),
   });
-  assert.match(await admin(), /Awaiting payment/);
+  const awaiting = await admin();
+  assert.match(awaiting, /Awaiting payment/);
+  assert.ok(awaiting.includes('href="' + path + '">View order</a>'));
   const orderId = path.split('/').at(-1);
   const validToken = createHmac('sha256', password).update('fulfil:' + orderId).digest('hex');
   assert.equal((await fulfil(validToken)).status, 409);

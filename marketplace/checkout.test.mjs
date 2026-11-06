@@ -89,6 +89,7 @@ test('fails closed on invalid gateway responses', async t => {
     { name: 'invalid fresh amount', create: { id: paymentId, checkoutSlug: slug, amountBaseUnits: '1' } },
     { name: 'external replay URL', detail: { ...intent, checkoutUrl: 'https://other.example.test/checkout/' + slug } },
     { name: 'missing replay slug', detail: { ...intent, checkoutUrl: '' } },
+    { name: 'undocumented replay slug cannot replace stored path', detail: { ...intent, checkoutUrl: '', checkoutSlug: slug } },
     { name: 'different replay amount', detail: { ...intent, amount: '1' } },
     { name: 'different replay order', detail: { ...intent, metadataJson: { orderId: 'unrelated-order' } } },
   ];

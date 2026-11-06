@@ -131,7 +131,9 @@ export function createMarketplace({ database, password, products, gateway }) {
             return page(response, 502, 'Checkout unavailable', '<a href="/orders/' + id + '">Back to order</a>');
           }
         }
-        return response.writeHead(303, { Location: checkoutUrl, 'Cache-Control': 'no-store' }).end();
+        // Earlier marketplace versions stored checkout routes in URL fragments.
+        const location = checkoutUrl.replace('/#/real-checkout/', '/real-checkout/');
+        return response.writeHead(303, { Location: location, 'Cache-Control': 'no-store' }).end();
       }
       const fulfilPath = /^\/admin\/orders\/([a-f0-9-]{36})\/fulfil$/.exec(path);
       if (request.method === 'POST' && fulfilPath) {
@@ -199,7 +201,8 @@ export function createMarketplace({ database, password, products, gateway }) {
       }
       if (request.method === 'GET' && path === '/admin/orders') {
         const orders = history.all().map(order => '<li><p>' + escape(order.created_at) + ' · ' +
-          escape(order.id) + ' · ' + money(BigInt(order.total)) + ' · ' + orderStatus(order) + '</p><ul>' +
+          escape(order.id) + ' · ' + money(BigInt(order.total)) + ' · ' + orderStatus(order) +
+          ' · <a href="/orders/' + escape(order.id) + '">View order</a></p><ul>' +
           JSON.parse(order.lines).map(line => '<li>' + line.quantity + ' × ' + escape(line.name) +
             ' · ' + money(BigInt(line.unitPrice)) + '</li>').join('') + '</ul>' +
           (order.tx_ref && !order.fulfilled_at

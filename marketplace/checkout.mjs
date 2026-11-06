@@ -54,10 +54,8 @@ export async function createCheckout({ apiUrl, checkoutOrigin, secretKey, return
       const detail = await request(endpoint + '/' + paymentId, { headers: { Authorization: authorization } });
       const intent = detail?.paymentIntent;
       if (intent?.id !== paymentId || intent.amount !== baseUnits || intent.metadataJson?.orderId !== id) throw new Error();
-      slug = intent.checkoutSlug;
-      if (slug == null && typeof intent.checkoutUrl === 'string' && intent.checkoutUrl.startsWith(storedCheckoutPrefix)) {
-        slug = intent.checkoutUrl.slice(storedCheckoutPrefix.length);
-      }
+      if (typeof intent.checkoutUrl !== 'string' || !intent.checkoutUrl.startsWith(storedCheckoutPrefix)) throw new Error();
+      slug = intent.checkoutUrl.slice(storedCheckoutPrefix.length);
     } else if (payment.amountBaseUnits !== baseUnits) {
       throw new Error();
     }
