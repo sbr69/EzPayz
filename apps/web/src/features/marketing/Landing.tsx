@@ -77,9 +77,7 @@ export default function Landing() {
       <header className="sticky top-0 z-30 border-b border-line bg-surface/85 backdrop-blur-md">
         <div className="mx-auto flex h-16 w-full items-center gap-4 px-5 sm:px-8 lg:px-12 2xl:px-20">
           <Link to="/" className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-[10px] bg-gradient-to-br from-[#118a7e] to-accent text-[18px] font-bold text-white shadow-xs">
-              W
-            </span>
+            <img src="/logo.png" alt="EzPayz" className="h-8 w-8 rounded-[10px] object-cover shadow-xs" />
             <span className="text-[20px] font-semibold tracking-[-0.01em] text-ink">EzPayz</span>
           </Link>
           <nav className="ml-6 hidden items-center gap-5 text-[18px] text-ink-2 md:flex">
@@ -553,10 +551,13 @@ console.log(session.url);`}
 
       <footer className="border-t border-line bg-surface">
         <div className="mx-auto flex w-full flex-wrap items-center justify-between gap-4 px-5 py-6 sm:px-8 lg:px-12 2xl:px-20 text-[16px] text-ink-4">
-          <p>
-            EzPayz — frontend demo for {DEFAULT_NETWORK.name}. {TOKEN.symbol} contract{" "}
-            <code className="font-mono">{TOKEN.contract.slice(0, 12)}…</code>
-          </p>
+          <div className="flex items-center gap-2.5">
+            <img src="/logo.png" alt="EzPayz" className="h-6 w-6 rounded-md object-cover" />
+            <p>
+              EzPayz — USDT payment gateway for {DEFAULT_NETWORK.name}. {TOKEN.symbol} contract{" "}
+              <code className="font-mono">{TOKEN.contract.slice(0, 12)}…</code>
+            </p>
+          </div>
           <div className="flex flex-wrap items-center gap-4">
             <Link to="/developers/quickstart" className="transition-colors hover:text-ink">
               Documentation
