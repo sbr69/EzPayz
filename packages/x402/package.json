@@ -1,0 +1,27 @@
+{
+  "name": "@ezpayz/x402",
+  "private": false,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "x402 payment middleware for EzPayz — accept gasless USDT payments from AI agents on Whitechain via HTTP 402.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": { "import": "./dist/index.js", "types": "./dist/index.d.ts" }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": ["x402", "ezpayz", "usdt", "whitechain", "payment", "ai-agent", "eip-3009", "http-402"],
+  "license": "MIT",
+  "dependencies": {
+    "viem": "^2.57.13"
+  },
+  "devDependencies": {
+    "@types/node": "22.19.17",
+    "tsup": "^8.3.5",
+    "typescript": "5.9.3"
+  }
+}

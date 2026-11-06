@@ -220,6 +220,7 @@ enum RelayerOperation {
   refund_relay
   subscription_renewal
   subscription_activation
+  x402_payment
 }
 
 enum RelayerTxStatus {

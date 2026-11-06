@@ -1,14 +1,19 @@
 {
   "name": "@ezpayz/sdk",
   "private": false,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "type": "module",
   "description": "EzPayz SDK — typed server client, React checkout widgets, webhook verification, and amount helpers for accepting gasless USDT payments on Whitechain Sepolia.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "exports": {
-    ".": { "import": "./dist/index.js", "types": "./dist/index.d.ts" },
-    "./browser": { "default": "./dist/browser-entry.global.js" }
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./browser": {
+      "default": "./dist/browser-entry.global.js"
+    }
   },
   "files": [
     "dist",
@@ -20,7 +25,16 @@
     "typecheck": "tsc --noEmit",
     "prepublishOnly": "tsup"
   },
-  "keywords": ["whitechain", "usdt", "payment", "gateway", "eip-3009", "crypto", "stablecoin", "checkout"],
+  "keywords": [
+    "whitechain",
+    "usdt",
+    "payment",
+    "gateway",
+    "eip-3009",
+    "crypto",
+    "stablecoin",
+    "checkout"
+  ],
   "license": "MIT",
   "dependencies": {
     "viem": "^2.57.13"
