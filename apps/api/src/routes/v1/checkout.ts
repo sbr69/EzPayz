@@ -190,9 +190,11 @@ export async function checkoutRoutes(app: FastifyInstance): Promise<void> {
       createSubDeadline: string;
       createSubNonce: string;
       subscriptionId: string;
+      nextDueTime: string;
+      expiry: string;
     };
-    if (!body?.payerWallet || !body?.permitSignature || !body?.createSubSignature || !body?.subscriptionId) {
-      return reply.code(400).send({ error: { code: "validation_error", message: "payerWallet, permitSignature, createSubSignature, and subscriptionId are required" } });
+    if (!body?.payerWallet || !body?.permitSignature || !body?.createSubSignature || !body?.subscriptionId || !body?.nextDueTime || !body?.expiry) {
+      return reply.code(400).send({ error: { code: "validation_error", message: "payerWallet, permitSignature, createSubSignature, subscriptionId, nextDueTime, and expiry are required" } });
     }
     const result = await getSubscriptionCheckoutSession(slug);
     if (!result) {
@@ -203,12 +205,11 @@ export async function checkoutRoutes(app: FastifyInstance): Promise<void> {
       return reply.code(409).send({ error: { code: "session_closed", message: "Checkout session is no longer active" } });
     }
 
-    // Enqueue the relayer job to submit permit + createSubscriptionBySig.
+    // Enqueue the relayer job — use the EXACT values from the request body (not recomputed)
+    // because the signature was computed over these values. Recomputing nextDueTime/expiry
+    // from the server's clock would produce a different digest → signature rejection.
     const { getRelayerQueue } = await import("../../queues");
-    const now = Math.floor(Date.now() / 1000);
     const intervalSec = plan.interval === "hourly" ? 3600 : plan.interval === "daily" ? 86400 : 2592000;
-    const nextDue = now + intervalSec;
-    const expiry = now + (plan.planExpiryMonths ?? 12) * 2592000;
 
     await getRelayerQueue().add("activate-subscription-by-sig", {
       payer: body.payerWallet,
@@ -218,8 +219,8 @@ export async function checkoutRoutes(app: FastifyInstance): Promise<void> {
       intervalSeconds: intervalSec,
       maxChargePerCycle: plan.maxChargePerCycle,
       cumulativeCap: plan.cumulativeLimit,
-      nextDueTime: nextDue,
-      expiry,
+      nextDueTime: body.nextDueTime,
+      expiry: body.expiry,
       permitSignature: body.permitSignature,
       permitDeadline: body.permitDeadline,
       permitNonce: body.permitNonce,

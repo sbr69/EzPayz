@@ -1,7 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { z } from "zod";
 import { randomBytes } from "node:crypto";
-import { recoverAddress } from "viem";
 import { prisma } from "../../db/client";
 import { MerchantRepository } from "../../db/repositories/merchant";
 import { env } from "../../config";
@@ -109,13 +108,9 @@ export async function merchantRoutes(app: FastifyInstance): Promise<void> {
     // Recover the signer from the personal_sign signature.
     const messageToSign = `Sign this message to verify wallet ownership: ${challenge}`;
     try {
-      const signer = await recoverAddress({
-        hash: (() => {
-          // personal_sign prefixes with "\x19Ethereum Signed Message:\n" + length
-          const { createHash } = require("node:crypto") as typeof import("node:crypto");
-          const prefix = `\x19Ethereum Signed Message:\n${messageToSign.length}`;
-          return `0x${createHash("sha256").update(Buffer.from(prefix + messageToSign)).digest("hex")}` as `0x${string}`;
-        })(),
+      const { recoverMessageAddress } = await import("viem");
+      const signer = await recoverMessageAddress({
+        message: messageToSign,
         signature: signature as `0x${string}`,
       });
       if (signer.toLowerCase() !== wallet.toLowerCase()) {
