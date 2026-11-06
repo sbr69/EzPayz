@@ -1,6 +1,6 @@
 {
   "name": "ezpayz",
-  "buildCommand": "pnpm install && VITE_API_URL=https://ezpayz-api.onrender.com pnpm --filter @ezpayz/web build",
+  "buildCommand": "pnpm install && cd apps/web && VITE_API_URL=https://ezpayz-api.onrender.com npx vite build",
   "outputDirectory": "apps/web/dist",
   "installCommand": "pnpm install",
   "framework": null,
