@@ -1,46 +1,67 @@
-# Marketplace
+# Sill & Shelf
 
-Standalone local storefront for one merchant. Requires Node.js 24.2 or later.
+Customer-facing Next.js marketplace demonstrating non-custodial checkout powered by the [EzPayz](https://ezpayz.vercel.app) payment gateway on **Whitechain Sepolia** (Chain ID `1874`).
 
-Copy `.env.example` to the ignored `marketplace/.env` file and set `MARKETPLACE_PASSWORD` to a unique password of at least 16 characters. Run this command from the repo root.
+## Features
 
-```sh
-node --env-file=marketplace/.env marketplace/server.mjs
+- **Modern Architecture**: Next.js 16 App Router, React 19, TypeScript, and Tailwind CSS v4.
+- **Neon Postgres**: Serverless PostgreSQL with Drizzle ORM.
+- **Hosted EzPayz Checkout**: Seamless redirect to EzPayz hosted checkout for wallet connection and payment in test USDT.
+- **Automatic & Manual Reconciliation**: Webhook verification using HMAC-SHA256 signature, plus user-triggered status reconciliation.
+- **Customer Friendly**: Simple checkout flow asking Name and Email. Merchant administration is handled directly on the EzPayz gateway dashboard.
+- **Curated Catalog**: 12 artisanal homeware products, with each unit price capped under 10 USDT.
+
+## Quick Start
+
+### 1. Install dependencies
+
+```bash
+cd marketplace
+npm install
 ```
 
-Open http://127.0.0.1:5174. Edit `catalog.json` and restart to change the sample catalog. The storefront records order lines and server-calculated USDT totals in its own SQLite database. Order history is at `/admin/orders`. Sign in as `merchant` with the configured password.
+### 2. Configure environment variables
 
-## Hosted EzPayz checkout
+Copy `.env.example` to `.env.local`:
 
-The example connects to the deployed EzPayz API and checkout on Whitechain Sepolia (chain ID `1874`). Sign in to EzPayz, configure a verified payout wallet, and create a testnet secret API key (`wcp_sec_…`) under **Developers → API Keys**. Set `EZPAYZ_SECRET_KEY` in `marketplace/.env` and restart the marketplace. Keep the key server-side. Leave it blank to run the catalog and order history without checkout. [EzPayz dashboard](https://ezpayz.vercel.app/developers/api-keys) · [Gateway status](https://ezpayz-api.onrender.com/v1/status)
-
-1. Create an order and click **Pay with EzPayz**. The marketplace reuses the stored checkout on subsequent clicks.
-2. In checkout, connect a wallet with test USDT on Whitechain Sepolia. After the payment succeeds, click **Return to merchant** in the same browser and select **Check payment status**. The deployed gateway cannot reach the marketplace's loopback webhook.
-3. Once the marketplace verifies the intent and marks the order paid, use **Mark fulfilled** at `/admin/orders` to record fulfilment.
-
-Each order keeps its original payment intent. If a checkout fails or expires, review that intent in EzPayz before accepting a replacement payment.
-
-## Local EzPayz development
-
-To run the checkout frontend locally against the deployed API, set `EZPAYZ_CHECKOUT_ORIGIN=http://127.0.0.1:5173` in `marketplace/.env`, restart the marketplace, and run this from the repo root in a separate PowerShell terminal with workspace dependencies installed.
-
-```powershell
-$env:VITE_API_URL = 'https://ezpayz-api.onrender.com'
-pnpm --filter './apps/web' dev --host 127.0.0.1 --port 5173 --strictPort
+```bash
+cp .env.example .env.local
 ```
 
-To use a local API instead, configure the gateway's root `.env`, start its API and workers with `pnpm --filter @ezpayz/api dev`, and use `http://127.0.0.1:3000` for both `EZPAYZ_API_URL` and `VITE_API_URL`. Use a key and payout wallet configured on that API. [Gateway guide](../HOW_TO_USE.md)
+Set your environment variables:
+- `DATABASE_URL`: Connection string to your Neon Postgres database.
+- `APP_ORIGIN`: Base URL of this marketplace (e.g. `http://localhost:3000`).
+- `EZPAYZ_API_URL`: Gateway API URL (defaults to `https://ezpayz-api.onrender.com`).
+- `EZPAYZ_CHECKOUT_ORIGIN`: Gateway hosted checkout URL (defaults to `https://ezpayz.vercel.app`).
+- `EZPAYZ_SECRET_KEY`: Merchant secret API key (`wcp_sec_...`) created in EzPayz Dashboard.
+- `EZPAYZ_WEBHOOK_SECRET`: Secret key for verifying EzPayz webhook signatures.
 
-For automatic reconciliation on a local gateway, call `POST /v1/webhooks` with the merchant bearer secret and a unique `Idempotency-Key`. Send `{"url":"http://127.0.0.1:5174/webhooks/ezpayz","eventTypes":["payment.succeeded"]}`. Copy the returned `signingSecret` into `EZPAYZ_WEBHOOK_SECRET` and restart the marketplace.
+### 3. Run migrations and seed catalog
 
-## MCP access
-
-The hosted MCP endpoint supports public tool discovery. Its REST tools use a server process key. For MCP tools scoped to your merchant, run the repository's stdio MCP server locally with `GATEWAY_API_URL=https://ezpayz-api.onrender.com` and `GATEWAY_SECRET_KEY` set to your merchant testnet secret in the MCP client's private environment. [Hosted MCP endpoint](https://ezpayz-api.onrender.com/mcp) · [Local MCP setup](../packages/mcp/README.md#1-local-stdio-claude-desktop-cursor)
-
-## Tests
-
-Run the marketplace suite from the repository root. It uses local HTTP fixtures and does not submit chain transactions.
-
-```sh
-node --test "marketplace/*.test.mjs"
+```bash
+npm run db:migrate
+npm run db:seed
 ```
+
+### 4. Start the development server
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) to view the marketplace.
+
+## Testing
+
+Use the [manual testing guide](./MANUAL_TESTING.md) for live setup, hosted checkout, webhook verification, and x402 capability checks. Run the automated suite for regression coverage.
+
+```bash
+npm test
+```
+
+## Vercel Deployment
+
+1. Set the Vercel project's **Root Directory** to `marketplace`.
+2. Connect your Neon Postgres database integration or set `DATABASE_URL` in Environment Variables.
+3. Add `APP_ORIGIN` (set to your Vercel deployment URL), `EZPAYZ_SECRET_KEY`, `EZPAYZ_WEBHOOK_SECRET`, `EZPAYZ_API_URL`, and `EZPAYZ_CHECKOUT_ORIGIN`.
+4. Deploy!
