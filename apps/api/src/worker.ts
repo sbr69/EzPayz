@@ -192,25 +192,31 @@ async function pollFailedWebhooks() {
       take: 20,
     });
     for (const ev of failed) {
-      const attemptCount = (ev.attempts ?? 0) + 1;
-      if (attemptCount > MAX_WEBHOOK_RETRIES) {
-        // Exceeded max retries — stop retrying (nextRetryAt = null prevents future polls).
-        await prisma.webhookEvent.update({ where: { id: ev.id }, data: { nextRetryAt: null } });
-        continue;
+      // Per-row guard: one undecryptable row (e.g. encrypted by a deployment with a
+      // different ENCRYPTION_KEY/JWT_SECRET on the shared DB) must not abort the batch.
+      try {
+        const attemptCount = (ev.attempts ?? 0) + 1;
+        if (attemptCount > MAX_WEBHOOK_RETRIES) {
+          // Exceeded max retries — stop retrying (nextRetryAt = null prevents future polls).
+          await prisma.webhookEvent.update({ where: { id: ev.id }, data: { nextRetryAt: null } });
+          continue;
+        }
+        await dispatchWebhookEvent({
+          outboxId: `retry-${ev.id}`,
+          merchantId: ev.merchantId,
+          type: ev.type,
+          resourceId: ev.relatedPaymentId ?? "",
+          payload: ev.payloadJson as Record<string, unknown>,
+        });
+        // Set next retry with exponential backoff: 30s * 2^attempt (30s, 60s, 120s, 240s, 480s).
+        const backoffSec = 30 * Math.pow(2, attemptCount);
+        await prisma.webhookEvent.update({
+          where: { id: ev.id },
+          data: { attempts: attemptCount, nextRetryAt: new Date(Date.now() + backoffSec * 1000) },
+        });
+      } catch (rowError) {
+        console.error(`[webhook-retry] row ${ev.id} skipped:`, (rowError as Error).message);
       }
-      await dispatchWebhookEvent({
-        outboxId: `retry-${ev.id}`,
-        merchantId: ev.merchantId,
-        type: ev.type,
-        resourceId: ev.relatedPaymentId ?? "",
-        payload: ev.payloadJson as Record<string, unknown>,
-      });
-      // Set next retry with exponential backoff: 30s * 2^attempt (30s, 60s, 120s, 240s, 480s).
-      const backoffSec = 30 * Math.pow(2, attemptCount);
-      await prisma.webhookEvent.update({
-        where: { id: ev.id },
-        data: { attempts: attemptCount, nextRetryAt: new Date(Date.now() + backoffSec * 1000) },
-      });
     }
     if (failed.length > 0) console.log(`[webhook-retry] processed ${failed.length} failed deliveries`);
   } catch (e) {

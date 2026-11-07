@@ -1,4 +1,5 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { WalletProvider } from "@/contexts/WalletContext";
 import { Providers } from "@/providers";
 import { RealCheckout } from "@/features/checkout/RealCheckout";
@@ -6,7 +7,12 @@ import { RealSubscriptionCheckout } from "@/features/checkout/RealSubscriptionCh
 import { PaymentLinkResolver } from "@/features/checkout/PaymentLinkResolver";
 import { AppShell } from "@/components/layout/AppShell";
 import { ToastHost } from "@/components/ui/Feedback";
+import { MarketingLayout } from "@/features/marketing/MarketingLayout";
 import Landing from "@/features/marketing/Landing";
+import { BuildPage } from "@/features/marketing/BuildPage";
+import { GaslessPage } from "@/features/marketing/GaslessPage";
+import { ProductPage } from "@/features/marketing/ProductPage";
+import { SecurityPage } from "@/features/marketing/SecurityPage";
 import { ForgotPassword, SignIn, SignUp } from "@/features/auth/AuthPages";
 import Onboarding from "@/features/onboarding/Onboarding";
 import Dashboard from "@/features/dashboard/Dashboard";
@@ -36,15 +42,30 @@ import {
 } from "@/features/settings/SettingsPages";
 import { ReceiptPage } from "@/features/checkout/Receipt";
 import { CustomerSubscriptionPage } from "@/features/customer/CustomerSubscription";
-import Roadmap from "@/features/roadmap/Roadmap";
+
+/** Reset scroll on route change — marketing navigation is real routes now. */
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
 
 export function App() {
   return (
     <Providers>
     <WalletProvider>
       <BrowserRouter>
+        <ScrollToTop />
         <Routes>
-          <Route path="/" element={<Landing />} />
+          <Route element={<MarketingLayout />}>
+            <Route path="/" element={<Landing />} />
+            <Route path="/product" element={<ProductPage />} />
+            <Route path="/gasless" element={<GaslessPage />} />
+            <Route path="/security" element={<SecurityPage />} />
+            <Route path="/build" element={<BuildPage />} />
+          </Route>
           <Route path="/sign-in" element={<SignIn />} />
           <Route path="/sign-up" element={<SignUp />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -104,7 +125,6 @@ export function App() {
           <Route path="/receipt/:id" element={<ReceiptPage />} />
           <Route path="/customer/subscriptions/:id" element={<CustomerSubscriptionPage />} />
           <Route path="/order/:id" element={<CustomerOrderView />} />
-          <Route path="/roadmap" element={<Roadmap />} />
 
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

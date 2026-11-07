@@ -17,10 +17,8 @@
     "db:seed": "tsx db/seed.ts"
   },
   "dependencies": {
-    "@ezpayz/sdk": "^0.1.2",
     "@ezpayz/x402": "^0.1.0",
     "@neondatabase/serverless": "^1.2.0",
-    "@radix-ui/react-slot": "^1.2.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.45.0",

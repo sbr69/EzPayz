@@ -17,6 +17,8 @@ const profileUpdateSchema = z.object({
   payoutWallet: z.string().regex(/^0x[a-fA-F0-9]{40}$/).optional(),
   walletVerified: z.boolean().optional(),
   notificationPrefs: z.record(z.string(), z.unknown()).optional(),
+  /** Merchant default for how long a hosted checkout session stays payable (hours). */
+  checkoutExpiryHours: z.number().int().min(1).max(8760).optional(),
 });
 
 const verifySchema = z.object({

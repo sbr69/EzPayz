@@ -18,7 +18,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
 
   return (
     <section className="site-width pb-20">
-      <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 py-5 text-xs text-[#565A64]">
+      <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-2 py-5 text-sm text-[#565A64]">
         <Link href="/items" className="underline underline-offset-4">Collection</Link>
         <span aria-hidden>/</span>
         <span>{product.name}</span>
@@ -33,7 +33,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <p className="mt-5 text-lg font-medium tabular-nums">{formatUsdt(product.price)}</p>
           <p className="my-7 max-w-[40ch] text-base leading-relaxed text-[#565A64]">{product.description}</p>
           <ProductPurchaseBox slug={product.slug} name={product.name} />
-          <p className="mt-6 border-t border-[#D6CCBD] pt-4 text-xs text-[#565A64]">Test USDT · Whitechain Sepolia</p>
+          <p className="mt-6 border-t border-[#D6CCBD] pt-4 text-sm text-[#565A64]">Test USDT · Whitechain Sepolia</p>
         </div>
       </div>
     </section>

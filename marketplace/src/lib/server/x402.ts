@@ -38,7 +38,8 @@ export function agentConfig() {
   const groqKey = process.env.GROQ_API_KEY;
   const model = process.env.GROQ_MODEL;
   if (!origin || (origin.protocol !== "https:" && !(origin.protocol === "http:" && ["localhost", "127.0.0.1"].includes(origin.hostname))) ||
-      !api || api.protocol !== "https:" || api.username || api.password || origin.username || origin.password ||
+      !api || (api.protocol !== "https:" && !(api.protocol === "http:" && ["localhost", "127.0.0.1"].includes(api.hostname))) ||
+      api.username || api.password || origin.username || origin.password ||
       !payTo || !isAddress(payTo) || !privateKey || !/^0x[a-f\d]{64}$/i.test(privateKey) ||
       !merchantKey || !groqKey || !model || !process.env.DATABASE_URL) return null;
   return { origin: origin.origin, api: api.origin, payTo, privateKey: privateKey as Hex, merchantKey, groqKey, model };

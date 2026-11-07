@@ -37,7 +37,13 @@ export async function buildApp(): Promise<FastifyInstance> {
   });
 
   await app.register(helmet);
-  await app.register(cors, { origin: true }); // dev: allow all; tighten on the deployed frontend origin.
+  await app.register(cors, {
+    // Reflect any origin (auth is Bearer-token based — no cookies) and allow all
+    // methods the API actually serves; the @fastify/cors default (GET,HEAD,POST)
+    // silently breaks browser PATCH/PUT/DELETE with "Failed to fetch".
+    origin: true,
+    methods: ["GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  });
   await app.register(rateLimit, { max: 100, timeWindow: "1 minute" });
   await app.register(sensible);
   await app.register(jwt, { secret: env.JWT_SECRET });

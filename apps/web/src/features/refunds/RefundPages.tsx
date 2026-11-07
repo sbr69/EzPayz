@@ -82,7 +82,7 @@ export function RefundsList() {
     <>
       <PageHeader
         title="Refunds"
-        description="A refund is a new USDT transfer from your payout wallet to the customer. It never reverses the original blockchain transaction."
+        description="New USDT transfers to the customer — original transactions are never reversed."
         actions={
           <SelectRefundablePayment payments={refundable} onSelected={(p) => setRefundTarget(p)} />
         }
@@ -155,12 +155,12 @@ export function RefundsList() {
 function SelectRefundablePayment({ payments, onSelected }: { payments: Payment[]; onSelected: (p: Payment) => void }) {
   const [value, setValue] = useState("");
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex flex-wrap items-center gap-2">
       <select
         value={value}
         onChange={(e) => setValue(e.target.value)}
         aria-label="Select a payment to refund"
-        className="h-9 max-w-[280px] rounded-md border border-line-strong bg-surface px-3 text-[18px] text-ink"
+        className="h-9 max-w-[280px] min-w-0 flex-1 rounded-md border border-line-strong bg-surface px-3 text-[18px] text-ink"
       >
         <option value="">Select a settled payment…</option>
         {payments.map((p) => (
@@ -240,10 +240,10 @@ export function RefundDetail() {
         payment transaction remains on the ledger exactly as it settled.
       </Callout>
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader title="Refund details" />
-          <div className="grid gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
             <KeyValue label="Refund ID">
               <code className="font-mono text-[16px]">{refund.id}</code>
             </KeyValue>

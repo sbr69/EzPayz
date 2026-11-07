@@ -61,7 +61,7 @@ export function DeveloperOverview() {
     <>
       <PageHeader
         title="Developers"
-        description={`Integrate the gateway with the SDK, API keys and webhooks. Environment: ${DEFAULT_NETWORK.name} (testnet).`}
+        description="SDK, API keys and webhooks — testnet environment."
         meta={
           <>
             <StatusBadge label="API operational (demo)" tone="positive" />
@@ -192,7 +192,7 @@ export default function Pay({ sessionId }: { sessionId: string }) {
           </div>
       </Card>
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader
             title="Recent API activity"
@@ -211,7 +211,7 @@ export default function Pay({ sessionId }: { sessionId: string }) {
             <ul className="divide-y divide-line">
               {recentEvents.map((e) => (
                 <li key={e.id} className="flex flex-wrap items-center justify-between gap-3 px-6 py-3.5">
-                  <div className="flex items-center gap-2.5">
+                  <div className="flex flex-wrap items-center gap-x-2.5 gap-y-1.5">
                     <code className="font-mono text-[18px] text-ink">{e.type}</code>
                     <StatusBadge
                       label={`HTTP ${e.responseStatus ?? "—"} · ${e.attempts} attempt${e.attempts > 1 ? "s" : ""}`}
@@ -281,6 +281,7 @@ export default function Pay({ sessionId }: { sessionId: string }) {
 
 export function ApiKeysPage() {
   const data = useDemo((s) => s.data);
+  const isDemo = useDemo((s) => s.isDemo);
   const pushToast = useDemo((s) => s.pushToast);
   const [createOpen, setCreateOpen] = useState(false);
   const [revokeTarget, setRevokeTarget] = useState<ApiKey | null>(null);
@@ -317,8 +318,8 @@ export function ApiKeysPage() {
       key: "permissions",
       header: "Permissions",
       hideOnMobile: true,
-      render: (k) => <span className="text-[18px] text-ink-3">{k.permissions.join(", ")}</span>,
-      csv: (k) => k.permissions.join(" "),
+      render: (k) => <span className="text-[18px] text-ink-3">{k.permissions?.join(", ") ?? "—"}</span>,
+      csv: (k) => k.permissions?.join(" ") ?? "",
     },
     {
       key: "lastUsed",
@@ -352,7 +353,7 @@ export function ApiKeysPage() {
     <>
       <PageHeader
         title="API keys"
-        description="Secret keys are created server-side and shown once. They are never exposed to browser-side application code."
+        description="Secret keys are shown once, at creation."
         actions={
           <Button variant="primary" icon={<Plus className="h-4 w-4" />} onClick={() => setCreateOpen(true)}>
             Create API key
@@ -373,10 +374,12 @@ export function ApiKeysPage() {
         />
       </Card>
 
-      <Callout tone="neutral" title="Demo credentials">
-        The values in this workspace are obviously fake and generated in your browser. A real deployment
-        returns the secret exactly once over a server-to-server channel.
-      </Callout>
+      {isDemo ? (
+        <Callout tone="neutral" title="Demo credentials">
+          The values in this workspace are obviously fake and generated in your browser. A real deployment
+          returns the secret exactly once over a server-to-server channel.
+        </Callout>
+      ) : null}
 
       <Modal
         open={createOpen}
@@ -519,7 +522,7 @@ export function WebhooksPage() {
     <>
       <PageHeader
         title="Webhooks"
-        description="Subscribe to payment, refund, subscription and fulfilment events. Delivery status is tracked separately from payment settlement."
+        description="Subscribe to gateway events with tracked delivery."
         actions={
           <Button variant="primary" icon={<Plus className="h-4 w-4" />} onClick={() => setCreateOpen(true)}>
             Add endpoint
@@ -527,7 +530,7 @@ export function WebhooksPage() {
         }
       />
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         {data.webhookEndpoints.map((endpoint) => (
           <Card key={endpoint.id}>
             <CardHeader

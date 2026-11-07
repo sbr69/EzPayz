@@ -153,8 +153,8 @@ export function AddressDisplay({
   if (!address) return <span className="text-ink-4">—</span>;
   const text = full ? address : truncateMiddle(address);
   return (
-    <span className={cn("inline-flex items-center gap-1.5", className)}>
-      <code className="font-mono text-[18px] text-ink-2">{text}</code>
+    <span className={cn("inline-flex max-w-full items-center gap-1.5", className)}>
+      <code className="min-w-0 break-all font-mono text-[18px] text-ink-2">{text}</code>
       <CopyButton value={address} label={label ?? "Copy"} size="xs" />
       {href ? (
         <a href={href} target="_blank" rel="noreferrer" className="text-ink-3 hover:text-accent">
@@ -329,22 +329,25 @@ export function CodeBlock({
   language = "bash",
   caption,
   filename,
+  dense = false,
 }: {
   code: string;
   language?: string;
   caption?: string;
   filename?: string;
+  /** Compact 14px variant for marketing pages (default 16px suits the dashboard). */
+  dense?: boolean;
 }) {
   return (
     <figure className="overflow-hidden rounded-[10px] border border-line bg-[#fbfaf8] shadow-xs">
       <div className="flex items-center justify-between gap-2 border-b border-line bg-canvas px-3 py-1.5">
-        <span className="font-mono text-[16px] text-ink-3">{filename ?? language}</span>
+        <span className={cn("font-mono text-ink-3", dense ? "text-[13px]" : "text-[16px]")}>{filename ?? language}</span>
         <CopyButton value={code} label="Copy" size="xs" />
       </div>
-      <pre className="overflow-x-auto px-3.5 py-3 text-[18px] leading-relaxed scroll-thin">
+      <pre className={cn("overflow-x-auto px-3.5 py-3 leading-relaxed scroll-thin", dense ? "text-[14px]" : "text-[16px]")}>
         <code className="font-mono text-ink-2">{code}</code>
       </pre>
-      {caption ? <figcaption className="border-t border-line px-3.5 py-2 text-[16px] text-ink-4">{caption}</figcaption> : null}
+      {caption ? <figcaption className={cn("border-t border-line px-3.5 py-2 text-ink-4", dense ? "text-[13px]" : "text-[16px]")}>{caption}</figcaption> : null}
     </figure>
   );
 }

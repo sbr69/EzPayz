@@ -83,7 +83,7 @@ export function CustomerSubscriptionPage() {
           }
         />
 
-        <div className="grid gap-5 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
           <Card>
             <CardHeader title="Subscription" />
             <div className="px-5 py-2">

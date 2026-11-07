@@ -264,6 +264,7 @@ model Merchant {
   notificationPrefs Json?
   environment       Environment @default(testnet)
   onboardingComplete Boolean    @default(false)
+  checkoutExpiryHours Int        @default(72)
   country           String      @default("")
   // Auth (Phase 3): email + password hash for JWT login.
   passwordHash      String?

@@ -42,11 +42,13 @@ const STEPS = [
 export default function Onboarding() {
   const navigate = useNavigate();
   const merchant = useDemo((s) => s.data.merchant);
+  const isDemo = useDemo((s) => s.isDemo);
   const patchMerchant = useDemo((s) => s.patchMerchant);
 
   /** Updates both the real API (PATCH /v1/merchants/me) and the local demo store. */
   async function updateMerchant(patch: Record<string, unknown>) {
     patchMerchant(patch); // update local store for immediate UI feedback
+    if (isDemo) return; // demo mode: no backend exists — the local store is the source of truth
     try {
       await apiFetch("/v1/merchants/me", {
         method: "PATCH",
@@ -60,6 +62,8 @@ export default function Onboarding() {
   const setStep = useDemo((s) => s.setOnboardingStep);
   const stepIndex = useDemo((s) => s.onboardingStep);
   const pushToast = useDemo((s) => s.pushToast);
+  // Merchant preference for how long hosted checkout sessions stay payable.
+  const [expiryHours, setExpiryHours] = useState(() => String(merchant.checkoutExpiryHours ?? 72));
 
   const [form, setForm] = useState({
     businessName: merchant.businessName,
@@ -94,7 +98,7 @@ export default function Onboarding() {
         .filter(Boolean)
         .slice(0, 2)
         .map((w) => w[0]?.toUpperCase())
-        .join("") || "NW",
+        .join("") || "EZ",
     [form.displayName, form.businessName],
   );
 
@@ -127,6 +131,15 @@ export default function Onboarding() {
       pushToast({ title: "Connect and verify a payout wallet", body: "Step 2 must be completed first.", tone: "warn" });
       return;
     }
+    if (stepIndex === 2) {
+      const hours = Math.max(1, Math.min(8760, Number(expiryHours) || 72));
+      await updateMerchant({ checkoutExpiryHours: hours });
+      pushToast({
+        title: "Checkout expiry saved",
+        body: `New checkout sessions stay payable for ${hours} hour${hours === 1 ? "" : "s"}.`,
+        tone: "success",
+      });
+    }
     if (stepIndex === 3 && !secretConfirmed) {
       pushToast({ title: "Confirm you stored the secret key", body: "Tick the confirmation to continue.", tone: "warn" });
       return;
@@ -144,6 +157,16 @@ export default function Onboarding() {
   }
 
   async function generateCredentials() {
+    if (isDemo) {
+      // Demo mode — fabricate obviously-fake credentials locally (no backend to call).
+      const rand = () => Math.random().toString(36).slice(2, 12);
+      setCreds({
+        publishable: `pk_test_demo_${rand()}`,
+        secret: `sk_test_demo_${rand()}${rand()}`,
+        webhookSecret: `whsec_demo_${rand()}`,
+      });
+      return;
+    }
     setBusy(true);
     try {
       const key = await apiFetch<{ id: string; publishable: string; secret: string }>("/v1/api-keys", {
@@ -176,12 +199,10 @@ export default function Onboarding() {
     <div className="min-h-screen bg-canvas">
       <header className="border-b border-line bg-surface">
         <div className="mx-auto flex h-16 max-w-4xl items-center gap-3 px-6">
-          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-accent text-[18px] font-bold text-white">
-            W
-          </span>
+          <img src="/logo.png" alt="EzPayz" className="h-8 w-8 rounded-[10px] object-cover shadow-xs" />
           <div>
-            <p className="text-[20px] font-semibold leading-tight text-ink">Merchant onboarding</p>
-            <p className="text-[16px] text-ink-4">
+            <p className="font-display text-[24px] leading-tight text-ink">Merchant onboarding</p>
+            <p className="text-[15px] text-ink-4">
               Step {stepIndex + 1} of {STEPS.length} · {STEPS[stepIndex]}
             </p>
           </div>
@@ -203,7 +224,7 @@ export default function Onboarding() {
               >
                 {i < stepIndex ? <Check className="h-3 w-3" /> : i + 1}
               </span>
-              <span className={`text-[18px] ${i === stepIndex ? "font-semibold text-ink" : "text-ink-4"}`}>{s}</span>
+              <span className={`text-[15px] ${i === stepIndex ? "font-semibold text-ink" : "text-ink-4"}`}>{s}</span>
               {i < STEPS.length - 1 ? <span className="mx-1 h-px w-4 bg-line-strong sm:w-8" /> : null}
             </li>
           ))}
@@ -211,8 +232,8 @@ export default function Onboarding() {
 
         {stepIndex === 0 ? (
           <Card className="p-5">
-            <h2 className="text-[22px] font-semibold text-ink">Business profile</h2>
-            <p className="mt-1 text-[18px] text-ink-3">
+            <h2 className="font-display text-[26px] leading-tight text-ink">Business profile</h2>
+            <p className="mt-1 text-[17px] text-ink-3">
               This information appears on hosted checkout, invoices and paid receipts.
             </p>
             <div className="mt-5 space-y-4">
@@ -267,7 +288,7 @@ export default function Onboarding() {
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                 />
               </Field>
-              <Field label="Logo" hint="PNG or SVG up to 1 MB. Stored locally in the demo.">
+              <Field label="Logo" hint="PNG or SVG up to 1 MB. Stored locally in your browser.">
                 <div className="flex items-center gap-4">
                   <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-md border border-line bg-canvas">
                     {logo ? (
@@ -313,8 +334,8 @@ export default function Onboarding() {
 
         {stepIndex === 1 ? (
           <Card className="p-5">
-            <h2 className="text-[22px] font-semibold text-ink">Payout wallet</h2>
-            <p className="mt-1 text-[18px] text-ink-3">
+            <h2 className="font-display text-[26px] leading-tight text-ink">Payout wallet</h2>
+            <p className="mt-1 text-[17px] text-ink-3">
               USDT settled through the gateway is paid out to this address on {DEFAULT_NETWORK.name}.
             </p>
             <div className="mt-5 space-y-4">
@@ -369,7 +390,13 @@ export default function Onboarding() {
                 <div className="rounded-md border border-line p-3">
                   <p className="text-[16px] uppercase tracking-wide text-ink-4">Wallet status</p>
                   <p className="mt-1 text-[18px] font-medium text-ink">
-                    {merchant.walletVerified ? "Verified (simulated)" : wallet.address ? "Connected" : "Not connected"}
+                    {merchant.walletVerified
+                      ? wallet.simulated
+                        ? "Verified (simulated)"
+                        : "Verified"
+                      : wallet.address
+                        ? "Connected"
+                        : "Not connected"}
                   </p>
                 </div>
               </div>
@@ -386,7 +413,9 @@ export default function Onboarding() {
                     <div className="flex items-start gap-2">
                       <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0" />
                       <span>
-                        A simulated challenge was completed for{" "}
+                        {wallet.simulated
+                          ? "A simulated challenge was completed for "
+                          : "You signed the ownership challenge for "}
                         <code className="font-mono">{merchant.payoutWallet.slice(0, 12)}…</code>. You can
                         replace the wallet at any time from Settings → Payout wallet.
                       </span>
@@ -447,8 +476,8 @@ export default function Onboarding() {
 
         {stepIndex === 2 ? (
           <Card className="p-5">
-            <h2 className="text-[22px] font-semibold text-ink">Payment configuration</h2>
-            <p className="mt-1 text-[18px] text-ink-3">
+            <h2 className="font-display text-[26px] leading-tight text-ink">Payment configuration</h2>
+            <p className="mt-1 text-[17px] text-ink-3">
               These values are configurable gateway metadata. They do not change the network or the token
               contract you settle on.
             </p>
@@ -466,43 +495,72 @@ export default function Onboarding() {
                   <code className="break-all font-mono text-[16px]">{TOKEN.contract}</code>
                 </KeyValue>
                 <KeyValue label="Token decimals">
-                  {TOKEN.decimals === null ? "Unknown" : `${TOKEN.decimals} (unverified)`}
+                  {TOKEN.decimals === null
+                    ? "Unknown"
+                    : `${TOKEN.decimals}${TOKEN.decimalsVerified ? " (verified)" : " (unverified)"}`}
                 </KeyValue>
                 <KeyValue label="Delegated transfer support">
-                  <span className="text-warn">Not verified</span>
+                  {TOKEN.eip3009Verified ? (
+                    <span className="text-positive">Verified (EIP-3009)</span>
+                  ) : (
+                    <span className="text-warn">Not verified</span>
+                  )}
                 </KeyValue>
               </div>
               <Field label="Default checkout expiry" htmlFor="ob-exp">
-                <Select id="ob-exp" defaultValue="72">
+                <Select
+                  key={String(merchant.checkoutExpiryHours)}
+                  id="ob-exp"
+                  value={expiryHours}
+                  onChange={(e) => setExpiryHours(e.target.value)}
+                >
+                  {["24", "72", "168"].includes(expiryHours) ? null : (
+                    <option value={expiryHours}>{expiryHours} hours</option>
+                  )}
                   <option value="24">24 hours</option>
                   <option value="72">72 hours</option>
                   <option value="168">7 days</option>
                 </Select>
               </Field>
-              <Callout tone="warn" title="EIP-3009 support is a technical dependency">
-                Gasless checkout depends on the settlement token implementing delegated transfers
-                (EIP-3009). This has not been verified for the configured test {TOKEN.symbol} contract, so
-                all authorization flows in this frontend are simulated and clearly labelled.
-              </Callout>
+              {TOKEN.eip3009Verified ? (
+                <Callout tone="info" title="Gasless checkout: enabled">
+                  The configured test {TOKEN.symbol} contract supports delegated transfers (EIP-3009),
+                  verified on-chain. At checkout, customers sign a free payment authorization and the
+                  EzPayz relayer submits it on-chain — paying the WBT gas for them.
+                </Callout>
+              ) : (
+                <Callout tone="warn" title="EIP-3009 support is a technical dependency">
+                  Gasless checkout depends on the settlement token implementing delegated transfers
+                  (EIP-3009). This has not been verified for the configured test {TOKEN.symbol} contract, so
+                  all authorization flows in this frontend are simulated and clearly labelled.
+                </Callout>
+              )}
             </div>
           </Card>
         ) : null}
 
         {stepIndex === 3 ? (
           <Card className="p-5">
-            <h2 className="text-[22px] font-semibold text-ink">Developer setup</h2>
-            <p className="mt-1 text-[18px] text-ink-3">
+            <h2 className="font-display text-[26px] leading-tight text-ink">Developer setup</h2>
+            <p className="mt-1 text-[17px] text-ink-3">
               Generate demo API credentials for the test environment. Secret values are shown once.
             </p>
             <div className="mt-5 space-y-4">
               {!creds ? (
                 <div className="space-y-4">
-                  <Callout tone="info" title="Demo credentials">
-                    These are obviously fake values generated in your browser. Real secrets are never
-                    exposed to client-side code — they are created server-side and shown once.
-                  </Callout>
+                  {isDemo ? (
+                    <Callout tone="info" title="Demo credentials">
+                      These are obviously fake values generated in your browser. Real secrets are never
+                      exposed to client-side code — they are created server-side and shown once.
+                    </Callout>
+                  ) : (
+                    <Callout tone="info" title="Live testnet credentials">
+                      These are real testnet API credentials for your workspace. The secret key is shown
+                      once — store it securely before continuing.
+                    </Callout>
+                  )}
                   <Button variant="primary" onClick={generateCredentials} loading={busy}>
-                    Generate demo API credentials
+                    {isDemo ? "Generate demo API credentials" : "Generate API credentials"}
                   </Button>
                 </div>
               ) : (
@@ -539,8 +597,8 @@ export default function Onboarding() {
 
         {stepIndex === 4 ? (
           <Card className="p-5">
-            <h2 className="text-[22px] font-semibold text-ink">Notification preferences</h2>
-            <p className="mt-1 text-[18px] text-ink-3">
+            <h2 className="font-display text-[26px] leading-tight text-ink">Notification preferences</h2>
+            <p className="mt-1 text-[17px] text-ink-3">
               Choose which payment events trigger emails. Paid receipts are sent after settlement — unpaid
               invoices are never emailed automatically.
             </p>
@@ -572,11 +630,13 @@ export default function Onboarding() {
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-positive-soft text-positive">
               <Check className="h-6 w-6" />
             </div>
-            <h2 className="mt-4 text-[26px] font-semibold text-ink">Onboarding complete</h2>
-            <p className="mx-auto mt-2 max-w-md text-[18px] leading-relaxed text-ink-3">
-              {merchant.displayName} is ready to accept USDT on {DEFAULT_NETWORK.name}. Your workspace is
-              preloaded with demo payments, invoices, subscriptions and exceptions so you can explore every
-              part of the product.
+            <h2 className="mt-4 font-display text-[32px] leading-tight text-ink">
+              {isDemo ? "Onboarding complete." : <>You&apos;re ready to <span className="italic text-accent">get paid.</span></>}
+            </h2>
+            <p className="mx-auto mt-2 max-w-md text-[17px] leading-relaxed text-ink-3">
+              {isDemo
+                ? `${merchant.displayName} is ready to accept USDT on ${DEFAULT_NETWORK.name}. Your workspace is preloaded with demo payments, invoices, subscriptions and exceptions so you can explore every part of the product.`
+                : `${merchant.displayName} is ready to accept USDT on ${DEFAULT_NETWORK.name}. Create your first payment link or invoice from the dashboard and take a real test payment.`}
             </p>
             <div className="mx-auto mt-5 max-w-sm rounded-md border border-line bg-canvas/60 px-3.5 py-1 text-left">
               <KeyValue label="Payout wallet">

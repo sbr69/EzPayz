@@ -99,9 +99,9 @@ pnpm --filter @ezpayz/api exec tsx scripts/grant-charger-role.ts
 ## Run locally
 
 ```bash
-pnpm dev        # Fastify API on :3000
-pnpm worker     # BullMQ workers (relayer/webhook/email/scheduler) — separate terminal
-pnpm dev:web    # Vite frontend on :5173
+pnpm --filter @ezpayz/api dev       # Fastify API on :3000
+pnpm --filter @ezpayz/api worker    # BullMQ workers (relayer/webhook/email/scheduler) — separate terminal
+pnpm dev:web                        # Vite frontend on :5173
 ```
 
 ---

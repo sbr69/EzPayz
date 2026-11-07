@@ -115,7 +115,7 @@ export function CartView({ catalog }: CartViewProps) {
         <h2 className="font-serif-heading mt-6 text-2xl font-bold text-[#1A1A1A]">
           Your cart is currently empty
         </h2>
-        <p className="mt-2 text-sm text-gray-500 max-w-sm">
+        <p className="mt-2 text-[15px] text-gray-500 max-w-sm">
           Browse our curated homeware collection and pay directly in test USDT on Whitechain Sepolia.
         </p>
         <Link
@@ -140,7 +140,7 @@ export function CartView({ catalog }: CartViewProps) {
             </h2>
             <button
               onClick={clearCart}
-              className="text-xs text-gray-400 hover:text-red-600 transition"
+              className="text-sm text-gray-400 hover:text-red-600 transition"
             >
               Clear cart
             </button>
@@ -166,7 +166,7 @@ export function CartView({ catalog }: CartViewProps) {
                   >
                     {product.name}
                   </Link>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-sm text-gray-500">
                     {formatUsdt(product.price)} each
                   </span>
 
@@ -179,7 +179,7 @@ export function CartView({ catalog }: CartViewProps) {
                       >
                         <Minus className="h-3 w-3" />
                       </button>
-                      <span className="w-8 text-center text-xs font-bold text-[#1A1A1A]">
+                      <span className="w-8 text-center text-sm font-bold text-[#1A1A1A]">
                         {quantity}
                       </span>
                       <button
@@ -225,7 +225,7 @@ export function CartView({ catalog }: CartViewProps) {
 
           <form onSubmit={handleCheckout} className="mt-6 flex flex-col gap-4">
             <div>
-              <label htmlFor="customerName" className="text-xs font-semibold text-gray-700">
+              <label htmlFor="customerName" className="text-sm font-semibold text-gray-700">
                 Full Name
               </label>
               <input
@@ -240,7 +240,7 @@ export function CartView({ catalog }: CartViewProps) {
             </div>
 
             <div>
-              <label htmlFor="customerEmail" className="text-xs font-semibold text-gray-700">
+              <label htmlFor="customerEmail" className="text-sm font-semibold text-gray-700">
                 Email Address
               </label>
               <input
@@ -261,16 +261,16 @@ export function CartView({ catalog }: CartViewProps) {
             )}
 
             <div className="mt-4 border-t border-gray-100 pt-4 space-y-2">
-              <div className="flex justify-between text-xs text-gray-500">
+              <div className="flex justify-between text-sm text-gray-500">
                 <span>Network</span>
                 <span className="font-medium text-[#1A1A1A]">Whitechain Sepolia</span>
               </div>
-              <div className="flex justify-between text-xs text-gray-500">
+              <div className="flex justify-between text-sm text-gray-500">
                 <span>Currency</span>
                 <span className="font-medium text-[#1A1A1A]">Test USDT</span>
               </div>
               <div className="flex justify-between items-baseline pt-2 border-t border-gray-100 text-[#1A1A1A]">
-                <span className="font-bold text-sm">Total Due</span>
+                <span className="font-bold text-base">Total Due</span>
                 <span className="font-serif-heading font-bold text-2xl text-[#28334B]">
                   {formatUsdt(totalUsdt)}
                 </span>

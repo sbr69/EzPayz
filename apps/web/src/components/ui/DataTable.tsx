@@ -102,7 +102,7 @@ export function DataTable<T>({
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-3 border-b border-line px-6 py-5">
+      <div className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-4 sm:px-6">
         {searchValue ? (
           <div className="relative min-w-[220px] flex-1 sm:max-w-sm">
             <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-ink-4" />
@@ -126,7 +126,7 @@ export function DataTable<T>({
               setFilterState((s) => ({ ...s, [f.key]: e.target.value }));
               setPage(0);
             }}
-            className="h-11 w-auto min-w-[170px] text-[16px]"
+            className="h-11 w-auto min-w-[140px] text-[16px] sm:min-w-[170px]"
             aria-label={f.label}
           >
             {f.options.map((o) => (
@@ -163,7 +163,7 @@ export function DataTable<T>({
                       key={c.key}
                       scope="col"
                       className={cn(
-                        "px-6 py-4 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-4",
+                        "px-3 py-3 text-[13px] font-semibold uppercase tracking-[0.08em] text-ink-4 sm:px-6 sm:py-4",
                         c.align === "right" && "text-right",
                         c.hideOnMobile && "hidden lg:table-cell",
                       )}
@@ -219,7 +219,7 @@ export function DataTable<T>({
                     <td
                       key={c.key}
                       className={cn(
-                        "px-6 align-middle text-[18px] text-ink-2",
+                        "px-3 align-middle text-[18px] text-ink-2 sm:px-6",
                         dense ? "py-3" : "py-4",
                         c.align === "right" && "text-right",
                         c.hideOnMobile && "hidden lg:table-cell",
@@ -237,7 +237,7 @@ export function DataTable<T>({
       )}
 
       {!loading && filtered.length > 0 ? (
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-6 py-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-line px-4 py-3 sm:px-6 sm:py-4">
           <p className="text-[14px] text-ink-4 tnum">
             Showing {safePage * pageSize + 1}–{Math.min((safePage + 1) * pageSize, filtered.length)} of{" "}
             {filtered.length}

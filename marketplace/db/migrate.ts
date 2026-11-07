@@ -1,8 +1,12 @@
 import { readdir, readFile } from "node:fs/promises";
-import { loadEnvConfig } from "@next/env";
+import { readFileSync } from "node:fs";
 import { getSql } from "../src/lib/server/db";
 
-loadEnvConfig(process.cwd());
+// Next 16 removed the named @next/env export — load .env manually.
+for (const line of readFileSync(".env", "utf8").split(/\r?\n/)) {
+  const m = line.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/);
+  if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2];
+}
 const sql = getSql();
 await sql`CREATE TABLE IF NOT EXISTS marketplace_migrations (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now())`;
 const applied = new Set((await sql`SELECT name FROM marketplace_migrations`).map((row) => row.name));

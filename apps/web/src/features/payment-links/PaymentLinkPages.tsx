@@ -165,7 +165,7 @@ export function PaymentLinksList() {
     <>
       <PageHeader
         title="Payment links"
-        description="Share a URL or QR code. Fixed links charge one amount, customer-amount links enforce a range, and reusable links create an independent payment for every checkout."
+        description="Share a URL or QR — fixed, customer-entered or reusable amounts."
         actions={
           <Link to="/payment-links/new">
             <Button variant="primary" icon={<Plus className="h-4 w-4" />}>
@@ -333,7 +333,7 @@ export function PaymentLinkForm() {
       <PageHeader
         breadcrumbs={[{ label: "Payment links", to: "/payment-links" }, { label: "New" }]}
         title="Create a payment link"
-        description="The link opens a hosted checkout page. The QR code encodes that URL, never a raw token transfer."
+        description="Opens a hosted checkout — the QR encodes the URL, never a token transfer."
         actions={
           <>
             <Button variant="ghost" onClick={() => navigate("/payment-links")}>
@@ -346,7 +346,7 @@ export function PaymentLinkForm() {
         }
       />
 
-      <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.4fr_1fr]">
         <Card>
           <CardHeader title="Link details" />
           <div className="space-y-4 px-6 py-5">
@@ -594,10 +594,10 @@ export function PaymentLinkDetail() {
         }
       />
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader title="Link details" />
-          <div className="grid gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
             <KeyValue label="Link ID">
               <code className="font-mono text-[16px]">{link.id}</code>
             </KeyValue>

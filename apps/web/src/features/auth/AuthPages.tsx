@@ -1,17 +1,24 @@
 import { useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "motion/react";
-import { ArrowLeft, Check, Link2, Receipt, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Check } from "lucide-react";
 import { Button, Callout, Card, Checkbox, Field, Input } from "@/components/ui";
 import { FadeIn, Stagger, StaggerItem } from "@/components/ui/motion";
 import { useDemo } from "@/store/demoStore";
 import { isEmail } from "@/lib/money";
 import { apiFetch } from "@/services/api/http";
 import { DEFAULT_NETWORK, TOKEN } from "@/config/app";
+import { PaymentLifecycleVisual } from "@/features/marketing/visuals";
 
-/** Demo login credential — intercepted in the frontend (no API call). */
-const DEMO_EMAIL = "demo@whitechain.dev";
-const DEMO_PASSWORD = "demodemo123";
+/**
+ * Demo access is env-gated and never hardcoded: credentials live in
+ * `.env.local` (gitignored). In builds where VITE_DEMO_MODE is not exactly
+ * "true", DEMO_ENABLED is constant-false and this whole demo path (with the
+ * credential literals) is dead-code-eliminated from the bundle.
+ */
+const DEMO_ENABLED = import.meta.env.VITE_DEMO_MODE === "true";
+const DEMO_EMAIL = import.meta.env.VITE_DEMO_EMAIL;
+const DEMO_PASSWORD = import.meta.env.VITE_DEMO_PASSWORD;
 
 function AuthLayout({
   title,
@@ -19,7 +26,7 @@ function AuthLayout({
   children,
   footer,
 }: {
-  title: string;
+  title: ReactNode;
   subtitle: string;
   children: ReactNode;
   footer?: ReactNode;
@@ -27,7 +34,7 @@ function AuthLayout({
   return (
     <div className="flex min-h-screen bg-canvas">
       {/* Branded side panel */}
-      <aside className="relative hidden w-[44%] max-w-[560px] flex-col justify-between overflow-hidden bg-gradient-to-br from-[#0b5f56] via-accent to-[#0a4f47] p-10 text-white lg:flex">
+      <aside className="relative hidden w-[44%] max-w-[560px] flex-col justify-between overflow-hidden bg-gradient-to-br from-[#0b5f56] via-accent to-[#0a4f47] p-10 text-white xl:p-12 lg:flex">
         <div aria-hidden className="grid-lines absolute inset-0 opacity-20" />
         <div
           aria-hidden
@@ -43,38 +50,23 @@ function AuthLayout({
             <span className="text-[20px] font-semibold tracking-[-0.01em]">EzPayz</span>
           </Link>
         </div>
-        <Stagger className="relative space-y-6" gap={0.12}>
+        <Stagger className="relative space-y-9" gap={0.14}>
           <StaggerItem>
-            <h2 className="text-[32px] font-bold leading-tight tracking-[-0.02em]">
-              Complete USDT payment infrastructure on {DEFAULT_NETWORK.name}.
+            <h2 className="font-display text-[44px] leading-[1.06] xl:text-[50px]">
+              Payments that <span className="italic">settle themselves</span>.
             </h2>
-          </StaggerItem>
-          <StaggerItem>
-            <ul className="space-y-3.5">
-              {[
-                { icon: Link2, text: "Hosted checkout, payment links and invoices" },
-                { icon: Receipt, text: "Recurring and usage-based billing with signed receipts" },
-                { icon: ShieldCheck, text: "PayeeShield verification and sponsored gas" },
-              ].map((f) => (
-                <li key={f.text} className="flex items-start gap-3 text-[18px] leading-relaxed text-white/85">
-                  <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/15">
-                    <f.icon className="h-3 w-3" />
-                  </span>
-                  {f.text}
-                </li>
-              ))}
-            </ul>
-          </StaggerItem>
-          <StaggerItem>
-            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[14px] font-medium text-white/80">
-              <span className="anim-pulse-soft h-1.5 w-1.5 rounded-full bg-emerald-300" />
-              {TOKEN.symbol} · chain {DEFAULT_NETWORK.chainId} · testnet demo
+            <p className="mt-4 max-w-[36ch] text-[17px] leading-relaxed text-white/70">
+              The non-custodial {TOKEN.symbol} payment gateway for Whitechain.
             </p>
           </StaggerItem>
+          <StaggerItem>
+            <PaymentLifecycleVisual />
+          </StaggerItem>
         </Stagger>
-        <p className="relative text-[14px] leading-relaxed text-white/60">
-          Frontend demo — wallets, signatures and settlements are simulated. Nothing is broadcast to
-          Whitechain.
+        <p className="relative inline-flex items-center gap-2 text-[13px] font-medium text-white/55">
+          <span className="anim-pulse-soft h-1.5 w-1.5 rounded-full bg-emerald-300" />
+          {TOKEN.symbol} · {DEFAULT_NETWORK.name} · chain {DEFAULT_NETWORK.chainId} — demo, everything
+          is simulated
         </p>
       </aside>
 
@@ -95,9 +87,9 @@ function AuthLayout({
         </header>
         <div className="flex flex-1 items-start justify-center px-5 pb-16 pt-6 sm:items-center sm:pt-0">
           <FadeIn className="w-full max-w-[420px]">
-            <h1 className="text-[32px] font-bold tracking-[-0.02em] text-ink">{title}</h1>
-            <p className="mt-1.5 text-[18px] leading-relaxed text-ink-3">{subtitle}</p>
-            <Card className="mt-6 p-5 shadow-sm">
+            <h1 className="font-display text-[38px] leading-[1.05] text-ink sm:text-[40px]">{title}</h1>
+            <p className="mt-2 text-[18px] leading-relaxed text-ink-3">{subtitle}</p>
+            <Card className="mt-8 p-6 shadow-sm">
               <motion.div
                 initial="hidden"
                 animate="visible"
@@ -107,7 +99,7 @@ function AuthLayout({
                 {children}
               </motion.div>
             </Card>
-            {footer ? <div className="mt-5 text-center text-[16px] text-ink-3">{footer}</div> : null}
+            {footer ? <div className="mt-6 text-center text-[16px] text-ink-3">{footer}</div> : null}
           </FadeIn>
         </div>
       </main>
@@ -153,7 +145,7 @@ export function SignIn() {
     try {
       // Demo credential — frontend-only, no API call. Flips the app into demo
       // mode (mock adapter + seed data) so the dashboard works without a backend.
-      if (email.trim().toLowerCase() === DEMO_EMAIL && password === DEMO_PASSWORD) {
+      if (DEMO_ENABLED && email.trim().toLowerCase() === DEMO_EMAIL && password === DEMO_PASSWORD) {
         enterDemoMode(DEMO_EMAIL);
         setLoading(false);
         navigate("/dashboard");
@@ -176,7 +168,11 @@ export function SignIn() {
 
   return (
     <AuthLayout
-      title="Sign in to your workspace"
+      title={
+        <>
+          Welcome <span className="italic text-accent">back</span>.
+        </>
+      }
       subtitle="Access your merchant dashboard, payments, and settings."
       footer={
         <>
@@ -187,7 +183,7 @@ export function SignIn() {
         </>
       }
     >
-      <form onSubmit={submit} className="space-y-4">
+      <form onSubmit={submit} className="space-y-5">
         <StaggerField>
           <Field label="Work email" required htmlFor="si-email">
             <Input
@@ -278,7 +274,11 @@ export function SignUp() {
 
   return (
     <AuthLayout
-      title="Create your merchant account"
+      title={
+        <>
+          Create your <span className="italic text-accent">workspace</span>.
+        </>
+      }
       subtitle="You will configure your business profile, payout wallet and API credentials in onboarding."
       footer={
         <>
@@ -289,7 +289,7 @@ export function SignUp() {
         </>
       }
     >
-      <form onSubmit={submit} className="space-y-4">
+      <form onSubmit={submit} className="space-y-5">
         <StaggerField>
           <Field label="Business name" required error={errors.name} htmlFor="su-name">
             <Input
@@ -371,7 +371,11 @@ export function ForgotPassword() {
 
   return (
     <AuthLayout
-      title="Reset your password"
+      title={
+        <>
+          Reset your <span className="italic text-accent">password</span>.
+        </>
+      }
       subtitle="We would email a reset link to your work address."
       footer={
         <Link to="/sign-in" className="font-medium text-accent hover:underline">
@@ -391,7 +395,7 @@ export function ForgotPassword() {
           </Link>
         </div>
       ) : (
-        <form onSubmit={submit} className="space-y-4">
+        <form onSubmit={submit} className="space-y-5">
           <StaggerField>
             <Field label="Work email" required error={error} htmlFor="fp-email">
               <Input

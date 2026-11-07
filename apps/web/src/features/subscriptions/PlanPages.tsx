@@ -285,7 +285,7 @@ export function PlanForm() {
         }
       />
 
-      <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.4fr_1fr]">
         <Card>
           <CardHeader title="Plan configuration" />
           <div className="space-y-4 px-6 py-5">
@@ -510,10 +510,10 @@ export function PlanList() {
         }
       />
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader title="Plan details" />
-          <div className="grid gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
             <KeyValue label="Plan ID">
               <code className="font-mono text-[16px]">{plan.id}</code>
             </KeyValue>

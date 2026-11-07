@@ -4,14 +4,14 @@ Use a development Neon branch and a dedicated Whitechain Sepolia test wallet. A 
 
 ## 1. Configure the marketplace
 
-From `soap/marketplace` in PowerShell, install the locked dependencies and create a local env file if it does not already exist.
+From the `marketplace/` directory of this repo, install the locked dependencies and create the env file if it does not already exist.
 
 ```powershell
 npm ci
-if (!(Test-Path .env.local)) { Copy-Item .env.example .env.local }
+if (!(Test-Path .env)) { Copy-Item .env.example .env }
 ```
 
-Open `.env.local` in your editor. Fill the blank values with real credentials for your development environment.
+Open `.env` in your editor. Fill the blank values with real credentials for your development environment.
 
 | Variable | Value to use |
 |---|---|
@@ -21,6 +21,10 @@ Open `.env.local` in your editor. Fill the blank values with real credentials fo
 | `EZPAYZ_CHECKOUT_ORIGIN` | `https://ezpayz.vercel.app` |
 | `EZPAYZ_SECRET_KEY` | Real merchant secret key from [EzPayz API Keys](https://ezpayz.vercel.app/developers/api-keys). Configure and verify that merchant’s payout wallet first. |
 | `EZPAYZ_WEBHOOK_SECRET` | Real endpoint signing secret for the HTTPS webhook in step 4. Leave blank for a localhost test using manual payment checks. |
+| `EZPAYZ_PAYOUT_WALLET` | The merchant’s verified payout wallet (0x…) — required for the x402 quote/pay flow. |
+| `X402_AGENT_PRIVATE_KEY` | Server-side buyer wallet (0x…, funded with test USDT, different from the payout wallet) — required only for the developer x402 lab. Leave blank to disable that lab. |
+| `X402_OPERATOR_TOKEN` | Any 32+ character secret string — typed into the developer lab page as the operator gate. |
+| `GROQ_API_KEY` / `GROQ_MODEL` | Groq key + model id for the shopping/agent chat (e.g. `openai/gpt-oss-20b`). |
 
 The buyer wallet needs Whitechain Sepolia **test USDT**. Connect it in hosted checkout and keep wallet private keys out of the marketplace environment. Do not put merchant or webhook secrets in client variables, screenshots, or logs.
 
@@ -33,6 +37,14 @@ npm run dev
 ```
 
 Open the configured `APP_ORIGIN`. Confirm the catalog preview banner is gone and the database-backed catalog shows the seeded listings. For an independent check, query `marketplace_products` in Neon and match an item’s slug and price. Prices in that table use six-decimal base units. If a configured database fails, investigate the database error rather than using preview listings as evidence.
+
+## 1b. Chat troubleshooting
+
+| Chat error | Cause / fix |
+|---|---|
+| "Live catalog is unavailable. The store needs a database connection." | The dev server was started without `DATABASE_URL` loaded — fill `.env` and restart `npm run dev`. |
+| "Shopping chat is unavailable. The store needs a Groq key and model." | `GROQ_API_KEY` / `GROQ_MODEL` missing or the key is invalid. |
+| "The store has not configured x402 checkout." | `EZPAYZ_SECRET_KEY` / `EZPAYZ_PAYOUT_WALLET` empty, or `EZPAYZ_API_URL` is HTTP on a non-localhost host. |
 
 ## 2. Verify the real gateway and merchant key
 

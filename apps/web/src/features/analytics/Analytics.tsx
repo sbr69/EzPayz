@@ -3,7 +3,7 @@ import { Download } from "lucide-react";
 import { useDemo } from "@/store/demoStore";
 import { RANGE_OPTIONS, useMetrics, type RangeKey } from "@/hooks/useMetrics";
 import { PAYMENT_STATUS_META } from "@/config/ui";
-import { DEFAULT_NETWORK, TOKEN } from "@/config/app";
+import { TOKEN } from "@/config/app";
 import { downloadCsv, fmtAmount, fmtNumber, sumBase } from "@/lib/money";
 import { Button, Card, CardHeader, PageHeader, Select } from "@/components/ui";
 import { DonutChart, HorizontalBars, StackedBarChart, TrendLineChart, VolumeChart } from "@/components/ui/charts";
@@ -53,7 +53,7 @@ export default function Analytics() {
     <>
       <PageHeader
         title="Analytics and reporting"
-        description={`Every figure below is derived from the same payment, refund and relayer records used across the workspace on ${DEFAULT_NETWORK.name}.`}
+        description="Volume, outcomes and relayer cost across the workspace."
         actions={
           <>
             <Select value={range} onChange={(e) => setRange(e.target.value as RangeKey)} className="h-10 w-[160px]" aria-label="Date range">
@@ -113,7 +113,7 @@ export default function Analytics() {
         </div>
       </Card>
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader title="Payments by status" description="Outcome distribution per period" />
           <div className="p-5">
@@ -139,7 +139,7 @@ export default function Analytics() {
         </Card>
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Card>
           <CardHeader title="Refund trends" description="Refunded volume per period" />
           <div className="p-5">
@@ -204,7 +204,7 @@ export default function Analytics() {
 
       <Card>
         <CardHeader title="Reconciliation" description="How these numbers are computed" />
-        <div className="grid gap-x-8 gap-y-1 px-6 py-5 sm:grid-cols-2 2xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-x-8 gap-y-1 px-6 py-5 sm:grid-cols-2 2xl:grid-cols-3">
           {[
             ["Payment records in range", fmtNumber(metrics.payments.length)],
             ["Settled records", fmtNumber(metrics.settled.length)],

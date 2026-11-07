@@ -6,13 +6,19 @@
  * The token contract address, chain id and decimal precision below are
  * configurable *metadata* used by the frontend for display only. The frontend
  * does NOT assume that the configured test USDT contract implements EIP-3009;
- * `eip3009Verified` stays false until the integration is verified against the
- * deployed contract. All simulated operations are controlled by `demoMode`.
+ * `eip3009Verified`/`decimalsVerified` reflect the on-chain verification recorded
+ * in docs/EIP3009_VERIFICATION.md (31 Oct 2026: ABI probe + live settlement test).
  */
 
+/**
+ * Demo/simulation master switch — driven by the build environment.
+ * When `VITE_DEMO_MODE` is not exactly "true", every simulated operation
+ * (mock banner, simulated wallet, demo tx prefixes) is disabled and the
+ * demo login path is compiled out of the bundle.
+ */
 export const DEMO = {
   /** Master switch for every simulated operation in the app. */
-  demoMode: true,
+  demoMode: import.meta.env.VITE_DEMO_MODE === "true",
   /** Simulated latencies (ms) used by the mock service layer. */
   delays: {
     fast: 320,
@@ -97,8 +103,10 @@ export const TOKEN: TokenConfig = {
   networkId: "whitechain-sepolia",
   contract: "0xcedfB56113143d55b2358b8CFbB0dEB5Ad2f55a7",
   decimals: 6,
-  decimalsVerified: false,
-  eip3009Verified: false,
+  // Both verified against the deployed contract on 31 Oct 2026 —
+  // see docs/EIP3009_VERIFICATION.md (ABI probe + live settlement test).
+  decimalsVerified: true,
+  eip3009Verified: true,
   displayPrecision: 2,
 };
 
@@ -152,62 +160,6 @@ export const WEBHOOK_EVENTS: { group: string; events: string[] }[] = [
   },
   { group: "Fulfilment", events: ["fulfilment.updated"] },
 ];
-
-export const ROADMAP = [
-  {
-    title: "x402 support",
-    detail:
-      "Programmatic and API-native payments so machines can pay machines over HTTP with USDT.",
-    status: "Coming later",
-  },
-  {
-    title: "Arkiv registry integration",
-    detail:
-      "Searchable merchant registry and expiring payment offers published and resolved on Whitechain.",
-    status: "Coming later",
-  },
-  {
-    title: "Chainlink CRE",
-    detail: "Trigger external business workflows from verified payment and settlement events.",
-    status: "Coming later",
-  },
-  {
-    title: "WhiteBIT USDT-to-fiat off-ramp",
-    detail:
-      "Optional conversion of settled USDT to fiat, subject to availability, eligibility and regional compliance.",
-    status: "Coming later",
-  },
-  {
-    title: "EzPayz interoperability",
-    detail: "Interop with the EzPayz product surface, subject to public API availability.",
-    status: "Coming later",
-  },
-  {
-    title: "Multi-chain acceptance",
-    detail: "Accept USDT across additional chains from a single merchant account.",
-    status: "Coming later",
-  },
-  {
-    title: "Discoverable API / service marketplace",
-    detail: "Merchants publish paid APIs and services that customers can discover and subscribe to.",
-    status: "Coming later",
-  },
-  {
-    title: "Verified merchant identities",
-    detail: "Optional business verification layer that merchants can complete and display.",
-    status: "Coming later",
-  },
-  {
-    title: "Procurement Mode",
-    detail: "Multi-approver purchase approvals for teams buying through the gateway.",
-    status: "Coming later",
-  },
-  {
-    title: "Advanced B2B reconciliation",
-    detail: "Statement-level reconciliation, exports and ERP-friendly reporting.",
-    status: "Coming later",
-  },
-] as const;
 
 export const WALLET_DISCLOSURE =
   "Wallet connection confirms control of an address. It is not legal or business identity verification.";

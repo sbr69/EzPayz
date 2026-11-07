@@ -160,7 +160,7 @@ export function Quickstart() {
         integration until those dependencies are confirmed.
       </Callout>
 
-      <div className="grid gap-5 lg:grid-cols-[220px_1fr] 2xl:grid-cols-[260px_1fr]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[220px_1fr] 2xl:grid-cols-[260px_1fr]">
         <Card className="h-fit">
           <CardHeader title="Steps" />
           <nav className="p-2">
@@ -455,7 +455,7 @@ export function ApiReference() {
         will change when the backend contract is finalised.
       </Callout>
 
-      <div className="grid gap-5 lg:grid-cols-[220px_1fr] 2xl:grid-cols-[260px_1fr]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[220px_1fr] 2xl:grid-cols-[260px_1fr]">
         <Card className="h-fit">
           <div className="border-b border-line p-3">
             <div className="relative">

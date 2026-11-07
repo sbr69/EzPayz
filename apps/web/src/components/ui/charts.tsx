@@ -23,7 +23,7 @@ const axisProps = {
   stroke: "#d6d2c8",
   tickLine: false,
   axisLine: false,
-  tick: { fontSize: 16, fill: "#6b7470" },
+  tick: { fontSize: 13, fill: "#6b7470" },
 } as const;
 
 export function VolumeChart({
@@ -43,8 +43,9 @@ export function VolumeChart({
           </linearGradient>
         </defs>
         <CartesianGrid stroke="#eceae4" vertical={false} />
-        <XAxis dataKey="label" {...axisProps} />
-        <YAxis {...axisProps} width={76} tickFormatter={(v: number) => fmtCompact(String(v))} />
+        <XAxis dataKey="label" {...axisProps} tickMargin={8} minTickGap={24} />
+        {/* Axis ticks are unit-free — the USDT unit lives in the tooltip + card title */}
+        <YAxis {...axisProps} width={52} tickFormatter={(v: number) => fmtCompact(String(v), "")} />
         <Tooltip
           formatter={((v: unknown, name: unknown) =>
             name === "volume"
@@ -159,7 +160,7 @@ export function HorizontalBars({
     <ResponsiveContainer width="100%" height={height}>
       <BarChart data={data} layout="vertical" margin={{ top: 8, right: 24, left: 0, bottom: 0 }}>
         <CartesianGrid stroke="#eceae4" horizontal={false} />
-        <XAxis type="number" {...axisProps} tickFormatter={(v: number) => fmtCompact(String(v))} />
+        <XAxis type="number" {...axisProps} tickFormatter={(v: number) => fmtCompact(String(v), "")} tickMargin={8} />
         <YAxis type="category" dataKey="name" {...axisProps} width={110} />
         <Tooltip
           formatter={((v: unknown) => [`${fmtCompact(String(v ?? "0"))}`, "Collected"]) as never}

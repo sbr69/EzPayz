@@ -142,7 +142,7 @@ export function ExceptionsList() {
     <>
       <PageHeader
         title="Payment exceptions"
-        description="Operational issues detected by the gateway: underpayments, relayer failures, webhook outages and reconciliation mismatches."
+        description="Underpayments, relayer failures, webhook outages and mismatches."
         actions={
           <Select value={severity} onChange={(e) => setSeverity(e.target.value)} className="h-10 w-[170px]" aria-label="Severity">
             <option value="all">All severities</option>
@@ -263,7 +263,7 @@ export function ExceptionDetail() {
         }
       />
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
           <Card>
             <CardHeader title="Diagnosis" description="What happened and why the gateway detected it" />

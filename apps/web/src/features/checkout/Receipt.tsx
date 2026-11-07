@@ -77,7 +77,7 @@ export function ReceiptPage() {
         </Callout>
       ) : null}
 
-      <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.4fr_1fr]">
         <div className="space-y-4">
           <Card>
             <CardHeader title="Receipt" description={`${data.merchant.businessName} · ${DEFAULT_NETWORK.name}`} />

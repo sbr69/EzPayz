@@ -98,7 +98,7 @@ export default function GasGuard() {
     <>
       <PageHeader
         title="GasGuard relayer"
-        description="Gas sponsorship for supported payment operations, with policy limits that decide whether the relayer submits a transaction."
+        description="Gas sponsorship with relayer policy limits."
         meta={
           <>
             <StatusBadge
@@ -117,7 +117,7 @@ export default function GasGuard() {
         <MetricCard label="Rejected / failed" value={fmtNumber(stats.rejected)} tone={stats.rejected ? "danger" : "neutral"} />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader
             title="Sponsorship policy"
@@ -157,7 +157,7 @@ export default function GasGuard() {
               />
             </Field>
           </div>
-          <div className="grid gap-x-8 border-t border-line px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-x-8 border-t border-line px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
             <KeyValue label="Allowed network">{form.allowedNetwork}</KeyValue>
             <KeyValue label="Allowed token">{form.allowedToken}</KeyValue>
             <KeyValue label="Allowed contract">

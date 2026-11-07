@@ -143,7 +143,7 @@ export function CustomersList() {
     <>
       <PageHeader
         title="Customers"
-        description="Customer records belong to this merchant workspace only. Another merchant can never see or query them."
+        description="Customer records scoped to your workspace."
         actions={
           <Button variant="primary" icon={<UserPlus className="h-4 w-4" />} onClick={() => setCreateOpen(true)}>
             Add customer
@@ -281,7 +281,7 @@ export function CustomerDetail() {
         }
       />
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card>
           <CardHeader title="Profile" />
           <div className="px-5 py-2">

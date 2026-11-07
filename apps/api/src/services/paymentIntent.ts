@@ -27,7 +27,17 @@ export async function createPaymentIntent(opts: {
   cancelUrl?: string;
   metadata?: Record<string, string>;
 }): Promise<{ intentId: string; checkoutSlug: string; clientSecret: string; payeeShield: SignedPaymentRequest }> {
-  const expiresAt = opts.expiresAt ?? new Date(Date.now() + 15 * 60 * 1000); // 15 min default
+  // Expiry precedence: explicit per-intent expiry > merchant's checkoutExpiryHours
+  // preference (set during onboarding / merchant settings) > 15-minute fallback.
+  let expiresAt = opts.expiresAt;
+  if (!expiresAt) {
+    const merchant = await prisma.merchant.findUnique({
+      where: { id: opts.merchantId },
+      select: { checkoutExpiryHours: true },
+    });
+    const hours = merchant?.checkoutExpiryHours ?? 0;
+    expiresAt = new Date(Date.now() + (hours > 0 ? hours : 0.25) * 60 * 60 * 1000);
+  }
   const expiryIso = expiresAt.toISOString();
   const nonce = "0x" + randomBytes(16).toString("hex");
 

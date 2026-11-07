@@ -21,7 +21,13 @@ export function X402Page() {
   const [showSnippet, setShowSnippet] = useState(false);
 
   const payoutWallet = data.merchant?.payoutWallet ?? "0xYourWallet";
-  const secretKey = data.apiKeys?.find((k: any) => k.status === "active")?.publishable ?? "wcp_sec_...";
+  /**
+   * The snippet MUST carry a secret key (wcp_sec_…) — settlement requires one and
+   * publishable keys (wcp_pub_…) are rejected with 403 by requireSecretKey. Secrets
+   * are shown once at creation and never stored client-side, so the snippet uses a
+   * placeholder the merchant replaces themselves.
+   */
+  const secretKey = "wcp_sec_PASTE_YOUR_SECRET_KEY";
   const facilitatorUrl = "https://ezpayz-api.onrender.com/v1/x402";
   const x402Payments = (data.payments ?? []).filter((p: any) => p.checkoutUrl === "" && p.payerWallet);
 
@@ -95,7 +101,7 @@ app.listen(4021);`;
             )}
           </div>
 
-          <div className="mt-4 flex gap-2 items-end">
+          <div className="mt-4 grid grid-cols-2 items-end gap-2 sm:flex sm:items-end sm:gap-2">
             <Field label="Method"><select value={newRoute.method} onChange={(e) => setNewRoute({ ...newRoute, method: e.target.value })} className="w-full px-2 py-2 rounded-md border border-line text-[14px]"><option>GET</option><option>POST</option></select></Field>
             <Field label="Path"><Input value={newRoute.path} onChange={(e) => setNewRoute({ ...newRoute, path: e.target.value })} placeholder="/api/weather" /></Field>
             <Field label="Price (USD)"><Input value={newRoute.price} onChange={(e) => setNewRoute({ ...newRoute, price: e.target.value })} placeholder="0.01" /></Field>
@@ -117,7 +123,15 @@ app.listen(4021);`;
             </div>
           </div>
           {showSnippet && (
-            <pre className="mt-4 bg-slate-900 text-slate-100 p-5 rounded-lg text-[13px] overflow-auto leading-relaxed"><code>{generateSnippet()}</code></pre>
+            <>
+              <Callout tone="warn" title="Paste your secret key before running">
+                Replace <code className="font-mono">wcp_sec_PASTE_YOUR_SECRET_KEY</code> with the
+                <strong> secret key</strong> (wcp_sec_…) you received when creating an API key — it is
+                shown <strong>only once</strong> at creation. Publishable keys (wcp_pub_…) are
+                read-only and will be <strong>rejected (403)</strong> when settling payments.
+              </Callout>
+              <pre className="mt-4 bg-slate-900 text-slate-100 p-5 rounded-lg text-[13px] overflow-auto leading-relaxed"><code>{generateSnippet()}</code></pre>
+            </>
           )}
         </div>
 

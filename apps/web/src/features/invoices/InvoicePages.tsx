@@ -143,7 +143,7 @@ export function InvoicesList() {
     <>
       <PageHeader
         title="Invoices"
-        description="Signed payment requests with line items. PayeeShield covers the recipient, amount, token, network, expiry and reference."
+        description="Signed payment requests with line items, verified by PayeeShield."
         actions={
           <Link to="/invoices/new">
             <Button variant="primary" icon={<Plus className="h-4 w-4" />}>
@@ -288,7 +288,7 @@ export function InvoiceForm() {
       <PageHeader
         breadcrumbs={[{ label: "Invoices", to: "/invoices" }, { label: "New" }]}
         title="Create an invoice"
-        description="The gateway signs the invoice with a delegated key before it is shared. The customer sees the verification result on checkout."
+        description="Signed with a delegated key before sharing — customers see verification on checkout."
         actions={
           <>
             <Button variant="ghost" onClick={() => navigate("/invoices")}>
@@ -301,7 +301,7 @@ export function InvoiceForm() {
         }
       />
 
-      <div className="grid gap-5 lg:grid-cols-[1.35fr_1fr]">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[1.35fr_1fr]">
         <Card>
           <CardHeader title="Invoice details" />
           <div className="space-y-4 px-6 py-5">
@@ -653,7 +653,7 @@ export function InvoiceDetail() {
         </Callout>
       ) : null}
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader title="Invoice" />
           <InvoicePreview invoice={invoice} merchantName={data.merchant.displayName} />

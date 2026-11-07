@@ -9,19 +9,21 @@ import {
   ChevronsLeft,
   ChevronsRight,
   CircleUser,
+  Globe,
   HelpCircle,
-  LifeBuoy,
+  LogOut,
   Menu,
   Plus,
   RefreshCcw,
   Search,
-  ShieldCheck,
+  Wallet,
   X,
 } from "lucide-react";
 import { cn } from "@/utils/cn";
 import { MERCHANT_NAV } from "@/config/ui";
 import { DEFAULT_NETWORK } from "@/config/app";
 import { useDemo } from "@/store/demoStore";
+import { useWallet } from "@/contexts/WalletContext";
 import { useSyncRealData } from "@/hooks/useSyncRealData";
 import { timeAgo } from "@/lib/money";
 import { Button, Callout, Divider } from "@/components/ui/primitives";
@@ -262,18 +264,33 @@ function NotificationCenter() {
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label="Notifications"
-        className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-ink-3 transition-all hover:border-line hover:bg-surface hover:text-ink"
+        className="relative flex h-9 w-9 items-center justify-center rounded-lg border border-transparent text-ink-3 transition-all hover:border-line hover:bg-surface hover:text-ink"
       >
-        <Bell className="h-4 w-4" />
+        <span
+          key={unread}
+          className={cn("flex", unread > 0 && "animate-bell-ring")}
+          aria-hidden
+        >
+          <Bell className="h-[18px] w-[18px]" />
+        </span>
         {unread > 0 ? (
-          <motion.span
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ type: "spring", stiffness: 500, damping: 20 }}
-            className="absolute right-1 top-1 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-danger px-1 text-[12px] font-bold text-white tnum"
-          >
-            {unread}
-          </motion.span>
+          <>
+            {/* Animated event ping — draws the eye to unread notifications */}
+            <motion.span
+              aria-hidden
+              animate={{ scale: [1, 2], opacity: [0.5, 0] }}
+              transition={{ duration: 1.6, repeat: Infinity, ease: "easeOut" }}
+              className="absolute right-0.5 top-0.5 h-[18px] w-[18px] rounded-full bg-danger/50"
+            />
+            <motion.span
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: "spring", stiffness: 500, damping: 20 }}
+              className="absolute right-0.5 top-0.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-danger px-1 text-[11px] font-bold text-white tnum"
+            >
+              {unread}
+            </motion.span>
+          </>
         ) : null}
       </button>
       <AnimatePresence>
@@ -283,7 +300,7 @@ function NotificationCenter() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.98, transition: { duration: 0.12 } }}
             transition={{ duration: 0.2, ease: EASE_OUT_QUART }}
-            className="absolute right-0 top-[calc(100%+8px)] z-40 w-[min(360px,calc(100vw-2rem))] origin-top-right overflow-hidden rounded-xl border border-line bg-surface shadow-lg"
+            className="fixed left-2 right-2 top-[72px] z-40 origin-top-right overflow-hidden rounded-xl border border-line bg-surface shadow-lg sm:absolute sm:left-auto sm:right-0 sm:top-[calc(100%+8px)] sm:w-[min(360px,calc(100vw-2rem))]"
           >
             <div className="flex items-center justify-between border-b border-line px-3.5 py-2.5">
               <p className="text-[16px] font-semibold text-ink">Notifications</p>
@@ -312,8 +329,8 @@ function NotificationCenter() {
                       <div className="flex items-start gap-2">
                         <span
                           className={cn(
-                            "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full",
-                            n.read ? "bg-line-strong" : "bg-accent",
+                            "mt-1.5 h-2 w-2 shrink-0 rounded-full",
+                            n.read ? "bg-line-strong" : "anim-pulse-soft bg-accent",
                           )}
                         />
                         <div className="min-w-0">
@@ -353,13 +370,13 @@ function ProfileMenu() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-1.5 rounded-lg border border-transparent px-1 py-1 transition-all hover:border-line hover:bg-surface"
+        className="flex items-center gap-1 rounded-lg border border-transparent p-1 transition-all hover:border-line hover:bg-surface"
         aria-label="Account menu"
       >
-        <span className="flex h-7 w-7 items-center justify-center rounded-full bg-canvas-alt text-[14px] font-bold text-ink-2">
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-canvas-alt text-[15px] font-bold text-ink-2">
           {merchant.logoText}
         </span>
-        <ChevronDown className="h-3.5 w-3.5 text-ink-4" />
+        <ChevronDown className="h-4 w-4 text-ink-4" />
       </button>
       <AnimatePresence>
         {open ? (
@@ -412,6 +429,113 @@ function ProfileMenu() {
   );
 }
 
+function WalletButton() {
+  const wallet = useWallet();
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onClick = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  const sessionActive = wallet.status === "connected" || wallet.status === "wrong_network" || wallet.status === "switching";
+  const short = wallet.address ? `${wallet.address.slice(0, 6)}…${wallet.address.slice(-4)}` : null;
+
+  if (!sessionActive) {
+    return (
+      <Button
+        variant="secondary"
+        size="sm"
+        icon={<Wallet className="h-4 w-4" />}
+        loading={wallet.busy}
+        onClick={() => wallet.connect()}
+        title={wallet.error ?? undefined}
+      >
+        Connect wallet
+      </Button>
+    );
+  }
+
+  return (
+    <div ref={ref} className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        aria-label="Wallet"
+        title={wallet.error ?? undefined}
+        className="flex h-9 whitespace-nowrap items-center gap-2 rounded-full border border-line bg-canvas py-1 pl-2.5 pr-2 transition-all hover:border-line-strong hover:shadow-xs"
+      >
+        <span
+          className={cn(
+            "h-2 w-2 shrink-0 rounded-full",
+            wallet.status === "connected" ? "anim-pulse-soft bg-positive" : "bg-warn",
+          )}
+        />
+        <span className="font-mono text-[15px] font-medium text-ink">{short}</span>
+        <ChevronDown className="h-4 w-4 text-ink-4" />
+      </button>
+      <AnimatePresence>
+        {open ? (
+          <motion.div
+            initial={{ opacity: 0, y: -6, scale: 0.97 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -4, scale: 0.98, transition: { duration: 0.12 } }}
+            transition={{ duration: 0.2, ease: EASE_OUT_QUART }}
+            className="absolute right-0 top-[calc(100%+8px)] z-40 w-72 origin-top-right overflow-hidden rounded-xl border border-line bg-surface shadow-lg"
+          >
+            <div className="border-b border-line px-3.5 py-3">
+              <p className="text-[13px] font-semibold uppercase tracking-wider text-ink-4">Connected wallet</p>
+              <p className="mt-1.5 break-all font-mono text-[14px] leading-relaxed text-ink">{wallet.address}</p>
+              <div className="mt-2 flex flex-wrap items-center gap-1.5 text-[14px] text-ink-3">
+                <span
+                  className={cn(
+                    "h-1.5 w-1.5 rounded-full",
+                    wallet.status === "connected" ? "bg-positive" : "bg-warn",
+                  )}
+                />
+                <span className={wallet.status === "connected" ? "font-medium text-positive" : "font-medium text-warn"}>
+                  {wallet.status === "connected" ? "Connected" : "Wrong network"}
+                </span>
+                <span className="text-ink-4">·</span>
+                <span>{wallet.providerName}</span>
+              </div>
+              {wallet.error ? <p className="mt-1.5 text-[13px] text-warn">{wallet.error}</p> : null}
+            </div>
+            <div className="px-3.5 py-2.5 text-[14px] text-ink-3">
+              {DEFAULT_NETWORK.name} · chain {DEFAULT_NETWORK.chainId}
+            </div>
+            <div className="border-t border-line py-1">
+              {wallet.status === "wrong_network" ? (
+                <button
+                  onClick={() => wallet.switchNetwork()}
+                  disabled={wallet.busy}
+                  className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-[16px] text-warn hover:bg-canvas"
+                >
+                  <Globe className="h-3.5 w-3.5" />
+                  Switch to {DEFAULT_NETWORK.name}
+                </button>
+              ) : null}
+              <button
+                onClick={() => {
+                  wallet.disconnect();
+                  setOpen(false);
+                }}
+                className="flex w-full items-center gap-2 px-3.5 py-2 text-left text-[16px] text-ink-2 hover:bg-canvas"
+              >
+                <LogOut className="h-3.5 w-3.5 text-ink-4" />
+                Disconnect
+              </button>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </div>
+  );
+}
+
 export function AppShell() {
   useSyncRealData(); // Fetch real API data → populate Zustand store for all dashboard pages
   const signedIn = useDemo((s) => s.signedIn);
@@ -424,13 +548,6 @@ export function AppShell() {
   const reset = useDemo((s) => s.reset);
   const pushToast = useDemo((s) => s.pushToast);
   const location = useLocation();
-  const merchant = useDemo((s) => s.data.merchant);
-
-  // Auth guard: redirect to sign-in if not signed in (and no JWT in localStorage).
-  const hasJwt = typeof window !== "undefined" && !!localStorage.getItem("wcp_token");
-  if (!signedIn && !hasJwt) {
-    return <Navigate to="/sign-in" replace />;
-  }
 
   useEffect(() => {
     setMobileOpen(false);
@@ -442,6 +559,12 @@ export function AppShell() {
       document.body.style.overflow = "";
     };
   }, [mobileOpen]);
+
+  // Auth guard: redirect to sign-in if not signed in (and no JWT in localStorage).
+  const hasJwt = typeof window !== "undefined" && !!localStorage.getItem("wcp_token");
+  if (!signedIn && !hasJwt) {
+    return <Navigate to="/sign-in" replace />;
+  }
 
   async function handleReset() {
     setResetting(true);
@@ -547,62 +670,47 @@ export function AppShell() {
           <button
             onClick={() => setMobileOpen(true)}
             aria-label="Open navigation"
-            className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-3 hover:bg-canvas-alt lg:hidden"
+            className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-3 hover:bg-canvas-alt lg:hidden"
           >
-            <Menu className="h-4 w-4" />
+            <Menu className="h-[18px] w-[18px]" />
           </button>
 
           {isDemo ? (
-            <span className="hidden items-center gap-1.5 rounded-full border border-warn-line bg-warn-soft px-2.5 py-1 text-[14px] font-semibold text-warn sm:inline-flex">
-              <span className="anim-pulse-soft h-1.5 w-1.5 rounded-full bg-warn" />
+            <span className="hidden whitespace-nowrap items-center gap-1.5 rounded-full border border-warn-line bg-warn-soft px-2.5 py-1 text-[15px] font-semibold text-warn sm:inline-flex">
+              <span className="anim-pulse-soft h-2 w-2 rounded-full bg-warn" />
               Demo mode
             </span>
           ) : (
-            <span className="hidden items-center gap-1.5 rounded-full border border-line bg-canvas px-2.5 py-1 text-[14px] font-medium text-ink-3 sm:inline-flex">
+            <span className="hidden whitespace-nowrap items-center gap-1.5 rounded-full border border-line bg-canvas px-2.5 py-1 text-[15px] font-medium text-ink-3 sm:inline-flex">
               Testnet
             </span>
           )}
-          <span className="hidden items-center gap-1.5 rounded-full border border-line bg-canvas px-2.5 py-1 text-[14px] font-medium text-ink-3 md:inline-flex">
-            {DEFAULT_NETWORK.name} · chain {DEFAULT_NETWORK.chainId}
-          </span>
-          <span className="hidden items-center gap-1.5 text-[14px] text-ink-4 xl:inline-flex">
-            Payout wallet
-            <code className="font-mono text-[14px] text-ink-2">
-              {merchant.payoutWallet.slice(0, 8)}…{merchant.payoutWallet.slice(-4)}
-            </code>
-            {merchant.walletVerified ? <ShieldCheck className="h-3.5 w-3.5 text-positive" /> : null}
-          </span>
 
-          <div className="ml-auto flex items-center gap-1">
-            <button
-              onClick={() => setResetOpen(true)}
-              className="hidden items-center gap-1.5 rounded-lg border border-transparent px-2 py-1.5 text-[14px] font-medium text-ink-3 transition-all hover:border-line hover:bg-surface hover:text-ink sm:flex"
-            >
-              <RefreshCcw className="h-3.5 w-3.5" />
-              Reset demo data
-            </button>
+          <div className="ml-auto flex items-center gap-1.5">
+            <WalletButton />
+            {isDemo ? (
+              <button
+                onClick={() => setResetOpen(true)}
+                className="hidden h-9 whitespace-nowrap items-center gap-1.5 rounded-lg border border-transparent px-2.5 text-[15px] font-medium text-ink-3 transition-all hover:border-line hover:bg-surface hover:text-ink sm:flex"
+              >
+                <RefreshCcw className="h-4 w-4" />
+                Reset demo data
+              </button>
+            ) : null}
             <a
               href="#/developers/quickstart"
-              className="hidden items-center gap-1.5 rounded-lg border border-transparent px-2 py-1.5 text-[14px] font-medium text-ink-3 transition-all hover:border-line hover:bg-surface hover:text-ink sm:flex"
+              className="hidden h-9 whitespace-nowrap items-center gap-1.5 rounded-lg border border-transparent px-2.5 text-[15px] font-medium text-ink-3 transition-all hover:border-line hover:bg-surface hover:text-ink sm:flex"
             >
-              <BookOpen className="h-3.5 w-3.5" />
+              <BookOpen className="h-4 w-4" />
               Docs
-            </a>
-            <a
-              href="#/roadmap"
-              className="hidden h-8 w-8 items-center justify-center rounded-lg text-ink-3 transition-colors hover:bg-surface hover:text-ink md:flex"
-              aria-label="Roadmap"
-              title="Roadmap"
-            >
-              <LifeBuoy className="h-4 w-4" />
             </a>
             <NotificationCenter />
             <a
               href="#/developers/quickstart"
-              className="flex h-8 w-8 items-center justify-center rounded-lg text-ink-3 transition-colors hover:bg-surface hover:text-ink md:hidden"
+              className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-3 transition-colors hover:bg-surface hover:text-ink md:hidden"
               aria-label="Documentation"
             >
-              <HelpCircle className="h-4 w-4" />
+              <HelpCircle className="h-[18px] w-[18px]" />
             </a>
             <ProfileMenu />
           </div>
@@ -610,7 +718,7 @@ export function AppShell() {
 
         <main className="flex-1 px-5 py-8 sm:px-8 lg:px-12 sm:py-10 2xl:px-20">
           <div className="w-full space-y-8">
-            {isDemo ? <DemoModeBanner /> : null}
+            {isDemo ? <DemoModeBanner compact /> : null}
             <PageTransition key={location.pathname} className="space-y-8">
               <Outlet />
             </PageTransition>
@@ -623,9 +731,6 @@ export function AppShell() {
               EzPayz frontend demo · {DEFAULT_NETWORK.name} · USDT · all transactions simulated
             </p>
             <div className="flex items-center gap-3">
-              <a href="#/roadmap" className="transition-colors hover:text-ink">
-                Roadmap
-              </a>
               <a href="#/developers/api-reference" className="transition-colors hover:text-ink">
                 API reference
               </a>

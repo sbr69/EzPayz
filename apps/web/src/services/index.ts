@@ -33,8 +33,6 @@ export const api: GatewayApi = new Proxy({} as GatewayApi, {
   },
 }) as GatewayApi;
 
-export const isDemoMode = () => ENV_DEMO || useDemo.getState().isDemo;
-
 export function hostedUrl(fragment: string): string {
   if (typeof window === "undefined") return `https://checkout.ezpayz.example/${fragment}`;
   const { origin, pathname } = window.location;

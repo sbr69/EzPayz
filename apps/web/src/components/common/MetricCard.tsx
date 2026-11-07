@@ -12,6 +12,7 @@ export function MetricCard({
   icon,
   to,
   tone = "neutral",
+  className,
 }: {
   label: string;
   value: ReactNode;
@@ -20,20 +21,26 @@ export function MetricCard({
   icon?: ReactNode;
   to?: string;
   tone?: "neutral" | "positive" | "warn" | "danger" | "accent";
+  className?: string;
 }) {
   const body = (
-    <Card className="group h-full p-4 shadow-xs transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md">
+    <Card
+      className={cn(
+        "group h-full min-w-0 p-4 shadow-xs transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-md",
+        className,
+      )}
+    >
       <div className="flex items-start justify-between gap-3">
-        <p className="text-[14px] font-semibold uppercase tracking-wider text-ink-4">{label}</p>
+        <p className="min-w-0 truncate text-[14px] font-semibold uppercase tracking-wider text-ink-4">{label}</p>
         {icon ? (
-          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-canvas-alt text-ink-3 transition-colors duration-300 group-hover:bg-accent-soft group-hover:text-accent">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-canvas-alt text-ink-3 transition-colors duration-300 group-hover:bg-accent-soft group-hover:text-accent">
             {icon}
           </span>
         ) : null}
       </div>
       <p
         className={cn(
-          "mt-2 text-[26px] font-semibold leading-none tracking-[-0.02em] tnum",
+          "mt-2 whitespace-nowrap text-[22px] font-semibold leading-none tracking-[-0.02em] tnum sm:text-[26px]",
           tone === "positive" && "text-positive",
           tone === "warn" && "text-warn",
           tone === "danger" && "text-danger",
@@ -43,11 +50,11 @@ export function MetricCard({
       >
         {value}
       </p>
-      <div className="mt-2 flex items-center gap-2">
+      <div className="mt-2 flex min-w-0 items-center gap-2">
         {delta && delta.direction !== "flat" ? (
           <span
             className={cn(
-              "inline-flex items-center gap-0.5 text-[16px] font-semibold tnum",
+              "inline-flex shrink-0 items-center gap-0.5 text-[16px] font-semibold tnum",
               delta.direction === "up" ? "text-positive" : "text-danger",
             )}
           >
@@ -59,28 +66,30 @@ export function MetricCard({
             {delta.value}
           </span>
         ) : null}
-        {sub ? <span className="text-[16px] text-ink-3">{sub}</span> : null}
+        {sub ? <span className="min-w-0 truncate text-[16px] text-ink-3">{sub}</span> : null}
       </div>
     </Card>
   );
-  return to ? <Link to={to} className="block h-full">{body}</Link> : body;
+  return to ? <Link to={to} className="block h-full min-w-0">{body}</Link> : body;
 }
 
 export function MiniStat({
   label,
   value,
   tone,
+  className,
 }: {
   label: string;
   value: ReactNode;
   tone?: "positive" | "warn" | "danger";
+  className?: string;
 }) {
   return (
-    <div className="rounded-md border border-line bg-canvas/60 px-3 py-2">
-      <p className="text-[16px] font-medium uppercase tracking-wide text-ink-4">{label}</p>
+    <div className={cn("min-w-0 rounded-md border border-line bg-canvas/60 px-3 py-2", className)}>
+      <p className="truncate text-[14px] font-medium uppercase tracking-wide text-ink-4">{label}</p>
       <p
         className={cn(
-          "mt-0.5 text-[20px] font-semibold tnum",
+          "mt-0.5 truncate whitespace-nowrap text-[18px] font-semibold tnum sm:text-[20px]",
           tone === "positive" && "text-positive",
           tone === "warn" && "text-warn",
           tone === "danger" && "text-danger",

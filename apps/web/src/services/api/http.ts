@@ -29,7 +29,20 @@ export async function apiFetch<T = unknown>(path: string, opts?: RequestInit & {
   if (method === "POST" && !headers["Idempotency-Key"]) {
     headers["Idempotency-Key"] = `auto-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
   }
-  const res = await fetch(`${API_URL}${path}`, { ...opts, headers });
+  let res: Response;
+  try {
+    res = await fetch(`${API_URL}${path}`, { ...opts, headers });
+  } catch (err) {
+    // fetch only throws TypeError here for network-level failures: unreachable server,
+    // blocked CORS, DNS, or an edge proxy cutting an idle connection.
+    console.error("[apiFetch] network request failed:", err);
+    const isLocalApi = /localhost|127\.0\.0\.1/.test(API_URL);
+    throw new Error(
+      isLocalApi
+        ? `Could not reach the API at ${API_URL}. Start it locally with: pnpm --filter @ezpayz/api dev (plus the worker: pnpm --filter @ezpayz/api worker).`
+        : `Could not reach the gateway API (${API_URL}). Free hosting sleeps when idle — the first request can take up to a minute. Wait a moment and try again.`,
+    );
+  }
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
     throw new Error((body as { error?: { message?: string } })?.error?.message ?? `HTTP ${res.status}`);

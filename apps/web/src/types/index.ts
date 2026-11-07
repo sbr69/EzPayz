@@ -136,6 +136,7 @@ export interface Merchant {
   description: string;
   logoText: string;
   accentColor: string;
+  checkoutExpiryHours?: number;
   payoutWallet: string;
   walletVerified: boolean;
   walletVerifiedAt: ISODate | null;
@@ -481,7 +482,7 @@ export interface ApiKey {
   /** Secret reference only. The secret value is revealed once, never stored. */
   secretLast4: string;
   secretPreview?: string;
-  permissions: string[];
+  permissions?: string[];
   createdAt: ISODate;
   lastUsedAt: ISODate | null;
   revokedAt: ISODate | null;

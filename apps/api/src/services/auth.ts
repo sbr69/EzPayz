@@ -25,8 +25,22 @@ export async function registerMerchant(
     throw { statusCode: 409, code: "email_taken", message: "Email already registered" };
   }
   const passwordHash = await hashPassword(password);
+  // Avatar initials from the business name (max 2 chars) — never the legacy "W" default.
+  const logoText = businessName
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => word.charAt(0).toUpperCase())
+    .join("");
   const merchant = await prisma.merchant.create({
-    data: { businessEmail, businessName, displayName: businessName, passwordHash, payoutWallet: "" },
+    data: {
+      businessEmail,
+      businessName,
+      displayName: businessName,
+      passwordHash,
+      payoutWallet: "",
+      logoText: logoText || "EZ",
+    },
   });
   const token = (app as unknown as { jwt: { sign: (p: Record<string, unknown>) => string } }).jwt.sign({ sub: merchant.id });
   return { merchant, token };

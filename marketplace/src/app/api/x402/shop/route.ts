@@ -70,7 +70,9 @@ export async function POST(request: Request) {
   const merchantKey = process.env.EZPAYZ_SECRET_KEY;
   const recipient = process.env.EZPAYZ_PAYOUT_WALLET;
   const gateway = URL.parse(process.env.EZPAYZ_API_URL ?? "");
-  if (!merchantKey || !recipient || !isAddress(recipient) || !gateway || gateway.protocol !== "https:" || gateway.username || gateway.password) {
+  // Loopback HTTP is allowed for local development (the secret never leaves this machine).
+  const apiLoopbackHttp = gateway?.protocol === "http:" && ["localhost", "127.0.0.1"].includes(gateway.hostname);
+  if (!merchantKey || !recipient || !isAddress(recipient) || !gateway || (gateway.protocol !== "https:" && !apiLoopbackHttp) || gateway.username || gateway.password) {
     return fail("The store has not configured x402 checkout.", 503);
   }
   const payTo = getAddress(recipient);

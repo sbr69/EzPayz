@@ -351,7 +351,7 @@ export function PageHeader({
       ) : null}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-[32px] font-bold leading-tight tracking-[-0.02em] text-ink">{title}</h1>
+          <h1 className="font-display text-[34px] leading-tight tracking-[-0.01em] text-ink">{title}</h1>
           {description ? <p className="mt-1 max-w-2xl text-[18px] leading-relaxed text-ink-3">{description}</p> : null}
           {meta ? <div className="mt-2.5 flex flex-wrap items-center gap-2">{meta}</div> : null}
         </div>

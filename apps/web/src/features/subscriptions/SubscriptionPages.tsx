@@ -138,7 +138,7 @@ export function SubscriptionsList() {
     <>
       <PageHeader
         title="Subscriptions"
-        description="Recurring billing with an explicit customer authorization. Renewals are executed by the gateway inside the approved allowance."
+        description="Recurring billing on explicit customer authorization."
         actions={
           <Link to="/subscriptions/plans/new">
             <Button variant="primary" icon={<Plus className="h-4 w-4" />}>
@@ -322,7 +322,7 @@ export function SubscriptionDetail() {
         </Callout>
       ) : null}
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <div className="px-6 pt-2">
             <Tabs
@@ -339,7 +339,7 @@ export function SubscriptionDetail() {
           </div>
 
           {tab === "overview" ? (
-            <div className="grid gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
               <KeyValue label="Subscription ID">
                 <code className="font-mono text-[16px]">{subscription.id}</code>
               </KeyValue>
@@ -425,7 +425,7 @@ export function SubscriptionDetail() {
                   </div>
                 </div>
               </div>
-              <div className="grid gap-x-8 sm:grid-cols-2 2xl:grid-cols-3">
+              <div className="grid grid-cols-1 gap-x-8 sm:grid-cols-2 2xl:grid-cols-3">
                 <KeyValue label="Allowance status">
                   {subscription.allowanceRevokedAt ? (
                     <StatusBadge label="Revoked" tone="danger" />

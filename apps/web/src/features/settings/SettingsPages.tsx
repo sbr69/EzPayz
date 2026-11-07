@@ -237,7 +237,7 @@ export function WalletSettings() {
               tone={data.merchant.walletVerified ? "positive" : "warn"}
             />
           </div>
-          <div className="grid gap-x-8 sm:grid-cols-2 2xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-x-8 sm:grid-cols-2 2xl:grid-cols-3">
             <KeyValue label="Network">{DEFAULT_NETWORK.name}</KeyValue>
             <KeyValue label="Chain ID">{DEFAULT_NETWORK.chainId}</KeyValue>
             <KeyValue label="Settlement asset">{TOKEN.symbol}</KeyValue>
@@ -262,7 +262,7 @@ export function WalletSettings() {
                 {wallet.address ? wallet.providerName : "No wallet connected"}
               </p>
               {wallet.address ? (
-                <code className="font-mono text-[16px] text-ink-3">{wallet.address}</code>
+                <code className="block max-w-full break-all font-mono text-[16px] text-ink-3">{wallet.address}</code>
               ) : (
                 <p className="text-[18px] text-ink-3">Connect a wallet to authorize refunds.</p>
               )}
@@ -649,7 +649,7 @@ export function SecuritySettings() {
 
       <Card>
         <CardHeader title="Session and workspace" />
-        <div className="grid gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
           <KeyValue label="Session">Demo session stored in this browser</KeyValue>
           <KeyValue label="Authentication">Simulated — no identity provider</KeyValue>
           <KeyValue label="Merchant ID">
@@ -802,7 +802,7 @@ export function GasSponsorshipSettings() {
 
       <Card>
         <CardHeader title="Current policy" description="Effective limits applied by GasGuard before submission." />
-        <div className="grid gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
           <KeyValue label="Max gas per transaction">{data.gasGuard.maxGasPerTxGwei.toLocaleString()}</KeyValue>
           <KeyValue label="Rate limit">{data.gasGuard.rateLimitPerMinute} per minute</KeyValue>
           <KeyValue label="Allowed network">{data.gasGuard.allowedNetwork}</KeyValue>

@@ -58,6 +58,38 @@ interface WalletApi extends WalletState {
 
 const DEMO_ADDRESS = "0xd3000000000000000000000000000000000000c1a";
 
+/**
+ * Session persistence — a connected wallet survives page refreshes.
+ * Simulated (demo) sessions restore as-is; real wallets are passively
+ * re-verified via `eth_accounts` (never prompts).
+ */
+const WALLET_STORAGE_KEY = "wcp_wallet";
+
+interface PersistedWallet {
+  address: string;
+  chainId: number | null;
+  simulated: boolean;
+  providerName: string;
+}
+
+function persistWallet(state: WalletState) {
+  try {
+    if ((state.status === "connected" || state.status === "wrong_network" || state.status === "switching") && state.address) {
+      const payload: PersistedWallet = {
+        address: state.address,
+        chainId: state.chainId,
+        simulated: state.simulated,
+        providerName: state.providerName,
+      };
+      localStorage.setItem(WALLET_STORAGE_KEY, JSON.stringify(payload));
+    } else if (state.status === "disconnected" || state.status === "disconnected_unexpectedly") {
+      localStorage.removeItem(WALLET_STORAGE_KEY);
+    }
+  } catch {
+    /* storage unavailable — session simply won't persist */
+  }
+}
+
 const WalletCtx = createContext<WalletApi | null>(null);
 
 export function WalletProvider({ children }: { children: ReactNode }) {
@@ -71,6 +103,56 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     busy: false,
   });
   const [hasProvider, setHasProvider] = useState(false);
+
+  // Restore a persisted connection on mount.
+  useEffect(() => {
+    let saved: PersistedWallet | null = null;
+    try {
+      const raw = localStorage.getItem(WALLET_STORAGE_KEY);
+      if (raw) saved = JSON.parse(raw) as PersistedWallet;
+    } catch {
+      return;
+    }
+    if (!saved?.address) return;
+    // A simulated session only exists in demo mode — never carry it into a real build.
+    if (saved.simulated && !DEMO.demoMode) {
+      localStorage.removeItem(WALLET_STORAGE_KEY);
+      return;
+    }
+    const restore = (status: WalletStatus): void => {
+      setState({
+        status,
+        address: saved!.address,
+        chainId: saved!.chainId,
+        simulated: saved!.simulated,
+        providerName: saved!.providerName,
+        error: null,
+        busy: false,
+      });
+    };
+    if (saved.simulated || typeof window === "undefined" || !window.ethereum) {
+      restore(saved.chainId === DEFAULT_NETWORK.chainId ? "connected" : "wrong_network");
+      return;
+    }
+    // Real wallet — silently confirm the saved address is still authorized.
+    window.ethereum
+      .request({ method: "eth_accounts" })
+      .then((accounts) => {
+        const list = accounts as string[];
+        if (list?.includes(saved!.address)) {
+          restore(saved!.chainId === DEFAULT_NETWORK.chainId ? "connected" : "wrong_network");
+        } else {
+          localStorage.removeItem(WALLET_STORAGE_KEY);
+        }
+      })
+      .catch(() => localStorage.removeItem(WALLET_STORAGE_KEY));
+  }, []);
+
+  // Keep storage in sync with connection state.
+  useEffect(() => {
+    persistWallet(state);
+  }, [state]);
+
 
   useEffect(() => {
     const provider = typeof window !== "undefined" ? window.ethereum : undefined;
@@ -117,7 +199,17 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     setState((s) => ({ ...s, busy: true, error: null }));
     await sleep(DEMO.delays.medium);
     if (!provider) {
-      // Clearly-labelled simulation fallback.
+      if (!DEMO.demoMode) {
+        // Real build with no injected wallet — fail honestly instead of simulating.
+        setState((s) => ({
+          ...s,
+          busy: false,
+          status: "unsupported",
+          error: "No EVM wallet detected in this browser. Install MetaMask (or another injected wallet) to connect.",
+        }));
+        return;
+      }
+      // Clearly-labelled simulation fallback (demo mode only).
       setState({
         status: "connected",
         address: DEMO_ADDRESS,

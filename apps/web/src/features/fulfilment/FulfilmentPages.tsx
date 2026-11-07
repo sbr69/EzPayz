@@ -94,7 +94,7 @@ export function FulfilmentList() {
     <>
       <PageHeader
         title="Fulfilment"
-        description="DeliveryGuard tracks merchant-reported fulfilment status. It is not escrow and does not hold funds."
+        description="Merchant-reported delivery tracking — not escrow."
         meta={
           <>
             <StatusBadge label="Merchant-reported status" tone="neutral" dot={false} />
@@ -218,7 +218,7 @@ export function FulfilmentDetail() {
         }
       />
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader title="Update fulfilment" description="Changes are visible to the customer on their order page when marked visible." />
           <div className="space-y-4 px-6 py-5">

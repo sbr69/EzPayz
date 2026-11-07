@@ -190,7 +190,7 @@ export function PaymentsList() {
     <>
       <PageHeader
         title="Payments"
-        description="Every USDT payment attempt created through the gateway, with settlement status kept separate from delivery status."
+        description="Every USDT payment attempt, with live settlement status."
         actions={
           <Button variant="primary" onClick={() => setCreateOpen(true)} icon={<FileText className="h-4 w-4" />}>
             Create payment
@@ -406,11 +406,11 @@ export function PaymentDetail() {
         </Callout>
       ) : null}
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <div className="space-y-4 lg:col-span-2">
           <Card>
             <CardHeader title="Payment summary" />
-            <div className="grid gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
               <KeyValue label="Payment ID">
                 <code className="font-mono text-[16px]">{payment.id}</code>
               </KeyValue>
@@ -460,7 +460,7 @@ export function PaymentDetail() {
 
           <Card>
             <CardHeader title="Settlement and delivery" />
-            <div className="grid gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
+            <div className="grid grid-cols-1 gap-x-8 px-6 py-2.5 sm:grid-cols-2 2xl:grid-cols-3">
               <KeyValue label="Authorization status">
                 {payment.authorizationRef ? (
                   <span className="text-positive">Received</span>

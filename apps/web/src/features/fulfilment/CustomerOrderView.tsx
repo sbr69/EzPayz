@@ -61,7 +61,7 @@ export function CustomerOrderView() {
                   tone={FULFILMENT_TONES[order.status]}
                 />
               </div>
-              <div className="grid gap-x-8 px-6 py-2.5 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-x-8 px-6 py-2.5 sm:grid-cols-2">
                 <KeyValue label="Order amount">
                   <AmountDisplay base={order.amount} symbol={TOKEN.symbol} />
                 </KeyValue>

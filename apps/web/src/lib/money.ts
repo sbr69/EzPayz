@@ -91,7 +91,8 @@ export function fmtCompact(base: BaseAmount, symbol = TOKEN.symbol): string {
   if (abs >= 1_000_000) out = `${(n / 1_000_000).toFixed(2)}M`;
   else if (abs >= 1_000) out = `${(n / 1_000).toFixed(2)}K`;
   else out = n.toFixed(2);
-  return `${out} ${symbol}`;
+  // Empty symbol → compact number only (used for chart axis ticks, which have no room for units).
+  return symbol ? `${out} ${symbol}` : out;
 }
 
 export function fmtNumber(n: number): string {

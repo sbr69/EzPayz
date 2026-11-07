@@ -4,23 +4,20 @@ import {
   AlertTriangle,
   ArrowUpRight,
   CreditCard,
-  Gauge,
   Link2,
   Plus,
   Receipt,
   RefreshCcw,
   Repeat,
-  ShieldCheck,
   TrendingUp,
-  Wallet,
 } from "lucide-react";
 import { useDemo } from "@/store/demoStore";
 import { RANGE_OPTIONS, useMetrics, type RangeKey } from "@/hooks/useMetrics";
 import { DEFAULT_NETWORK, TOKEN } from "@/config/app";
-import { fmtAmount, fmtNumber, fromBase, timeAgo, untilFuture } from "@/lib/money";
+import { fmtAmount, fmtNumber, timeAgo, untilFuture } from "@/lib/money";
 import { PAYMENT_STATUS_META } from "@/config/ui";
 import { Button, Card, CardHeader, PageHeader, Select, StatusBadge } from "@/components/ui";
-import { DonutChart, StackedBarChart, VolumeChart } from "@/components/ui/charts";
+import { VolumeChart } from "@/components/ui/charts";
 import { MetricCard, MiniStat } from "@/components/common/MetricCard";
 import { CreatePaymentDialog } from "@/components/common/dialogs";
 import { AmountDisplay, TxRefDisplay } from "@/components/ui/display";
@@ -72,32 +69,12 @@ export default function Dashboard() {
       <PageHeader
         title={`Welcome back, ${data.merchant.displayName}`}
         description={`Here is what happened across your USDT payment activity on ${DEFAULT_NETWORK.name}.`}
-        meta={
-          <>
-            <StatusBadge label={`${DEFAULT_NETWORK.name} · testnet`} tone="warn" dot={false} />
-            <StatusBadge
-              label={
-                <span className="inline-flex items-center gap-1">
-                  <Wallet className="h-3 w-3" />
-                  {`${data.merchant.payoutWallet.slice(0, 8)}…${data.merchant.payoutWallet.slice(-4)}`}
-                </span>
-              }
-              tone={data.merchant.walletVerified ? "positive" : "warn"}
-            />
-            {data.merchant.walletVerified ? (
-              <span className="inline-flex items-center gap-1 text-[16px] text-ink-4">
-                <ShieldCheck className="h-3.5 w-3.5 text-positive" />
-                Verified (simulated)
-              </span>
-            ) : null}
-          </>
-        }
         actions={
           <>
             <Select
               value={range}
               onChange={(e) => setRange(e.target.value as RangeKey)}
-              className="h-10 w-[160px]"
+              className="h-10 w-[176px]"
               aria-label="Date range"
             >
               {RANGE_OPTIONS.map((o) => (
@@ -113,7 +90,7 @@ export default function Dashboard() {
         }
       />
 
-      <Stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6" gap={0.05}>
+      <Stagger className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6" gap={0.05}>
         <StaggerItem>
           <MetricCard
             label="Total received"
@@ -170,7 +147,7 @@ export default function Dashboard() {
       </Stagger>
 
       <FadeIn delay={0.15}>
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader
             title="Payment volume"
@@ -182,29 +159,7 @@ export default function Dashboard() {
           </div>
         </Card>
         <Card>
-          <CardHeader title="Payment method" description="How customers paid" />
-          <div className="p-5">
-            <DonutChart
-              data={metrics.byKind.map((k) => ({ name: kindLabels[k.kind] ?? k.kind, value: k.count }))}
-            />
-          </div>
-        </Card>
-      </div>
-      </FadeIn>
-
-      <div className="grid gap-5 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader title="Successful vs failed payments" description="Outcome distribution per period" />
-          <div className="p-5">
-            <StackedBarChart
-              data={metrics.series}
-              keys={["succeeded", "failed"]}
-              labels={{ succeeded: "Succeeded", failed: "Failed / expired" }}
-            />
-          </div>
-        </Card>
-        <Card>
-          <CardHeader title="Subscription renewals" description="Attempted renewals and outcome" />
+          <CardHeader title="Subscription renewals" description="Upcoming renewal attempts" />
           <div className="space-y-3 p-5">
             {upcoming.length === 0 ? (
               <p className="px-1 py-6 text-center text-[18px] text-ink-4">No upcoming renewals</p>
@@ -223,7 +178,7 @@ export default function Dashboard() {
                       {data.plans.find((p) => p.id === s.planId)?.name} · {s.interval}
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div className="shrink-0 text-right">
                     <AmountDisplay base={s.amount} className="text-[18px]" />
                     <p className="text-[16px] text-ink-4">{untilFuture(s.nextBillingAt)}</p>
                   </div>
@@ -233,6 +188,7 @@ export default function Dashboard() {
           </div>
         </Card>
       </div>
+      </FadeIn>
 
       <Card>
         <CardHeader
@@ -247,17 +203,17 @@ export default function Dashboard() {
           }
         />
         <div className="overflow-x-auto scroll-thin">
-          <table className="w-full min-w-[860px] text-left text-[18px]">
+          <table className="w-full min-w-[640px] text-left text-[16px] sm:text-[18px]">
             <thead>
               <tr className="border-b border-line bg-canvas/60 text-[14px] uppercase tracking-wider text-ink-4">
-                <th className="px-6 py-3 font-semibold">Payment</th>
-                <th className="px-6 py-3 font-semibold">Customer</th>
-                <th className="px-6 py-3 text-right font-semibold">Amount</th>
-                <th className="px-6 py-3 font-semibold">Type</th>
-                <th className="px-6 py-3 font-semibold">Status</th>
-                <th className="px-6 py-3 font-semibold">Date</th>
-                <th className="px-6 py-3 font-semibold">Transaction</th>
-                <th className="px-6 py-3" />
+                <th className="px-3 py-3 font-semibold sm:px-6">Payment</th>
+                <th className="px-3 py-3 font-semibold sm:px-6">Customer</th>
+                <th className="px-3 py-3 text-right font-semibold sm:px-6">Amount</th>
+                <th className="hidden px-3 py-3 font-semibold lg:table-cell sm:px-6">Type</th>
+                <th className="px-3 py-3 font-semibold sm:px-6">Status</th>
+                <th className="px-3 py-3 font-semibold sm:px-6">Date</th>
+                <th className="hidden px-3 py-3 font-semibold xl:table-cell sm:px-6">Transaction</th>
+                <th className="px-3 py-3 sm:px-6" />
               </tr>
             </thead>
             <tbody className="divide-y divide-line">
@@ -267,29 +223,31 @@ export default function Dashboard() {
                   onClick={() => navigate(`/payments/${p.id}`)}
                   className="cursor-pointer transition-colors hover:bg-canvas/70"
                 >
-                  <td className="px-6 py-3 font-mono text-[18px] text-ink">{p.id}</td>
-                  <td className="px-6 py-3">
+                  <td className="px-3 py-3 font-mono text-ink sm:px-6">
+                    <span className="block max-w-[120px] truncate sm:max-w-[160px]">{p.id}</span>
+                  </td>
+                  <td className="max-w-[140px] truncate px-3 py-3 sm:px-6">
                     {p.customerId ? (
                       data.customers.find((c) => c.id === p.customerId)?.name ?? "—"
                     ) : (
                       <span className="text-ink-4">{p.customerEmail ?? "Guest"}</span>
                     )}
                   </td>
-                  <td className="px-6 py-3 text-right">
+                  <td className="whitespace-nowrap px-3 py-3 text-right sm:px-6">
                     <AmountDisplay base={p.receivedAmount ?? p.amount} className="text-[18px]" />
                   </td>
-                  <td className="px-6 py-3 text-ink-3">{kindLabels[p.kind]}</td>
-                  <td className="px-6 py-3">
+                  <td className="hidden px-3 py-3 text-ink-3 lg:table-cell sm:px-6">{kindLabels[p.kind]}</td>
+                  <td className="px-3 py-3 sm:px-6">
                     <StatusBadge
                       label={PAYMENT_STATUS_META[p.status].label}
                       tone={PAYMENT_STATUS_META[p.status].tone}
                     />
                   </td>
-                  <td className="px-6 py-3 text-[18px] text-ink-3 tnum">{timeAgo(p.createdAt)}</td>
-                  <td className="px-6 py-3">
+                  <td className="whitespace-nowrap px-3 py-3 text-ink-3 tnum sm:px-6">{timeAgo(p.createdAt)}</td>
+                  <td className="hidden px-3 py-3 xl:table-cell sm:px-6">
                     <TxRefDisplay value={p.txRef} size="xs" />
                   </td>
-                  <td className="px-6 py-3 text-right">
+                  <td className="px-3 py-3 text-right sm:px-6">
                     <ArrowUpRight className="ml-auto h-3.5 w-3.5 text-ink-4" />
                   </td>
                 </tr>
@@ -299,18 +257,18 @@ export default function Dashboard() {
         </div>
       </Card>
 
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
         <Card>
           <CardHeader title="Recent refunds" actions={<Link to="/refunds" className="text-[18px] font-medium text-accent hover:underline">All refunds</Link>} />
           <ul className="divide-y divide-line">
             {recentRefunds.map((r) => (
               <li key={r.id}>
-                <Link to={`/refunds/${r.id}`} className="flex items-center justify-between gap-3 px-6 py-3 hover:bg-canvas">
+                <Link to={`/refunds/${r.id}`} className="flex items-center justify-between gap-3 px-4 py-3 hover:bg-canvas sm:px-6">
                   <div className="min-w-0">
-                    <p className="text-[18px] font-medium text-ink">{r.id}</p>
+                    <p className="truncate text-[18px] font-medium text-ink">{r.id}</p>
                     <p className="truncate text-[16px] text-ink-3">{r.reason}</p>
                   </div>
-                  <div className="text-right">
+                  <div className="shrink-0 text-right">
                     <AmountDisplay base={r.amount} className="text-[18px]" />
                     <p className="text-[16px] text-ink-4">{timeAgo(r.createdAt)}</p>
                   </div>
@@ -328,7 +286,7 @@ export default function Dashboard() {
             ) : (
               openExceptions.map((e) => (
                 <li key={e.id}>
-                  <Link to={`/exceptions/${e.id}`} className="flex items-start gap-2.5 px-6 py-3 hover:bg-canvas">
+                  <Link to={`/exceptions/${e.id}`} className="flex items-start gap-2.5 px-4 py-3 hover:bg-canvas sm:px-6">
                     <AlertTriangle
                       className={`mt-0.5 h-3.5 w-3.5 shrink-0 ${
                         e.severity === "critical" || e.severity === "high" ? "text-danger" : "text-warn"
@@ -348,10 +306,10 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader title="Relayer sponsorship" description="GasGuard usage for your workspace" actions={<Link to="/gasguard" className="text-[18px] font-medium text-accent hover:underline">GasGuard</Link>} />
-          <div className="grid grid-cols-2 gap-3 p-5">
-            <MiniStat label="Sponsored tx" value={fmtNumber(sponsorship.sponsored)} />
-            <MiniStat label="WBT consumed" value={sponsorship.cost} />
-            <MiniStat label="Budget used" value={`${Math.round((data.gasGuard.merchantSpentWbt / data.gasGuard.merchantBudgetWbt) * 100)}%`} tone="warn" />
+          <div className="grid grid-cols-2 gap-3 p-4 sm:p-5">
+            <MiniStat label="Sponsored" value={fmtNumber(sponsorship.sponsored)} />
+            <MiniStat label="WBT used" value={sponsorship.cost} />
+            <MiniStat label="Budget" value={`${Math.round((data.gasGuard.merchantSpentWbt / data.gasGuard.merchantBudgetWbt) * 100)}%`} tone="warn" />
             <MiniStat label="Rejected" value={fmtNumber(sponsorship.rejected)} tone={sponsorship.rejected ? "danger" : undefined} />
           </div>
           <div className="border-t border-line px-6 py-4">
@@ -373,7 +331,7 @@ export default function Dashboard() {
 
       <Card>
         <CardHeader title="Quick actions" description="Start a new payment flow or jump into a module" />
-        <div className="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-3 p-4 sm:gap-4 sm:p-5 lg:grid-cols-5">
           {[
             { label: "Create payment", icon: CreditCard, action: () => setCreateOpen(true) },
             { label: "Create payment link", icon: Link2, action: () => navigate("/payment-links/new") },
@@ -384,7 +342,7 @@ export default function Dashboard() {
             <button
               key={a.label}
               onClick={a.action}
-              className="group flex items-center gap-2.5 rounded-[10px] border border-line bg-surface px-3.5 py-3 text-left text-[18px] font-medium text-ink shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-line-strong hover:shadow-sm"
+              className="group flex items-center gap-2.5 rounded-[10px] border border-line bg-surface px-3 py-3 text-left text-[16px] font-medium text-ink shadow-xs transition-all duration-200 hover:-translate-y-0.5 hover:border-line-strong hover:shadow-sm sm:px-3.5 sm:text-[18px]"
             >
               <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent-soft text-accent transition-colors duration-200 group-hover:bg-accent group-hover:text-white">
                 <a.icon className="h-3.5 w-3.5" strokeWidth={1.9} />
@@ -392,19 +350,6 @@ export default function Dashboard() {
               {a.label}
             </button>
           ))}
-        </div>
-      </Card>
-
-      <Card className="bg-canvas/40">
-        <div className="flex flex-wrap items-center gap-3 px-6 py-4 text-[18px] text-ink-3">
-          <Gauge className="h-3.5 w-3.5 text-accent" />
-          <span>
-            Gross volume for this period is {fmtAmount(metrics.grossVolume)} {TOKEN.symbol} across{" "}
-            {fmtNumber(metrics.payments.length)} payment records; refunds total{" "}
-            {fmtAmount(metrics.refundedTotal)} {TOKEN.symbol}. Analytics reconcile against the same records
-            (average value {fmtAmount(metrics.avgValue)} {TOKEN.symbol}, derived as{" "}
-            {fromBase(metrics.grossVolume)} base units ÷ {metrics.settled.length}).
-          </span>
         </div>
       </Card>
 

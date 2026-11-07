@@ -158,10 +158,19 @@ export function DemoModeBanner({ compact }: { compact?: boolean }) {
   return (
     <div className="flex items-start gap-2 rounded-[10px] border border-warn-line bg-warn-soft px-3 py-2 text-warn">
       <TriangleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-      <p className={cn("text-[16px] leading-relaxed", compact && "sm:hidden")}>
-        <span className="font-semibold">Demo mode.</span> All wallets, signatures, transactions and
-        settlements shown here are simulated in the browser. No on-chain state is read or written and
-        nothing is verified on Whitechain.
+      <p className="text-[16px] leading-relaxed">
+        <span className="font-semibold">Demo mode.</span>{" "}
+        {compact ? (
+          <>
+            <span className="sm:hidden">Everything is simulated.</span>
+            <span className="hidden sm:inline">
+              All wallets, signatures, transactions and settlements shown here are simulated in the
+              browser. No on-chain state is read or written and nothing is verified on Whitechain.
+            </span>
+          </>
+        ) : (
+          "All wallets, signatures, transactions and settlements shown here are simulated in the browser. No on-chain state is read or written and nothing is verified on Whitechain."
+        )}
       </p>
     </div>
   );
